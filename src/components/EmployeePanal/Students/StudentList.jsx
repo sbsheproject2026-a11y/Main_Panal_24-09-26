@@ -1,6 +1,7 @@
  import React, { useEffect, useState } from "react";
 import { getStudentDelete, getStudents } from "./StudentService";
 import { useNavigate } from "react-router-dom";
+import { FILE_URL } from "../../api";
 
 function StudentList() {
   const [data, setData] = useState([]);
@@ -929,7 +930,8 @@ function StudentList() {
                                 <div>
                                   {item.selfImageShow ? (
                                     <img
-                                      src={item.selfImageShow}
+                               
+                                       src={`${FILE_URL}${item.selfImage}`}
                                       alt="Student"
                                       className="student-image"
                                       onError={(e) => {

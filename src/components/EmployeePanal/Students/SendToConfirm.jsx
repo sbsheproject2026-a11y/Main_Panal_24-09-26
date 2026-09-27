@@ -2,6 +2,7 @@
 import { getStudentDelete, getStudentsSendToConfirm, sendToConfirmStatus } from './StudentService';
 import { useNavigate } from 'react-router-dom';
 import { getWalletShowBalance } from '../WalletWorking/WalletService';
+import { FILE_URL } from '../../api';
 
 function SendToConfirm() {
     const [loading, setLoading] = useState(false);
@@ -1199,7 +1200,8 @@ function SendToConfirm() {
 
                                                 <td>
                                                     <img
-                                                        src={item.selfImageShow}
+                                                      
+                                                          src={`${FILE_URL}${item.selfImageShow}`}
                                                         alt="Student"
                                                         className="stc-avatar"
                                                         onError={(e) => {

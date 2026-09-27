@@ -12,6 +12,7 @@ import {
   getCourse,
   getMasterSession,
 } from "./StudentService";
+import { FILE_URL } from "../../api";
 
 function ViewDetails() {
   const { id } = useParams();
@@ -404,7 +405,7 @@ function ViewDetails() {
                   {student.selfImageShow ? (
 
                     <img
-                      src={student.selfImageShow}
+                         src={`${FILE_URL}${student.selfImageShow}`} 
                       alt="Student"
                       style={{
                         width: "125px",
@@ -911,7 +912,8 @@ function ViewDetails() {
                   {student.selfImageShow ? (
 
                     <img
-                      src={student.selfImageShow}
+                     src={`${FILE_URL}${student.selfImageShow}`}
+                   
                       alt="Student"
                       className="img-fluid"
                       style={{
@@ -951,7 +953,8 @@ function ViewDetails() {
                   {student.signatureImageShow ? (
 
                     <img
-                      src={student.signatureImageShow}
+                     
+                        src={`${FILE_URL}${student.signatureImageShow}`}
                       alt="Signature"
                       className="img-fluid"
                       style={{
@@ -991,7 +994,8 @@ function ViewDetails() {
                   {student.aadhaarCardFrantShow ? (
 
                     <img
-                      src={student.aadhaarCardFrantShow}
+                   
+                       src={`${FILE_URL}${student.aadhaarCardFrantShow}`}
                       alt="Aadhaar Front"
                       className="img-fluid"
                       style={{
@@ -1031,7 +1035,8 @@ function ViewDetails() {
                   {student.aadhaarCardBackShow ? (
 
                     <img
-                      src={student.aadhaarCardBackShow}
+                    
+                        src={`${FILE_URL}${student.aadhaarCardBackShow}`}
                       alt="Aadhaar Back"
                       className="img-fluid"
                       style={{

@@ -9,6 +9,6 @@ baseURL: "https://api.shaheedbhagatsinghhealthandeducation.com/api",
 });
 
 //export const FILE_URL = "http://localhost:5188/uploads/";
-export const FILE_URL = "https://api.shaheedbhagatsinghhealthandeducation.com/uploads/";
+export const FILE_URL = "https://api.shaheedbhagatsinghhealthandeducation.com/Uploads/";
 
 export default api;

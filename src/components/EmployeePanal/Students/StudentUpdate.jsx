@@ -14,6 +14,7 @@ import {
   translateToHindi,
   updateStudent
 } from "./StudentService";
+import { FILE_URL } from "../../api";
 
 function StudentUpdate() {
   const { id } = useParams();
@@ -49,12 +50,12 @@ function StudentUpdate() {
     signatureImage1: null,
     aadhaarCardFrant1: null,
     aadhaarCardBack1: null,
-    casteCategoryId: 0,
+    casteCategoryId: null,
     courseTypeId: 0,
     courseCategoryId: 0,
     courseId: 0,
     examSessionId: 0,
-    genderId: 0,
+    genderId: null,
     stateId: 0,
     districtId: 0,
     locationId: 0,
@@ -1031,7 +1032,7 @@ function StudentUpdate() {
           <div className="student-profile-body">
             <div className="student-profile-image">
               {formData.selfImageShow ? (
-                <img src={formData.selfImageShow} alt="Student" />
+                <img   src={`${FILE_URL}${formData.selfImageShow}`} alt="Student" />
               ) : (
                 <i className="bi bi-person"></i>
               )}
@@ -1654,7 +1655,7 @@ function StudentUpdate() {
                 </div>
               </div>
 
-              <div className="student-form-section">
+              {/* <div className="student-form-section">
                 <div className="student-section-header">
                   <div className="student-section-icon">
                     <i className="bi bi-mortarboard"></i>
@@ -1722,7 +1723,7 @@ function StudentUpdate() {
                     </div>
                   )}
                 </div>
-              </div>
+              </div> */}
 
               <div className="student-form-section">
                 <div className="student-section-header">
@@ -1758,7 +1759,8 @@ function StudentUpdate() {
                           <div className="student-preview-box">
                             {formData.selfImageShow ? (
                               <img
-                                src={formData.selfImageShow}
+                             
+                                 src={`${FILE_URL}${formData.selfImageShow}`}
                                 alt="Student"
                               />
                             ) : (
@@ -1791,7 +1793,8 @@ function StudentUpdate() {
                           <div className="student-preview-box">
                             {formData.signatureImageShow ? (
                               <img
-                                src={formData.signatureImageShow}
+                            
+                                   src={`${FILE_URL}${formData.signatureImageShow}`}
                                 alt="Signature"
                               />
                             ) : (
@@ -1824,7 +1827,8 @@ function StudentUpdate() {
                           <div className="student-preview-box">
                             {formData.aadhaarCardFrantShow ? (
                               <img
-                                src={formData.aadhaarCardFrantShow}
+                         
+                                 src={`${FILE_URL}${formData.aadhaarCardFrantShow}`}
                                 alt="Aadhaar Front"
                               />
                             ) : (
@@ -1857,7 +1861,8 @@ function StudentUpdate() {
                           <div className="student-preview-box">
                             {formData.aadhaarCardBackShow ? (
                               <img
-                                src={formData.aadhaarCardBackShow}
+                               
+                                        src={`${FILE_URL}${formData.aadhaarCardBackShow}`}
                                 alt="Aadhaar Back"
                               />
                             ) : (
