@@ -6,11 +6,11 @@ import {
     getCity,
     getDistrict,
     getState
-} from "../Admin/Frenchise/FrenchiseService";
+} from "../AllServicesFiles/StudentService";
 
 import {
     createAccRegistration
-} from "./WebformService";
+} from "../AllServicesFiles/WebformService";
 
 
 const AdmissionConsultantRegistration = () => {

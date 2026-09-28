@@ -5,24 +5,28 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import {
+    createStudent,
+
     getCity,
     getCourse,
     getCourseCategory,
+
     getDistrict,
+
+
     getMasterSession,
     getState,
     getStudentData,
     translateToHindi
-} from "../AllServicesFiles/StudentService";
-import { createStudentfordata } from "../AllServicesFiles/WebformService";
- 
+} from "../../AllServicesFiles/StudentService";
 
 
 
 
-const StudentRegistration = () => {
+
+const StudentCreate = () => {
     const navigate = useNavigate();
-
+    const token = localStorage.getItem("token");
 
     // =========================
     // Dropdown States
@@ -258,7 +262,7 @@ const StudentRegistration = () => {
                 setFormData((prev) => ({
                     ...prev,
                     name: value,
-                    studentNameHindi: hindi || ""
+                    studentNameHindi: hindi
                 }));
             } catch (error) {
                 console.error("Hindi Translation Error:", error);
@@ -273,7 +277,7 @@ const StudentRegistration = () => {
                 setFormData((prev) => ({
                     ...prev,
                     fatherName: value,
-                    fatherNameHindi: hindi || ""
+                    fatherNameHindi: hindi
                 }));
             } catch (error) {
                 console.error("Hindi Translation Error:", error);
@@ -410,7 +414,13 @@ const StudentRegistration = () => {
             newErrors.address =
                 "Address is required";
         }
-
+        if (!formData.pincode.trim()) {
+            newErrors.address =
+                "PinCode is required";
+        }
+        if (!formData.locationId) {
+            newErrors.locationId = "City is required";
+        }
         if (!formData.selfImage1) {
             newErrors.selfImage1 =
                 "Student photo is required";
@@ -454,6 +464,12 @@ const StudentRegistration = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!token) {
+            alert("Session expired. Please login again.");
+            navigate("/");
+            return;
+        }
+
         if (!validateForm()) {
             window.scrollTo({
                 top: 0,
@@ -472,18 +488,14 @@ const StudentRegistration = () => {
 
 
 
-            const result = await createStudentfordata(formData);
+            const result = await createStudent(formData);
 
             // Sirf Successfully hone par Success page par jayega
-            if (result?.message === "Successfully") {
-                navigate("/success", {
-                    state: {
-                        printmsg: result?.printmsg || ""
-                    }
-                });
+            alert(
+                result.message || "Student created successfully"
+            );
 
-                return;
-            }
+            navigate("/student-list");
 
 
         } catch (error) {
@@ -655,30 +667,31 @@ const StudentRegistration = () => {
 
 
                 {/* =====================================
-                PAGE HEADER
-            ===================================== */}
+                 PAGE HEADER
+             ===================================== */}
 
                 <div className="container-fluid px-3 px-md-4">
 
-                      <div className="acc-logo-wrapper">
+                    <div className="page-heading">
 
-                        <div className="acc-logo-card">
 
-                            <img
-                                src="/assets/img/websheddlogo.png"
-                                alt="SBSHE"
-                                className="sbshe-acc-logo"
-                            />
-
-                        </div>
-
+                        <button
+                            type="button"
+                            className="back-btn"
+                            onClick={() =>
+                                navigate("/student-list")
+                            }
+                        >
+                            <i className="bi bi-arrow-left"></i>
+                            Back to List
+                        </button>
                     </div>
 
 
 
                     {/* =====================================
-                    MAIN CARD
-                ===================================== */}
+                     MAIN CARD
+                 ===================================== */}
 
                     <div className="registration-card">
 
@@ -707,8 +720,8 @@ const StudentRegistration = () => {
                         >
 
                             {/* =====================================
-                            COURSE DETAILS
-                        ===================================== */}
+                             COURSE DETAILS
+                         ===================================== */}
 
                             <div className="form-section">
 
@@ -846,8 +859,8 @@ const StudentRegistration = () => {
                             </div>
 
                             {/* =====================================
-                            PERSONAL DETAILS
-                        ===================================== */}
+                             PERSONAL DETAILS
+                         ===================================== */}
 
                             <div className="form-section">
 
@@ -931,9 +944,7 @@ const StudentRegistration = () => {
                                         <InputField
                                             icon="bi-translate"
                                             name="studentNameHindi"
-                                            value={
-                                                formData.studentNameHindi
-                                            }
+                                            value={formData.studentNameHindi}
                                             onChange={handleChange}
                                             placeholder="हिंदी में नाम"
                                         />
@@ -1091,8 +1102,8 @@ const StudentRegistration = () => {
                             </div>
 
                             {/* =====================================
-                            ACADEMIC DETAILS
-                        ===================================== */}
+                             ACADEMIC DETAILS
+                         ===================================== */}
 
                             <div className="form-section">
 
@@ -1125,7 +1136,6 @@ const StudentRegistration = () => {
 
                                             <thead>
                                                 <tr>
-                                                    <th>Sr. No.</th>
                                                     <th>Level</th>
                                                     <th>School / College</th>
                                                     <th>Roll No</th>
@@ -1139,12 +1149,6 @@ const StudentRegistration = () => {
 
                                                             {/* ================= FIRST ROW ================= */}
                                                             <tr className="academic-row">
-
-                                                                {/* Sr. No. */}
-                                                                <td rowSpan={2} className="academic-sr-no">
-                                                                    {index + 1}
-                                                                </td>
-
 
                                                                 {/* Level */}
                                                                 <td>
@@ -1362,10 +1366,9 @@ const StudentRegistration = () => {
                             </div>
 
 
-
                             {/* =====================================
-                            CONTACT & ADDRESS
-                        ===================================== */}
+                             CONTACT & ADDRESS
+                         ===================================== */}
 
                             <div className="form-section">
 
@@ -1443,7 +1446,7 @@ const StudentRegistration = () => {
                                     </div>
 
                                     <div className="col-lg-4 col-md-6 mb-4">
-                                        <label>State</label>
+                                        <label>State  <span>*</span></label>
 
                                         <Select
                                             options={makeOptions(
@@ -1464,7 +1467,7 @@ const StudentRegistration = () => {
                                     </div>
 
                                     <div className="col-lg-4 col-md-6 mb-4">
-                                        <label>District</label>
+                                        <label>District  <span>*</span></label>
 
                                         <Select
                                             options={makeOptions(
@@ -1492,7 +1495,7 @@ const StudentRegistration = () => {
                                     </div>
 
                                     <div className="col-lg-4 col-md-6 mb-4">
-                                        <label>City</label>
+                                        <label>City  <span>*</span></label>
 
                                         <Select
                                             options={makeOptions(
@@ -1520,6 +1523,13 @@ const StudentRegistration = () => {
                                             }
                                             classNamePrefix="student-select"
                                         />
+                                        {errors.locationId && (
+                                            <ErrorText
+                                                text={
+                                                    errors.locationId
+                                                }
+                                            />
+                                        )}
                                     </div>
 
                                     <div className="col-lg-8 col-md-8 mb-4">
@@ -1555,7 +1565,7 @@ const StudentRegistration = () => {
                                     </div>
 
                                     <div className="col-lg-4 col-md-4 mb-4">
-                                        <label>Pin Code</label>
+                                        <label>Pin Code  <span>*</span></label>
 
                                         <InputField
                                             type="text"
@@ -1574,14 +1584,21 @@ const StudentRegistration = () => {
                                             placeholder="Enter 6 digit PIN"
                                             maxLength={6}
                                         />
+                                        {errors.pincode && (
+                                            <ErrorText
+                                                text={
+                                                    errors.pincode
+                                                }
+                                            />
+                                        )}
                                     </div>
 
                                 </div>
                             </div>
 
                             {/* =====================================
-                            DOCUMENT DETAILS
-                        ===================================== */}
+                             DOCUMENT DETAILS
+                         ===================================== */}
 
                             <div className="form-section">
 
@@ -1661,8 +1678,8 @@ const StudentRegistration = () => {
                             </div>
 
                             {/* =====================================
-                            DECLARATION
-                        ===================================== */}
+                             DECLARATION
+                         ===================================== */}
 
                             <div className="declaration-card">
 
@@ -1730,8 +1747,8 @@ const StudentRegistration = () => {
                             </div>
 
                             {/* =====================================
-                            FOOTER
-                        ===================================== */}
+                             FOOTER
+                         ===================================== */}
 
                             <div className="form-actions">
 
@@ -1776,8 +1793,8 @@ const StudentRegistration = () => {
                 </div>
 
                 {/* =====================================
-                DECLARATION MODAL
-            ===================================== */}
+                 DECLARATION MODAL
+             ===================================== */}
 
                 {showDeclarationModal && (
                     <div className="declaration-overlay">
@@ -2220,67 +2237,90 @@ const DocumentUpload = ({
    PAGE HEADING
    ========================================================= */
 
- 
-  
-  .acc-logo-wrapper {
-                    display: flex;
-                    justify-content: center;
-                    margin-bottom: 25px;
-                }
+.page-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
 
-                .acc-logo-card {
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 270px;
-                    min-height: 82px;
-                    padding: 10px 22px;
-                    background: #ffffff;
-                    border-radius: 18px;
-                    border: 1px solid rgba(255, 102, 0, 0.12);
+.page-heading > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
 
-                    box-shadow:
-                        0 10px 30px rgba(20, 30, 50, 0.08),
-                        0 2px 8px rgba(20, 30, 50, 0.04);
+.heading-icon {
+    width: 52px;
+    height: 52px;
 
-                    transition: all 0.3s ease;
-                }
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-                .acc-logo-card::before {
-                    content: "";
-                    position: absolute;
-                    top: 0;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 65px;
-                    height: 3px;
-                    border-radius: 0 0 10px 10px;
-                    background: linear-gradient(
-                        90deg,
-                        #07567f,
-                        #e65300
-                    );
-                }
+    background: linear-gradient(
+        135deg,
+        #198754,
+        #20c997
+    );
 
-                .acc-logo-card:hover {
-                    transform: translateY(-3px);
+    color: #fff;
+    border-radius: 13px;
 
-                    box-shadow:
-                        0 15px 38px rgba(20, 30, 50, 0.12);
-                }
+    font-size: 22px;
 
-                .sbshe-acc-logo {
-                    width: 100%;
-                    max-width: 220px;
-                    max-height: 62px;
-                    object-fit: contain;
-                    display: block;
-                }
- 
- 
+    box-shadow:
+        0 8px 20px rgba(25, 135, 84, 0.22);
+}
 
- 
+.page-heading h2 {
+    margin: 0;
+
+    color: #1f2937;
+
+    font-size: 25px;
+    font-weight: 750;
+    letter-spacing: -0.3px;
+}
+
+.page-heading p {
+    margin: 4px 0 0;
+
+    color: #8993a4;
+
+    font-size: 13px;
+}
+
+.back-btn {
+    border: 1px solid #dce2ea;
+
+    background: #fff;
+
+    color: #374151;
+
+    padding: 10px 16px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    transition: all 0.2s ease;
+}
+
+.back-btn i {
+    margin-right: 7px;
+}
+
+.back-btn:hover {
+    background: #198754;
+    border-color: #198754;
+    color: #fff;
+
+    transform: translateY(-1px);
+}
+
+
 /* =========================================================
    BREADCRUMB
    ========================================================= */
@@ -2337,7 +2377,6 @@ const DocumentUpload = ({
 }
 
 
-
 /* =========================================================
    TOP HEADER
    ========================================================= */
@@ -2349,13 +2388,13 @@ const DocumentUpload = ({
 
     padding: 21px 28px;
 
-     background:
-                        linear-gradient(
-                            135deg,
-                            #07567f 0%,
-                            #f45b00 55%,
-                            #db4800 100%
-                        );
+    background:
+        linear-gradient(
+            135deg,
+            #198754 0%,
+            #20a86b 55%,
+            #20c997 100%
+        );
 
     color: #fff;
 }
@@ -2850,20 +2889,6 @@ textarea.form-control {
     background: #fbfdfc;
 }
 
-.academic-table th:first-child,
-.academic-table td:first-child {
-    width: 45px;
-    min-width: 45px;
-    max-width: 45px;
-    text-align: left;
-    padding: 8px 6px;
-}
-
-.academic-sr-no {
-    font-size: 13px;
-    font-weight: 500;
-    text-align: left;
-}
 
 /* Input */
 
@@ -4055,14 +4080,6 @@ textarea.form-control {
     .modal-accept-btn {
         flex: 1;
     }
-
-    .sbshe-acc-logo {
-    width: 400px !important;
-    height: 150px !important;
-     
-    object-fit: contain;
-    display: block;
-}
 }
 
 
@@ -4142,20 +4159,12 @@ textarea.form-control {
     .modal-accept-btn {
         width: 100%;
     }
-        .sbshe-acc-logo {
-    width: 400px !important;
-    height: 150px !important;
-     
-    object-fit: contain;
-    display: block;
-}
 }
       
 
 `}</style>
-
         </div>
     );
 };
 
-export default StudentRegistration;
+export default StudentCreate;

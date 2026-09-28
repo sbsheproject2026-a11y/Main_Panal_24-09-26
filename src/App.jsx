@@ -3,14 +3,14 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Login from './components/LoginFile/Login'
 
-import AdminRoutes from './components/Admin/AdminRoutes'
+ 
 
 import ProtectedRoute from './components/LoginFile/ProtectedRoute'
-import AdminLayout from './components/Admin/AllLayout/AdminLayout'
-import EmployeeLayout from './components/EmployeePanal/EmployeeLayout/EmployeeLayout'
-import adminRoutes from './components/Admin/AdminRoutes'
+import AdminLayout from './components/AdminArea/AllLayout/AdminLayout'
+import EmployeeLayout from './components/EmployeeArea/EmployeeLayout/EmployeeLayout'
+import adminRoutes from './components/AdminArea/AdminRoutes'
 
-import employeeRoutes from './components/EmployeePanal/EmployeeRoute'
+import employeeRoutes from './components/EmployeeArea/EmployeeRoute'
 import StudentRoute from './components/StudentPanal/StudentRoute'
 import AdmissionConsultantRegistration from './components/WebsiteForms/AdmissionConsultantRegistration'
 import StudentRegistration from './components/WebsiteForms/StudentRegistration'

@@ -10,15 +10,13 @@ import {
     FaCheck
 } from "react-icons/fa";
 
-import {
-    getCity,
-    getDistrict,
-    getState
-} from "../Admin/Frenchise/FrenchiseService";
-
-import { createStudyCentre } from "./WebformService";
-import { getStudentData } from "../EmployeePanal/Students/StudentService";
+ 
+ 
 import { useNavigate } from "react-router-dom";
+import { getCity, getDistrict,
+    getState } from "../AllServicesFiles/EmployeeService";
+import { createStudyCentre } from "../AllServicesFiles/WebformService";
+import { getStudentData } from "../AllServicesFiles/StudentService";
 
 
 
