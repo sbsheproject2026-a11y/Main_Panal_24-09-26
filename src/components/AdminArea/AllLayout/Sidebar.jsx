@@ -72,6 +72,11 @@ function Sidebar({ sidebarOpen }) {
                 </Link>
               </li>
               <li>
+                <Link to="/reject-list">
+                  <i className="bi bi-circle"></i><span>Reject  List</span>
+                </Link>
+              </li>
+              <li>
                 <Link to="/Course-commission">
                   <i className="bi bi-circle"></i><span> Set Course Commission</span>
                 </Link>

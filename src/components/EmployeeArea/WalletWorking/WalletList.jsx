@@ -1,7 +1,17 @@
  import React, { useEffect, useMemo, useState } from "react";
 import { getWalletBalance1, getWalletShowBalance } from "../../AllServicesFiles/WalletService";
+import { useLocation } from "react-router-dom";
 
 const WalletList = () => {
+
+  const location = useLocation();
+    const roleId = String(localStorage.getItem("RoleId") || "").trim();
+    const loginUserId = String(localStorage.getItem("UserId") || 0).trim();
+    const referenceId = location.state?.referenceId || 0;
+
+    // ✅ Role 33 → referenceId, warna loginUserId
+    const userId = roleId === "33" ? referenceId : loginUserId;
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [transactions, setTransactions] = useState([]);
@@ -12,37 +22,49 @@ const WalletList = () => {
   const [pageNo, setPageNo] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+
   useEffect(() => {
-    loadWalletShows();
-    loadWallets();
-  }, []);
+    const loadAll = async () => {
+        if (!userId || userId === "0" || userId === 0) return;
 
-  const loadWalletShows = async () => {
-    try {
-      setLoading(true);
-      const result = await getWalletShowBalance();
-      const firstBalance = result?.data?.[0]?.balance || 0;
-      setBalance(Number(firstBalance));
-    } catch (error) {
-      console.log("Wallet load error:", error);
-      setBalance(0);
-    } finally {
-      setLoading(false);
-    }
-  };
+        try {
+            setLoading(true);
+            await Promise.all([
+                loadWalletShows(),
+                loadWallets(),
+            ]);
+        } catch (error) {
+            console.log("Load error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const loadWallets = async () => {
+    loadAll();
+    // eslint-disable-next-line
+}, [userId]);
+
+const loadWalletShows = async () => {
     try {
-      setLoading(true);
-      const result = await getWalletBalance1();
-      setTransactions(result?.data || []);
+        const result = await getWalletShowBalance(userId);
+        const firstBalance = result?.data?.[0]?.balance ?? 0;
+        setBalance(Number(firstBalance) || 0);
     } catch (error) {
-      console.log("Wallet load error:", error);
-      setTransactions([]);
-    } finally {
-      setLoading(false);
+        console.log("Wallet load error:", error);
+        setBalance(0);
     }
-  };
+};
+
+const loadWallets = async () => {
+    try {
+        const result = await getWalletBalance1(userId);
+        setTransactions(result?.data || []);
+    } catch (error) {
+        console.log("Wallet load error:", error);
+        setTransactions([]);
+    }
+};
+ 
 
   // =========================================================
   // FILTER

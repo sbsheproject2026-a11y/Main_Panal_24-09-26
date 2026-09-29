@@ -256,7 +256,7 @@ const Login = () => {
         return;
       }
 
-      const allowedRoles = ["5", "6", "7", "90"];
+      const allowedRoles = ["5", "6", "7","33", "90"];
 
       if (!allowedRoles.includes(currentRoleId)) {
         console.error(
@@ -313,9 +313,11 @@ const Login = () => {
           return;
         }
 
+        
         if (
           currentRoleId === "6" ||
-          currentRoleId === "90"
+          currentRoleId === "90" ||
+          currentRoleId === "33"  
         ) {
           navigate("/employee-dashboard", {
             replace: true,

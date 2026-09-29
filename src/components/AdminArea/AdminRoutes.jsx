@@ -45,7 +45,8 @@ import PendingWalletRequest from "./WalletWorking/PendingWalletRequest";
 import FranchiseCommission from "./Course/FranchiseCommission";
 import SetCourseCommission from "./Course/SetCourseCommission";
 import FranchiseIdCard from "../DocumentPrintFiles/AllDocumentsPrint/FranchiseIdCard";
-import CourierReceipt from "./CourierReceipt";
+ 
+import RejectList from "./Frenchise/RejectList";
  
  
  
@@ -53,7 +54,7 @@ import CourierReceipt from "./CourierReceipt";
 
 const adminRoutes = [
     { path: "/dashboard", element: <Dashboard /> },
-    { path: "/courier", element: <CourierReceipt /> },
+  
     { path: "/website-content", element: <WebsiteContent /> },
     { path: "/mastertype", element: <MasterType /> },
     { path: "/mastertypeDetails", element: <MasterTypeDetails /> },
@@ -65,6 +66,7 @@ const adminRoutes = [
     { path: "/course-update/:id", element: <CourseUpdate /> },
     { path: "/franchise-create", element: <FrenchiseCreate /> },
     { path: "/franchise-list", element: <FrenchiseList /> },
+    { path: "/reject-list", element: <RejectList /> },
     { path: "/acc-pending", element: <AccPendingList /> },
     { path: "/acc-list", element: <AccRegisterList /> },
     { path: "/pending-wallet-request", element: <PendingWalletRequest /> },

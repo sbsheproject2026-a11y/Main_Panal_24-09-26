@@ -2,10 +2,10 @@ import StudentDashboard from "./StudentsData/StudentDashboard";
 
  
 
-const StudentRoute = [
+const studentRoute = [
      { path: "/student-dashboard", element: <StudentDashboard /> }
      
        
 ];
 
-export default StudentRoute;
+export default studentRoute;

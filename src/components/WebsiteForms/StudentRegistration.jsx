@@ -484,7 +484,10 @@ const StudentRegistration = () => {
 
                 return;
             }
-
+ alert(
+            result?.message ||
+            "Registration failed"
+        );
 
         } catch (error) {
             console.error("Create Student Error:", error);

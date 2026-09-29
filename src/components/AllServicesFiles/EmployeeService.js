@@ -170,7 +170,7 @@ export const getCity = async (id) => {
 
 export const getEmployeesAssign = async (id) => {
     const response = await api.get(
-        `/DropDown/dropdown-entityuser/${id}`
+        `/DropDown/dropdown-employee-list/${id}`
     );
 
     return response.data;

@@ -1,10 +1,19 @@
- import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { getStudentDelete, getStudentsSendToConfirm, sendToConfirmStatus } from '../../AllServicesFiles/StudentService';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getWalletShowBalance } from '../../AllServicesFiles/WalletService';
 import { FILE_URL } from '../../api';
 
 function SendToConfirm() {
+
+    const location = useLocation();
+    const roleId = String(localStorage.getItem("RoleId") || "").trim();
+    const loginUserId = String(localStorage.getItem("UserId") || 0).trim();
+    const referenceId = location.state?.referenceId || 0;
+
+    // ✅ Role 33 → referenceId, warna loginUserId
+    const userId = roleId === "33" ? referenceId : loginUserId;
+
     const [loading, setLoading] = useState(false);
 
     // ✅ selected students: { id, courseId, amount }
@@ -23,16 +32,21 @@ function SendToConfirm() {
     const handleEdit = (id) => {
         navigate(`/student-update/${id}`);
     };
+    // ✅ Balance — userId change hone pe
+    useEffect(() => {
+        if (userId) loadWalletShows();
+        // eslint-disable-next-line
+    }, [userId]);
 
     useEffect(() => {
-        loadWalletShows();
+
         loadStudents();
-    }, [pageNo, pageSize, search]);
+    }, [userId, pageNo, pageSize, search]);
 
     // ✅ Balance load
     const loadWalletShows = async () => {
         try {
-            const result = await getWalletShowBalance();
+            const result = await getWalletShowBalance(userId);
             const firstBalance = result?.data?.[0]?.balance || 0;
             setBalance(Number(firstBalance));
         } catch (error) {
@@ -44,7 +58,7 @@ function SendToConfirm() {
     const loadStudents = async () => {
         try {
             setLoading(true);
-            const result = await getStudentsSendToConfirm(pageNo, pageSize, search);
+            const result = await getStudentsSendToConfirm(userId, pageNo, pageSize, search);
             setData(result.data.data);
             setTotalRecords(result.data.totalRecords);
         } catch (error) {
@@ -111,25 +125,31 @@ function SendToConfirm() {
     };
 
     // ✅ Send selected students (id + courseId + amount)
-    const handleSendToConfirm = async () => {
-        if (selectedStudents.length === 0) {
-            alert("Please select at least one student.");
-            return;
-        }
+  const handleSendToConfirm = async () => {
+    if (selectedStudents.length === 0) {
+        alert("Please select at least one student.");
+        return;
+    }
 
-        try {
-            const payload = selectedStudents;
-            console.log("Payload:", payload);
+    try {
+        // ✅ userId nikalo (localStorage se)
+       
 
-            const result = await sendToConfirmStatus(payload);
-            console.log(result);
+        // ✅ Payload — students list
+        const payload = selectedStudents;
+        console.log("Payload:", payload);
+        console.log("UserId:", userId);
 
-            setSelectedStudents([]);
-            loadStudents();
-        } catch (error) {
-            console.log(error);
-        }
-    };
+        // ✅ API call — students body me, userId query me
+        const result = await sendToConfirmStatus(payload, userId);
+        console.log(result);
+
+        setSelectedStudents([]);
+        loadStudents();
+    } catch (error) {
+        console.log(error);
+    }
+};
 
     // ✅ Select all / deselect all
     const toggleSelectAll = (e) => {
@@ -1200,8 +1220,8 @@ function SendToConfirm() {
 
                                                 <td>
                                                     <img
-                                                      
-                                                          src={`${FILE_URL}${item.selfImageShow}`}
+
+                                                        src={`${FILE_URL}${item.selfImageShow}`}
                                                         alt="Student"
                                                         className="stc-avatar"
                                                         onError={(e) => {

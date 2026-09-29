@@ -120,32 +120,34 @@ export const getfranchiswallet = (pageNo, pageSize, search) => {
     );
 };
 
-export const getWalletBalance1 = async () => {
-  const token = localStorage.getItem("token") || localStorage.getItem("Token");
+export const getWalletBalance1 = async (userId) => {
+    const token = localStorage.getItem("token") || localStorage.getItem("Token");
 
-  const response = await api.get(
-    "/Wallet/emp-wallet-getall",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }
-  );
+    const response = await api.get(
+        "/Wallet/emp-wallet-getall",
+        {
+            params: { userId: Number(userId) || 0 },   // ⬅️ ?userId=123
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
 
-  return response.data;
+    return response.data;
 };
 
-export const getWalletShowBalance = async () => {
-  const token = localStorage.getItem("token") || localStorage.getItem("Token");
+export const getWalletShowBalance = async (userId) => {
+    const token = localStorage.getItem("token") || localStorage.getItem("Token");
 
-  const response = await api.get(
-    "/DropDownEmployee/dropdown-emp-wallet-balance",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }
-  );
+    const response = await api.get(
+        "/DropDownEmployee/dropdown-emp-wallet-balance",
+        {
+            params: { userId: Number(userId) || 0 },   // ⬅️ ?userId=123
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
 
-  return response.data;
+    return response.data;
 };

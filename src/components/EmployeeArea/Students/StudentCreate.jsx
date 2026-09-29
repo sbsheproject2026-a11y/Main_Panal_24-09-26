@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -27,7 +27,8 @@ import {
 const StudentCreate = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
-
+  const location = useLocation();
+  const referenceId = location.state?.referenceId || 0;
     // =========================
     // Dropdown States
     // =========================
@@ -91,6 +92,7 @@ const StudentCreate = () => {
         districtId: 0,
         locationId: 0,
         studyModeId: 0,
+       referenceId: referenceId, 
 
         address: "",
         pincode: "",

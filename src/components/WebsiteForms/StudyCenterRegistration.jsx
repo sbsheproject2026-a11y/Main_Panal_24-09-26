@@ -701,7 +701,10 @@ const availableCourses = courseTypes.filter((course) =>
 
                 return;
             }
-
+ alert(
+            result?.message ||
+            "Registration failed"
+        );
             console.log(
                 "Study Centre Created:",
                 result

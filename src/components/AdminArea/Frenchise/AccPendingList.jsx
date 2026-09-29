@@ -16,7 +16,7 @@ function AccPendingList() {
   const [deleteName, setDeleteName] = useState("");
 
   const [pageNo, setPageNo] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(100);
   const [totalRecords, setTotalRecords] = useState(0);
 
   const [loading, setLoading] = useState(false);

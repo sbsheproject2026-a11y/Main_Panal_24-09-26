@@ -3,11 +3,11 @@ import api from "../api";
  
 
  
-export const getStudents = (pageNo, pageSize, search) => {
+export const getStudents = (userId,pageNo, pageSize, search) => {
     const token = localStorage.getItem("token");
 
     return api.get(
-        `/Student/student-getall?pageNo=${pageNo}&pageSize=${pageSize}&search=${search}`,
+        `/Student/student-getall?referenceId=${userId}&pageNo=${pageNo}&pageSize=${pageSize}&search=${search}`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -15,11 +15,11 @@ export const getStudents = (pageNo, pageSize, search) => {
         }
     );
 };
-export const getStudentsSendToConfirm = (pageNo, pageSize, search) => {
+export const getStudentsSendToConfirm = (userId,pageNo, pageSize, search) => {
     const token = localStorage.getItem("token");
 
     return api.get(
-        `/StudentApproval/student-senttoconfirm?pageNo=${pageNo}&pageSize=${pageSize}&search=${search}`,
+        `/StudentApproval/student-senttoconfirm?referenceId=${userId}&pageNo=${pageNo}&pageSize=${pageSize}&search=${search}`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -42,6 +42,7 @@ export const createStudent = async (formData) => {
     
     data.append("email", formData.email);
     data.append("idNumber", formData.idNumber);
+    data.append("referenceId", formData.referenceId);
 
     // Images
     if (formData.selfImage1) {
@@ -266,13 +267,14 @@ export const getStudentDelete = async (id) => {
     return response.data;
 };
 
-export const sendToConfirmStatus = async (ids) => {
-    const token = localStorage.getItem("token"); // 👈 token yahan se lo
+export const sendToConfirmStatus = async (ids, userId) => {
+    const token = localStorage.getItem("token") || localStorage.getItem("Token");
 
     const response = await api.put(
         `/StudentApproval/SendToRequest`,
-        ids,
+        ids,                             // ⬅️ body me list
         {
+            params: { userId: userId },  // ⬅️ query me userId
             headers: {
                 Authorization: `Bearer ${token}`,
             },

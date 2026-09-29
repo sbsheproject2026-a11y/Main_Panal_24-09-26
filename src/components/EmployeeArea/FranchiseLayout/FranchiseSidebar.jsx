@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-function EmployeeSidebar({ sidebarOpen }) {
+function FranchiseSidebar({ sidebarOpen }) {
   return (
     <>
       {/* <!-- ======= Sidebar ======= --> */}
@@ -23,6 +23,7 @@ function EmployeeSidebar({ sidebarOpen }) {
               <i className="bi bi-bar-chart"></i><span>Franchise</span><i className="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="franchise-nav" className="nav-content collapse " data-bs-parent="#sidebar-nav">
+             
               <li>
                 <Link to="/profile">
                   <i className="bi bi-circle"></i><span>Profile</span>
@@ -84,11 +85,7 @@ function EmployeeSidebar({ sidebarOpen }) {
                   <i className="bi bi-circle"></i><span>Wallet History</span>
                 </Link>
               </li>
-              {/*   <li>
-                <Link to="/student-to-confirm">
-                  <i className="bi bi-circle"></i><span>Student Confirm & Print</span>
-                </Link>
-              </li>   */}
+              
 
             </ul>
           </li>
@@ -128,4 +125,4 @@ function EmployeeSidebar({ sidebarOpen }) {
   )
 }
 
-export default EmployeeSidebar
+export default FranchiseSidebar

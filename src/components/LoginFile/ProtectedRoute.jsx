@@ -7,27 +7,23 @@ const ProtectedRoute = ({ allowedRole }) => {
         localStorage.getItem("RoleId") || ""
     ).trim();
 
-
-    // Token nahi hai
+    // Token nahi hai → login page (/) pe bhejo
     if (!token) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/" replace />;
     }
-
 
     // Allowed roles ko array mein convert karo
     const allowedRoles = Array.isArray(allowedRole)
         ? allowedRole.map((role) => String(role).trim())
         : [String(allowedRole).trim()];
 
-
-    // Role match nahi karta
+    // Role match nahi karta → login page (/) pe bhejo
     if (
         allowedRole &&
         !allowedRoles.includes(roleId)
     ) {
         return <Navigate to="/" replace />;
     }
-
 
     return <Outlet />;
 };

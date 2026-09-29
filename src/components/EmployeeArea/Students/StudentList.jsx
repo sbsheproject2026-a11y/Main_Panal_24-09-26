@@ -1,9 +1,19 @@
  import React, { useEffect, useState } from "react";
 import { getStudentDelete, getStudents } from "../../AllServicesFiles/StudentService";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FILE_URL } from "../../api";
+ 
 
 function StudentList() {
+   const location = useLocation();
+    const roleId = String(localStorage.getItem("RoleId") || "").trim();
+    const loginUserId = String(localStorage.getItem("UserId") || 0).trim();
+    const referenceId = location.state?.referenceId || 0;
+
+    // ✅ Role 33 → referenceId, warna loginUserId
+    const userId = roleId === "33" ? referenceId : loginUserId;
+
+
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -28,12 +38,12 @@ function StudentList() {
 
   useEffect(() => {
     loadStudents();
-  }, [pageNo, pageSize, search]);
+  }, [userId,pageNo, pageSize, search]);
 
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const result = await getStudents(pageNo, pageSize, search);
+      const result = await getStudents(userId,pageNo, pageSize, search);
       setData(result?.data?.data || []);
       setTotalRecords(result?.data?.totalRecords || 0);
     } catch (error) {
@@ -931,7 +941,7 @@ function StudentList() {
                                   {item.selfImageShow ? (
                                     <img
                                
-                                       src={`${FILE_URL}${item.selfImage}`}
+                                       src={`${FILE_URL}${item.selfImageShow}`}
                                       alt="Student"
                                       className="student-image"
                                       onError={(e) => {

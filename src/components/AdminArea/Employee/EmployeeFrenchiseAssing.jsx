@@ -31,12 +31,11 @@ function EmployeeFrenchiseAssing() {
 
   useEffect(() => {
     loadAssignFrenchises();
+     loadEmployees();
+    loadFrenchises();
   }, [pageNo, pageSize, search]);
 
-  useEffect(() => {
-    loadEmployees();
-    loadFrenchises();
-  }, []);
+  
 
   const loadAssignFrenchises = async () => {
     try {
@@ -409,9 +408,9 @@ function EmployeeFrenchiseAssing() {
                     <thead>
                       <tr>
                         <th>#</th>
-                        <th>Code</th>
-                        <th>Employee Name</th>
+                  
                         <th>Frenchise Name</th>
+                        <th>Employee Name</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -427,11 +426,11 @@ function EmployeeFrenchiseAssing() {
                                 1}
                             </th>
 
-                            <td>{item.code}</td>
+                    
 
                             <td>{item.name}</td>
 
-                            <td>{item.fatherName}</td>
+                            <td>{item.employeeName}</td>
 
                             <td>
                               <i

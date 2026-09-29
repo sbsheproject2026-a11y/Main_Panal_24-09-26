@@ -1,8 +1,16 @@
   import React, { useEffect, useState } from "react";
 import { employeecreateWallet, getPayMode } from "../../AllServicesFiles/WalletService";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const WalletRecharge1 = () => {
-  const userId = localStorage.getItem("UserId") || "N/A";
+   const navigate = useNavigate();
+    const location = useLocation();
+    const roleId = String(localStorage.getItem("RoleId") || "").trim();
+    const loginUserId = String(localStorage.getItem("UserId") || 0).trim();
+    const referenceId = location.state?.referenceId || 0;
+
+    // ✅ Role 33 → referenceId, warna loginUserId
+    const userId = roleId === "33" ? referenceId : loginUserId;
 
   const [paymode, setPaymode] = useState([]);
   const [paymentType, setPaymentType] = useState([]);
@@ -23,7 +31,7 @@ const WalletRecharge1 = () => {
     bankConfirmDate: "",
     transactionNo: ""
   });
-
+ 
   useEffect(() => {
     loadPayMode();
     loadPaymentType();

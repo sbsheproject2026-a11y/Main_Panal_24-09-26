@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 
-import EmployeeSidebar from "./EmployeeSidebar";
+import FranchiseSidebar from "./FranchiseSidebar";
 
 import { Outlet } from "react-router-dom";
-import Header from "../../Admin/AllLayout/Header";
+import Header from "../../AdminArea/AllLayout/Header";
+ 
 
-function EmployeeLayout() {
+function FranchiseLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   useEffect(() => {
 
@@ -26,7 +27,7 @@ function EmployeeLayout() {
       />
 
       <div className="d-flex flex-grow-1">
-        <EmployeeSidebar
+        <FranchiseSidebar
           sidebarOpen={sidebarOpen}
         />
 
@@ -44,4 +45,4 @@ function EmployeeLayout() {
   );
 }
 
-export default EmployeeLayout;
+export default FranchiseLayout;
