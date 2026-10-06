@@ -1,4 +1,4 @@
- import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   getCourseById,
   getCourseCategory,
@@ -14,7 +14,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
- 
+
 
 function CourseUpdate() {
   const { id } = useParams();
@@ -23,7 +23,7 @@ function CourseUpdate() {
   // ==============================
   // STATES
   // ==============================
-
+  const [studyMode, setStudyMode] = useState([]);
   const [durations, setDurations] = useState([]);
   const [durationTypes, setDurationTypes] = useState([]);
   const [courseTypes, setCourseTypes] = useState([]);
@@ -52,6 +52,7 @@ function CourseUpdate() {
     categoryId: 0,
     departmentId: 0,
     totalClass: 0,
+    studyModeId: 0,
     classNo: 0,
     isActive: 1,
     isHighlight: 0,   // ✅ NEW
@@ -112,6 +113,7 @@ function CourseUpdate() {
       setPageLoading(true);
 
       await Promise.all([
+        loadStudyMode(),
         loadCourseType(),
         loadCourseCategory(),
         loadDuration(),
@@ -119,6 +121,7 @@ function CourseUpdate() {
         loadParentCourses(),
         loadAmountTypes(),
         loadMaterialTypes(),
+
       ]);
 
       if (id) {
@@ -134,7 +137,15 @@ function CourseUpdate() {
   // ==============================
   // LOADERS
   // ==============================
-
+  const loadStudyMode = async () => {
+    try {
+      const result = await getDuration(23);
+      setStudyMode(result?.data || []);
+    
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const loadCourseType = async () => {
     try {
       const result = await getCourseType(13);
@@ -225,13 +236,14 @@ function CourseUpdate() {
         durationTypeId: Number(result.durationTypeId ?? 0),
         parentId:
           result.parentId === null ||
-          result.parentId === undefined ||
-          result.parentId === 0
+            result.parentId === undefined ||
+            result.parentId === 0
             ? null
             : Number(result.parentId),
         categoryId: Number(result.categoryId ?? 0),
         departmentId: Number(result.departmentId ?? 0),
         totalClass: Number(result.totalClass ?? 0),
+        studyModeId: Number(result.studyModeId ?? 0),
         classNo: Number(result.classNo ?? 0),
         isActive:
           result.isActive === 1 || result.isActive === true ? 1 : 0,
@@ -374,10 +386,10 @@ function CourseUpdate() {
       prev.map((item, i) =>
         i === index
           ? {
-              ...item,
-              [field]:
-                field === "amountTypeId" ? Number(value) : value,
-            }
+            ...item,
+            [field]:
+              field === "amountTypeId" ? Number(value) : value,
+          }
           : item
       )
     );
@@ -427,6 +439,10 @@ function CourseUpdate() {
     if (!formData.duration || formData.duration === 0)
       newErrors.duration = "Duration is required";
 
+    if (!formData.studyModeId || formData.studyModeId === 0)
+      newErrors.studyModeId = "Study Mode is required";
+
+
     if (!formData.durationTypeId || formData.durationTypeId === 0)
       newErrors.durationTypeId = "Duration Type is required";
 
@@ -453,8 +469,8 @@ function CourseUpdate() {
         ...formData,
         parentId:
           formData.parentId === 0 ||
-          formData.parentId === "0" ||
-          formData.parentId === ""
+            formData.parentId === "0" ||
+            formData.parentId === ""
             ? null
             : formData.parentId,
         productAmounts: amounts,
@@ -527,15 +543,37 @@ function CourseUpdate() {
                 {/* Course Type */}
                 <div className="course-field">
                   <label className="course-label">
+                    Study Mode<span>*</span>
+                  </label>
+                  <select
+                    name="studyModeId"
+                    value={formData.studyModeId}
+                    onChange={handleSelectChange}
+                    className={`course-select ${errors.studyModeId ? "course-select-error" : ""
+                      }`}
+                  >
+                    <option value={0}>Select Study Mode</option>
+                    {studyMode.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.studyModeId && (
+                    <div className="course-error">{errors.studyModeId}</div>
+                  )}
+                </div>
+                {/* Course Type */}
+                <div className="course-field">
+                  <label className="course-label">
                     Course Type<span>*</span>
                   </label>
                   <select
                     name="departmentId"
                     value={formData.departmentId}
                     onChange={handleSelectChange}
-                    className={`course-select ${
-                      errors.departmentId ? "course-select-error" : ""
-                    }`}
+                    className={`course-select ${errors.departmentId ? "course-select-error" : ""
+                      }`}
                   >
                     <option value={0}>Select Course Type</option>
                     {courseTypes.map((item) => (
@@ -558,9 +596,8 @@ function CourseUpdate() {
                     name="categoryId"
                     value={formData.categoryId}
                     onChange={handleSelectChange}
-                    className={`course-select ${
-                      errors.categoryId ? "course-select-error" : ""
-                    }`}
+                    className={`course-select ${errors.categoryId ? "course-select-error" : ""
+                      }`}
                   >
                     <option value={0}>Select Course Category</option>
                     {courseCategories.map((item) => (
@@ -616,9 +653,8 @@ function CourseUpdate() {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Enter course name"
-                    className={`course-input ${
-                      errors.name ? "course-input-error" : ""
-                    }`}
+                    className={`course-input ${errors.name ? "course-input-error" : ""
+                      }`}
                   />
                   {errors.name && (
                     <div className="course-error">{errors.name}</div>
@@ -664,9 +700,8 @@ function CourseUpdate() {
                     name="duration"
                     value={formData.duration}
                     onChange={handleSelectChange}
-                    className={`course-select ${
-                      errors.duration ? "course-select-error" : ""
-                    }`}
+                    className={`course-select ${errors.duration ? "course-select-error" : ""
+                      }`}
                   >
                     <option value={0}>Select Duration</option>
                     {durations.map((item) => (
@@ -689,9 +724,8 @@ function CourseUpdate() {
                     name="durationTypeId"
                     value={formData.durationTypeId}
                     onChange={handleSelectChange}
-                    className={`course-select ${
-                      errors.durationTypeId ? "course-select-error" : ""
-                    }`}
+                    className={`course-select ${errors.durationTypeId ? "course-select-error" : ""
+                      }`}
                   >
                     <option value={0}>Select Duration Type</option>
                     {durationTypes.map((item) => (

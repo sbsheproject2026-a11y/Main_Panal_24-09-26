@@ -261,30 +261,13 @@ const AuthorityLetterPrint = () => {
         pdf.setFontSize(fontSize);
         pdf.setTextColor(0, 0, 0);
 
-        let lines = [text];
-
-        // Text ko available width ke according next line me bhejna
-        if (field.breakAfter200) {
-            const maxWidth = field.maxWidth || 300;
-
-            const wrappedLines = [];
-
-            lines.forEach((line) => {
-                const splitLines = pdf.splitTextToSize(line, maxWidth);
-                wrappedLines.push(...splitLines);
-            });
-
-            lines = wrappedLines;
-        }
-
-        pdf.text(lines, x, y, {
+        pdf.text(text, x, y, {
             align: field.align || "left",
-            lineHeightFactor: 1.2,
         });
     };
 
     // ==========================================
-    // DRAW TEXT
+    // DRAW TEXT — wrapWords ke saath
     // ==========================================
     const drawText = (pdf, field) => {
         if (!field?.text) return;
@@ -293,6 +276,37 @@ const AuthorityLetterPrint = () => {
 
         if (!text) return;
 
+        // ✅ wrapWords — words per line, poora text show hoga
+        if (field.wrapWords && field.wrapWords > 0) {
+            const words = text.split(/\s+/);
+            const lines = [];
+
+            for (let i = 0; i < words.length; i += field.wrapWords) {
+                lines.push(words.slice(i, i + field.wrapWords).join(" "));
+            }
+
+            // ✅ Gap sirf field.lineHeight se control hoga (mm me)
+            // 2 = tight, 2.5 = balanced, 3 = loose
+            const lineHeightMm = field.lineHeight || 2.5;
+
+            lines.forEach((line, index) => {
+                const lineField = {
+                    ...field,
+                    text: line,
+                    y: field.y + index * lineHeightMm,
+                };
+
+                if (isHindiText(line)) {
+                    drawHindiText(pdf, lineField);
+                } else {
+                    drawEnglishText(pdf, lineField);
+                }
+            });
+
+            return;
+        }
+
+        // Default — single line
         if (isHindiText(text)) {
             drawHindiText(pdf, field);
         } else {
@@ -337,7 +351,8 @@ const AuthorityLetterPrint = () => {
                     fontSize: 12,
                     fontStyle: "normal",
                     fontFamily: "Arial",
-                    breakAfter200: true,
+                    wrapWords: 10,      // 👈 words per line
+                    lineHeight: 2.5,   // 👈 mm gap
                 },
 
                 endDate: {
@@ -371,6 +386,8 @@ const AuthorityLetterPrint = () => {
                     fontSize: 18,
                     fontStyle: "bold",
                     fontFamily: "Arial",
+                    wrapWords: 5,      // 👈 words per line
+                    lineHeight: 2.5,   // 👈 mm gap
                 },
 
                 selfImage: {

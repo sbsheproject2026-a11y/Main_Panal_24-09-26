@@ -30,7 +30,7 @@ function EmployeeSidebar({ sidebarOpen }) {
               </li>
 
 
-               
+
               <li>
                 <Link to="/update-password" >
                   <i className="bi bi-circle"></i>
@@ -44,7 +44,26 @@ function EmployeeSidebar({ sidebarOpen }) {
             </ul>
           </li>
 
- 
+          <li className="nav-item">
+            <a className="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="#">
+              <i className="bi bi-bar-chart"></i><span>Student Management</span><i className="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="charts-nav" className="nav-content collapse " data-bs-parent="#sidebar-nav">
+
+
+              <li>
+                <Link to="/student-print-list">
+                  <i className="bi bi-circle"></i><span>Student Confirm & Print</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/set-marks">
+                  <i className="bi bi-circle"></i><span>Set Marks</span>
+                </Link>
+              </li>
+
+            </ul>
+          </li>
 
         </ul>
 

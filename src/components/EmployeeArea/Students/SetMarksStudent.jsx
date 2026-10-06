@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import {
+  
   getStudentSubjectMarks,
-  Getunsetmarks,
+  
   submitStudentMarks,
 } from "../../AllServicesFiles/AdminStudentService";
 import { FILE_URL } from "../../api";
+import { GetEmpunsetmarks } from "../../AllServicesFiles/StudentService";
 
 function SetMarksStudent() {
   const [data, setData] = useState([]);
@@ -23,7 +25,7 @@ function SetMarksStudent() {
 
   const loadStudents = async () => {
     try {
-      const result = await Getunsetmarks(pageNo, pageSize, search);
+      const result = await GetEmpunsetmarks(pageNo, pageSize, search);
       setData(result?.data?.data || []);
       setTotalRecords(result?.data?.totalRecords || 0);
     } catch (error) {
@@ -278,7 +280,6 @@ function SetMarksStudent() {
           display: block;
         }
 
-       
        .setmarks-modal {
     display: flex !important;
     align-items: center !important;
@@ -680,8 +681,8 @@ function SetMarksStudent() {
 
                               <td>
                                 <img
-
-                                  src={`${FILE_URL}${item.selfImageShow}`}
+                             
+                                  src={`${FILE_URL}${item.selfImageShow}`} 
                                   alt="Student"
                                   className="setmarks-image"
                                   onError={(e) => {

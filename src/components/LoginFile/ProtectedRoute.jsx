@@ -13,9 +13,9 @@ const ProtectedRoute = ({ allowedRole }) => {
     }
 
     // Allowed roles ko array mein convert karo
-    const allowedRoles = Array.isArray(allowedRole)
-        ? allowedRole.map((role) => String(role).trim())
-        : [String(allowedRole).trim()];
+ const allowedRoles = Array.isArray(allowedRole)
+    ? allowedRole.map((role) => String(role).trim())
+    : [String(allowedRole).trim()];
 
     // Role match nahi karta → login page (/) pe bhejo
     if (

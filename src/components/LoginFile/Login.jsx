@@ -1,9 +1,9 @@
- 
-import React, { useState } from "react";
+ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { createlogin } from "../AllServicesFiles/LoginService";
-
 
 const Login = () => {
   const navigate = useNavigate();
@@ -108,13 +108,8 @@ const Login = () => {
       return;
     }
 
-    const cleanEmail = String(
-      formData?.email || ""
-    ).trim();
-
-    const cleanPassword = String(
-      formData?.password || ""
-    );
+    const cleanEmail = String(formData?.email || "").trim();
+    const cleanPassword = String(formData?.password || "");
 
     if (!cleanEmail || !cleanPassword) {
       setError("Username and Password are required.");
@@ -142,18 +137,26 @@ const Login = () => {
       const result = await createlogin(loginData);
 
       console.log("LOGIN RESULT:", result);
+      console.log("LOGIN MESSAGE:", result?.message);
 
+      // ❌ Login fail — server ka actual message toast me
       if (!result?.success) {
-        setError("Invalid Username or Password.");
+        const serverMessage =
+          result?.message ||
+          result?.Message ||
+          "Invalid Username or Password.";
+
+        toast.error(serverMessage);
+
+        setError(serverMessage);
         return;
       }
 
       const token =
-        typeof result?.token === "string"
-          ? result.token.trim()
-          : "";
+        typeof result?.token === "string" ? result.token.trim() : "";
 
       if (!token) {
+        toast.error("Invalid Username or Password.");
         setError("Invalid Username or Password.");
         return;
       }
@@ -168,6 +171,7 @@ const Login = () => {
         }
       } catch (decodeError) {
         console.error("JWT Decode Error:", decodeError);
+        toast.error("Invalid Username or Password.");
         setError("Invalid Username or Password.");
         return;
       }
@@ -176,9 +180,8 @@ const Login = () => {
         const currentTime = Math.floor(Date.now() / 1000);
 
         if (Number(user.exp) <= currentTime) {
-          setError(
-            "Login session has expired. Please login again."
-          );
+          toast.error("Login session has expired. Please login again.");
+          setError("Login session has expired. Please login again.");
           return;
         }
       }
@@ -217,52 +220,29 @@ const Login = () => {
         ];
 
       const name =
-        user?.Name ??
-        user?.name ??
-        user?.FullName ??
-        user?.fullName ??
-        "";
+        user?.Name ?? user?.name ?? user?.FullName ?? user?.fullName ?? "";
 
       const currentRoleId = String(roleId ?? "").trim();
-
       const currentUserId = String(userId ?? "").trim();
+      const currentUsername = String(loggedUsername || cleanEmail).trim();
+      const currentName = String(name || currentUsername).trim();
 
-      const currentUsername = String(
-        loggedUsername || cleanEmail
-      ).trim();
+      if (!currentRoleId || !currentUserId || !currentUsername) {
+        console.error("MISSING LOGIN INFORMATION:", {
+          roleId: currentRoleId,
+          userId: currentUserId,
+          username: currentUsername,
+        });
 
-      const currentName = String(
-        name || currentUsername
-      ).trim();
-
-      if (
-        !currentRoleId ||
-        !currentUserId ||
-        !currentUsername
-      ) {
-        console.error(
-          "MISSING LOGIN INFORMATION:",
-          {
-            roleId: currentRoleId,
-            userId: currentUserId,
-            username: currentUsername,
-          }
-        );
-
-        setError(
-          "Invalid user information received from server."
-        );
-
+        toast.error("Invalid user information received from server.");
+        setError("Invalid user information received from server.");
         return;
       }
 
-      const allowedRoles = ["5", "6", "7","33", "90"];
+      const allowedRoles = ["5", "6", "7", "33", "90"];
 
       if (!allowedRoles.includes(currentRoleId)) {
-        console.error(
-          "UNAUTHORIZED ROLE:",
-          currentRoleId
-        );
+        console.error("UNAUTHORIZED ROLE:", currentRoleId);
 
         localStorage.removeItem("token");
         localStorage.removeItem("Token");
@@ -274,10 +254,8 @@ const Login = () => {
         localStorage.removeItem("LoginTypeName");
         localStorage.removeItem("lastActivity");
 
-        setError(
-          "You are not authorized to access this application."
-        );
-
+        toast.error("You are not authorized to access this application.");
+        setError("You are not authorized to access this application.");
         return;
       }
 
@@ -288,14 +266,8 @@ const Login = () => {
       localStorage.setItem("UserId", currentUserId);
       localStorage.setItem("Username", currentUsername);
       localStorage.setItem("LoginType", loginType);
-      localStorage.setItem(
-        "LoginTypeName",
-        currentLogin.buttonName
-      );
-      localStorage.setItem(
-        "lastActivity",
-        String(Date.now())
-      );
+      localStorage.setItem("LoginTypeName", currentLogin.buttonName);
+      localStorage.setItem("lastActivity", String(Date.now()));
 
       setFormData({
         email: "",
@@ -305,30 +277,24 @@ const Login = () => {
       setErrors({});
       setShowPassword(false);
 
+      // ✅ Success — seedha navigate
       setTimeout(() => {
         if (currentRoleId === "5") {
-          navigate("/dashboard", {
-            replace: true,
-          });
+          navigate("/dashboard", { replace: true });
           return;
         }
 
-        
         if (
           currentRoleId === "6" ||
           currentRoleId === "90" ||
-          currentRoleId === "33"  
+          currentRoleId === "33"
         ) {
-          navigate("/employee-dashboard", {
-            replace: true,
-          });
+          navigate("/employee-dashboard", { replace: true });
           return;
         }
 
         if (currentRoleId === "7") {
-          navigate("/student-dashboard", {
-            replace: true,
-          });
+          navigate("/student-dashboard", { replace: true });
           return;
         }
 
@@ -344,40 +310,47 @@ const Login = () => {
 
         setSuccess("");
 
-        setError(
-          "You are not authorized to access this application."
-        );
+        toast.error("You are not authorized to access this application.");
+        setError("You are not authorized to access this application.");
       }, 700);
     } catch (error) {
       console.error("LOGIN ERROR:", error);
 
-      let message =
-        "Invalid Username or Password.";
+      const status = error?.response?.status;
+      const serverData = error?.response?.data;
 
-      if (error?.response?.status === 401) {
+      console.log("ERROR STATUS:", status);
+      console.log("ERROR DATA:", serverData);
+      console.log(
+        "ERROR MESSAGE:",
+        serverData?.message || serverData?.Message || serverData
+      );
+
+      let message = "Invalid Username or Password.";
+
+      if (status === 401) {
         message =
+          serverData?.message ||
+          serverData?.Message ||
+          (typeof serverData === "string" ? serverData : null) ||
           "Invalid Username or Password.";
-      } else if (error?.response?.status === 403) {
-        message =
-          "You are not authorized to login.";
-      } else if (error?.response?.status === 429) {
-        message =
-          "Too many login attempts. Please try again later.";
-      } else if (error?.response?.data) {
-        const responseData =
-          error.response.data;
-
-        if (typeof responseData === "string") {
+      } else if (status === 403) {
+        message = "You are not authorized to login.";
+      } else if (status === 429) {
+        message = "Too many login attempts. Please try again later.";
+      } else if (serverData) {
+        if (typeof serverData === "string") {
           message =
-            "Unable to login. Please check your credentials.";
+            serverData || "Unable to login. Please check your credentials.";
         } else {
           message =
-            responseData?.message ||
-            responseData?.Message ||
+            serverData?.message ||
+            serverData?.Message ||
             "Unable to login. Please try again.";
         }
       }
 
+      toast.error(message);
       setError(message);
     } finally {
       setLoading(false);
@@ -396,79 +369,46 @@ const Login = () => {
         <button
           type="button"
           className="apply-card"
-          onClick={() =>
-            navigate("/acc-apply")
-          }
+          onClick={() => navigate("/acc-apply")}
         >
-          <div className="apply-card-icon acc-icon">
-            👨‍💼
-          </div>
+          <div className="apply-card-icon acc-icon">👨‍💼</div>
 
           <div className="apply-card-content">
-            <strong>
-              Admission Consultant Registration
-            </strong>
-
-            <span>
-              Admission Consultant
-            </span>
+            <strong>Admission Consultant Registration</strong>
+            <span>Admission Consultant</span>
           </div>
 
-          <div className="apply-arrow">
-            →
-          </div>
+          <div className="apply-arrow">→</div>
         </button>
 
         <button
           type="button"
           className="apply-card"
-          onClick={() =>
-            navigate("/student-apply")
-          }
+          onClick={() => navigate("/student-apply")}
         >
-          <div className="apply-card-icon student-icon">
-            🎓
-          </div>
+          <div className="apply-card-icon student-icon">🎓</div>
 
           <div className="apply-card-content">
-            <strong>
-              Student Registration
-            </strong>
-
-            <span>
-              New Student Registration
-            </span>
+            <strong>Student Registration</strong>
+            <span>New Student Registration</span>
           </div>
 
-          <div className="apply-arrow">
-            →
-          </div>
+          <div className="apply-arrow">→</div>
         </button>
 
         <button
           type="button"
           className="apply-card"
-          onClick={() =>
-            navigate("/study-centre-apply")
-          }
+          onClick={() => navigate("/study-centre-apply")}
         >
-          <div className="apply-card-icon center-icon">
-            🏫
-          </div>
+          <div className="apply-card-icon center-icon">🏫</div>
 
           <div className="apply-card-content">
-            <strong>
-              Study Center Registration
-            </strong>
-
-            <span>
-              Open Study Centre
-            </span>
+            <strong>Study Center Registration</strong>
+            <span>Open Study Centre</span>
           </div>
 
-          <div className="apply-arrow">
-            →
-          </div>
+          <div className="apply-arrow">→</div>
         </button>
       </div>
     );
@@ -476,57 +416,53 @@ const Login = () => {
 
   return (
     <>
+      {/* 👇 Sirf Login page ke liye ToastContainer */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        theme="colored"
+      />
+
       <div className="sbshe-login-page">
         <div className="sbshe-topbar">
           <div className="top-contact">
             <span>
               ✉
-              <span>
-                contacr@shaheedbhagatsinghhealthandedu@gmail.com
-              </span>
+              <span>contacr@shaheedbhagatsinghhealthandedu@gmail.com</span>
             </span>
 
             <span>
               ☎
               <span>
                 +91 7082013211
-           <br/>
+                <br />
                 +91 7082013215
               </span>
             </span>
 
             <span>
-              ☎
-              <span>
-                +91 7082013213
-              </span>
+              ☎<span>+91 7082013213</span>
             </span>
           </div>
 
           <div className="top-buttons">
             <button
               type="button"
-              onClick={() =>
-                navigate("/acc-apply")
-              }
+              onClick={() => navigate("/acc-apply")}
             >
               Admission Consultant Registration
             </button>
 
             <button
               type="button"
-              onClick={() =>
-                navigate("/student-apply")
-              }
+              onClick={() => navigate("/student-apply")}
             >
               Student Registration
             </button>
 
             <button
               type="button"
-              onClick={() =>
-                navigate("/study-centre-apply")
-              }
+              onClick={() => navigate("/study-centre-apply")}
             >
               Study Center Registration
             </button>
@@ -566,9 +502,8 @@ const Login = () => {
                 </p>
 
                 <p className="description">
-                  Empowering students and professionals
-                  through quality education, skill
-                  development and healthcare awareness.
+                  Empowering students and professionals through quality
+                  education, skill development and healthcare awareness.
                 </p>
               </div>
 
@@ -577,13 +512,8 @@ const Login = () => {
                   <span></span>
 
                   <div>
-                    <strong>
-                      Quick Applications
-                    </strong>
-
-                    <small>
-                      Choose an application to continue
-                    </small>
+                    <strong>Quick Applications</strong>
+                    <small>Choose an application to continue</small>
                   </div>
 
                   <span></span>
@@ -616,19 +546,13 @@ const Login = () => {
                       ? "type-button active"
                       : "type-button"
                   }
-                  onClick={() =>
-                    changeLoginType("admission")
-                  }
+                  onClick={() => changeLoginType("admission")}
                 >
-                  <span className="type-icon">
-                    👨‍💼
-                  </span>
+                  <span className="type-icon">👨‍💼</span>
 
                   <span>
                     Admission Consultant
-                    <small>
-                      Login
-                    </small>
+                    <small>Login</small>
                   </span>
                 </button>
 
@@ -639,19 +563,13 @@ const Login = () => {
                       ? "type-button active"
                       : "type-button"
                   }
-                  onClick={() =>
-                    changeLoginType("student")
-                  }
+                  onClick={() => changeLoginType("student")}
                 >
-                  <span className="type-icon">
-                    🎓
-                  </span>
+                  <span className="type-icon">🎓</span>
 
                   <span>
                     Student
-                    <small>
-                      Login
-                    </small>
+                    <small>Login</small>
                   </span>
                 </button>
 
@@ -662,73 +580,46 @@ const Login = () => {
                       ? "type-button active"
                       : "type-button"
                   }
-                  onClick={() =>
-                    changeLoginType("studyCenter")
-                  }
+                  onClick={() => changeLoginType("studyCenter")}
                 >
-                  <span className="type-icon">
-                    🏫
-                  </span>
+                  <span className="type-icon">🏫</span>
 
                   <span>
                     Study Center
-                    <small>
-                      Login
-                    </small>
+                    <small>Login</small>
                   </span>
                 </button>
               </div>
 
               <div className="login-title">
-                <div className="title-icon">
-                  {currentLogin.icon}
-                </div>
+                <div className="title-icon">{currentLogin.icon}</div>
 
                 <div>
-                  <h2>
-                    {currentLogin.heading}
-                  </h2>
-
-                  <p>
-                    Please enter your login
-                    credentials to continue
-                  </p>
+                  <h2>{currentLogin.heading}</h2>
+                  <p>Please enter your login credentials to continue</p>
                 </div>
               </div>
 
               {error && (
                 <div className="alert error-alert">
                   <span>⚠</span>
-
-                  <span>
-                    {error}
-                  </span>
+                  <span>{error}</span>
                 </div>
               )}
 
               {success && (
                 <div className="alert success-alert">
                   <span>✓</span>
-
-                  <span>
-                    {success}
-                  </span>
+                  <span>{success}</span>
                 </div>
               )}
 
-              <form
-                onSubmit={handleLogin}
-                className="login-form"
-              >
+              <form onSubmit={handleLogin} className="login-form">
                 <div className="form-group">
-                  <label>
-                    Username
-                  </label>
+                  <label>Username</label>
 
                   <div className="input-box">
-                    <span>
-                      👤
-                    </span>
+                    <span>👤</span>
 
                     <input
                       type="text"
@@ -755,21 +646,13 @@ const Login = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>
-                    Password
-                  </label>
+                  <label>Password</label>
 
                   <div className="input-box">
-                    <span>
-                      🔒
-                    </span>
+                    <span>🔒</span>
 
                     <input
-                      type={
-                        showPassword
-                          ? "text"
-                          : "password"
-                      }
+                      type={showPassword ? "text" : "password"}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
@@ -781,16 +664,10 @@ const Login = () => {
                     <button
                       type="button"
                       className="show-password"
-                      onClick={() =>
-                        setShowPassword(
-                          (prev) => !prev
-                        )
-                      }
+                      onClick={() => setShowPassword((prev) => !prev)}
                       disabled={loading}
                     >
-                      {showPassword
-                        ? "🙈"
-                        : "👁"}
+                      {showPassword ? "🙈" : "👁"}
                     </button>
                   </div>
 
@@ -813,38 +690,26 @@ const Login = () => {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => {
-                        const checked =
-                          e.target.checked;
+                        const checked = e.target.checked;
 
                         setRememberMe(checked);
 
                         if (!checked) {
-                          localStorage.removeItem(
-                            "RememberUsername"
-                          );
-
-                          localStorage.removeItem(
-                            "RememberPassword"
-                          );
+                          localStorage.removeItem("RememberUsername");
+                          localStorage.removeItem("RememberPassword");
                         }
                       }}
                       disabled={loading}
                     />
 
-                    <span>
-                      Remember me
-                    </span>
+                    <span>Remember me</span>
                   </label>
 
                   <button
                     hidden
                     type="button"
                     className="forgot"
-                    onClick={() =>
-                      navigate(
-                        "/forgot-password"
-                      )
-                    }
+                    onClick={() => navigate("/forgot-password")}
                     disabled={loading}
                   >
                     Forgot Password?
@@ -864,9 +729,7 @@ const Login = () => {
                   ) : (
                     <>
                       Login
-                      <span>
-                        →
-                      </span>
+                      <span>→</span>
                     </>
                   )}
                 </button>
@@ -876,13 +739,11 @@ const Login = () => {
 
               <div className="login-footer">
                 <span>
-                  © {new Date().getFullYear()} Shaheed
-                  Bhagat Singh Health & Education
+                  © {new Date().getFullYear()} Shaheed Bhagat Singh Health &
+                  Education
                 </span>
 
-                <span>
-                  Secure Login Portal
-                </span>
+                <span>Secure Login Portal</span>
               </div>
             </div>
           </div>
@@ -903,10 +764,7 @@ const Login = () => {
         }
 
         body {
-          font-family:
-            Arial,
-            Helvetica,
-            sans-serif;
+          font-family: Arial, Helvetica, sans-serif;
         }
 
         button,
@@ -914,20 +772,44 @@ const Login = () => {
           font-family: inherit;
         }
 
+        /* 👇 Red error toast */
+        .Toastify__toast--error {
+          background: #c62828 !important;
+          color: #fff !important;
+          font-weight: 600 !important;
+          border-radius: 10px !important;
+          box-shadow: 0 10px 30px rgba(198, 40, 40, 0.4) !important;
+          font-size: 13px !important;
+        }
+
+        .Toastify__toast--error .Toastify__close-button {
+          color: #fff !important;
+          opacity: 0.9 !important;
+        }
+
+        .Toastify__toast--error .Toastify__progress-bar {
+          background: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        /* 👇 Green success toast */
+        .Toastify__toast--success {
+          background: #218838 !important;
+          color: #fff !important;
+          font-weight: 600 !important;
+          border-radius: 10px !important;
+          box-shadow: 0 10px 30px rgba(33, 136, 56, 0.35) !important;
+          font-size: 13px !important;
+        }
+
+        .Toastify__toast--success .Toastify__close-button {
+          color: #fff !important;
+        }
+
         .sbshe-login-page {
           min-height: 100vh;
-
           background:
-            radial-gradient(
-              circle at top left,
-              rgba(255,102,0,0.07),
-              transparent 32%
-            ),
-            radial-gradient(
-              circle at bottom right,
-              rgba(7,86,127,0.06),
-              transparent 32%
-            ),
+            radial-gradient(circle at top left, rgba(255,102,0,0.07), transparent 32%),
+            radial-gradient(circle at bottom right, rgba(7,86,127,0.06), transparent 32%),
             #f4f7fa;
         }
 
@@ -967,7 +849,7 @@ const Login = () => {
 
         .top-buttons button {
           border: 1px solid rgba(255,255,255,0.35);
-        background: linear-gradient(135deg, #07567f, #ff6600);
+          background: linear-gradient(135deg, #07567f, #ff6600);
           color: #fff;
           padding: 8px 14px;
           border-radius: 7px;
@@ -1002,21 +884,12 @@ const Login = () => {
         }
 
         .login-left {
-          background:
-            linear-gradient(
-              145deg,
-              #ffffff 0%,
-              #f9fbfd 60%,
-              #f3f8fb 100%
-            );
-
+          background: linear-gradient(145deg, #ffffff 0%, #f9fbfd 60%, #f3f8fb 100%);
           padding: 38px 40px 24px;
-
           display: flex;
           flex-direction: column;
           align-items: center;
           text-align: center;
-
           position: relative;
           overflow: hidden;
         }
@@ -1038,14 +911,7 @@ const Login = () => {
           width: 330px;
           height: 330px;
           border-radius: 50%;
-
-          background:
-            radial-gradient(
-              circle,
-              rgba(7,86,127,0.055),
-              transparent 70%
-            );
-
+          background: radial-gradient(circle, rgba(7,86,127,0.055), transparent 70%);
           bottom: -200px;
           left: -160px;
         }
@@ -1155,21 +1021,11 @@ const Login = () => {
         .apply-section-heading > span {
           height: 1px;
           flex: 1;
-          background:
-            linear-gradient(
-              to right,
-              transparent,
-              #d9e2e7
-            );
+          background: linear-gradient(to right, transparent, #d9e2e7);
         }
 
         .apply-section-heading > span:last-child {
-          background:
-            linear-gradient(
-              to left,
-              transparent,
-              #d9e2e7
-            );
+          background: linear-gradient(to left, transparent, #d9e2e7);
         }
 
         .apply-section-heading div {
@@ -1213,10 +1069,7 @@ const Login = () => {
           gap: 8px;
           text-align: left;
           cursor: pointer;
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease,
-            border-color 0.2s ease;
+          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
           overflow: hidden;
         }
 
@@ -1227,12 +1080,7 @@ const Login = () => {
           left: 0;
           width: 100%;
           height: 3px;
-          background:
-            linear-gradient(
-              90deg,
-              #07567f,
-              #ff6600
-            );
+          background: linear-gradient(90deg, #07567f, #ff6600);
           opacity: 0;
           transition: 0.2s;
         }
@@ -1240,9 +1088,7 @@ const Login = () => {
         .apply-card:hover {
           transform: translateY(-3px);
           border-color: rgba(255,102,0,0.4);
-          box-shadow:
-            0 12px 25px
-            rgba(7,86,127,0.10);
+          box-shadow: 0 12px 25px rgba(7,86,127,0.10);
         }
 
         .apply-card:hover::before {
@@ -1261,30 +1107,15 @@ const Login = () => {
         }
 
         .acc-icon {
-          background:
-            linear-gradient(
-              135deg,
-              #fff1e8,
-              #ffe3d1
-            );
+          background: linear-gradient(135deg, #fff1e8, #ffe3d1);
         }
 
         .student-icon {
-          background:
-            linear-gradient(
-              135deg,
-              #eef6ff,
-              #dceeff
-            );
+          background: linear-gradient(135deg, #eef6ff, #dceeff);
         }
 
         .center-icon {
-          background:
-            linear-gradient(
-              135deg,
-              #f2f8f0,
-              #e1f1dc
-            );
+          background: linear-gradient(135deg, #f2f8f0, #e1f1dc);
         }
 
         .apply-card-content {
@@ -1395,9 +1226,7 @@ const Login = () => {
           background: #fff5ee;
           color: #07567f;
           border: 1.5px solid #ff6600;
-          box-shadow:
-            0 5px 18px
-            rgba(255,102,0,0.12);
+          box-shadow: 0 5px 18px rgba(255,102,0,0.12);
         }
 
         .type-icon {
@@ -1501,9 +1330,7 @@ const Login = () => {
 
         .input-box:focus-within {
           border-color: #ff6600;
-          box-shadow:
-            0 0 0 3px
-            rgba(255,102,0,0.08);
+          box-shadow: 0 0 0 3px rgba(255,102,0,0.08);
         }
 
         .input-box > span {
@@ -1587,37 +1414,22 @@ const Login = () => {
           height: 48px;
           border: none;
           border-radius: 9px;
-
-          background:
-            linear-gradient(
-              135deg,
-              #07567f,
-              #ff6600
-            );
-
+          background: linear-gradient(135deg, #07567f, #ff6600);
           color: white;
           font-size: 13px;
           font-weight: 800;
           cursor: pointer;
-
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 12px;
-
-          box-shadow:
-            0 8px 20px
-            rgba(255,102,0,0.22);
-
+          box-shadow: 0 8px 20px rgba(255,102,0,0.22);
           transition: 0.2s;
         }
 
         .login-button:hover:not(:disabled) {
           transform: translateY(-1px);
-
-          box-shadow:
-            0 10px 25px
-            rgba(255,102,0,0.30);
+          box-shadow: 0 10px 25px rgba(255,102,0,0.30);
         }
 
         .login-button:disabled {
@@ -1628,16 +1440,10 @@ const Login = () => {
         .spinner {
           width: 16px;
           height: 16px;
-
-          border:
-            2px solid
-            rgba(255,255,255,0.4);
-
+          border: 2px solid rgba(255,255,255,0.4);
           border-top-color: white;
           border-radius: 50%;
-
-          animation:
-            spin 0.7s linear infinite;
+          animation: spin 0.7s linear infinite;
         }
 
         @keyframes spin {
@@ -1654,11 +1460,9 @@ const Login = () => {
           margin-top: auto;
           padding-top: 14px;
           border-top: 1px solid #eee;
-
           display: flex;
           align-items: center;
           justify-content: space-between;
-
           gap: 10px;
           color: #999;
           font-size: 9px;
@@ -2122,4 +1926,3 @@ const Login = () => {
 };
 
 export default Login;
- 

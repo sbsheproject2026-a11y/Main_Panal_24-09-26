@@ -15,6 +15,33 @@ export const getStudents = (userId,pageNo, pageSize, search) => {
         }
     );
 };
+export const GetEmpConfirmAddmissions = (pageNo, pageSize, search) => {
+    const token = localStorage.getItem("token");
+
+    return api.get(
+        `/StudentApproval/emp-student-confirm-print?pageNo=${pageNo}&pageSize=${pageSize}&search=${search}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+};
+export const GetEmpunsetmarks = (pageNo, pageSize, search) => {
+    const token = localStorage.getItem("token");
+
+    return api.get(
+        `/StudentApproval/emp-student-unsetmarks?pageNo=${pageNo}&pageSize=${pageSize}&search=${search}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+};
+
+ 
+
 export const getStudentsSendToConfirm = (userId,pageNo, pageSize, search) => {
     const token = localStorage.getItem("token");
 

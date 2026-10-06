@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+ import React, { useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import { printAuthorityLetterApi } from "../../AllServicesFiles/AdminStudentService";
@@ -466,34 +466,50 @@ const AuthorityLetterPrint1 = () => {
     };
 
     // ==========================================
-    // DRAW TEXT
+    // DRAW TEXT — wrapWords ke saath
     // ==========================================
-    const drawText = (
-        pdf,
-        field
-    ) => {
-        if (!field?.text)
-            return;
+    const drawText = (pdf, field) => {
+        if (!field?.text) return;
 
-        const text =
-            String(
-                field.text
-            ).trim();
+        const text = String(field.text).trim();
 
         if (!text) return;
 
-        if (
-            isHindiText(text)
-        ) {
-            drawHindiText(
-                pdf,
-                field
-            );
+        // ✅ wrapWords — words per line, poora text show hoga
+        if (field.wrapWords && field.wrapWords > 0) {
+            const words = text.split(/\s+/);
+            const lines = [];
+
+            for (let i = 0; i < words.length; i += field.wrapWords) {
+                lines.push(words.slice(i, i + field.wrapWords).join(" "));
+            }
+
+            // ✅ Line height (mm) — field.lineHeight se control
+            // 2 = tight, 2.5 = balanced, 3 = comfortable
+            const lineHeightMm = field.lineHeight || 2.5;
+
+            lines.forEach((line, index) => {
+                const lineField = {
+                    ...field,
+                    text: line,
+                    y: field.y + index * lineHeightMm,
+                };
+
+                if (isHindiText(line)) {
+                    drawHindiText(pdf, lineField);
+                } else {
+                    drawEnglishText(pdf, lineField);
+                }
+            });
+
+            return;
+        }
+
+        // Default — single line
+        if (isHindiText(text)) {
+            drawHindiText(pdf, field);
         } else {
-            drawEnglishText(
-                pdf,
-                field
-            );
+            drawEnglishText(pdf, field);
         }
     };
 
@@ -523,67 +539,65 @@ const AuthorityLetterPrint1 = () => {
                 // ==========================================
                 const FIELDS = {
                     name: {
-                        text:
-                            result.name ||
-                            "",
-                        x: 24,
+                        text: result.name || "",
+                        x: 25,
                         y: 46.5,
                         align: "left",
                         maxWidth: 100,
                         fontSize: 16,
-                        fontStyle:
-                            "bold",
-                        fontFamily:
-                            "Arial",
+                        fontStyle: "bold",
+                        fontFamily: "Arial",
                     },
 
                     address: {
-                        text:
-                            result.address ||
-                            "",
-                        x: 12,
-                        y: 49.5,
+                        text: result.address || "",
+                        x: 18,
+                        y: 49.8,
                         align: "left",
                         maxWidth: 100,
                         fontSize: 14,
-                        fontStyle:
-                            "bold",
-                        fontFamily:
-                            "Arial",
+                        fontStyle: "bold",
+                        fontFamily: "Arial",
+                        wrapWords: 7,     // 👈 5 words per line
+                        lineHeight: 2,  // 👈 mm gap (adjust karo)
                     },
+                    centreName: {
+                        text: result.centreName || "",
+                        x: 18,
+                        y: 58,
+                        align: "left",
+                        maxWidth: 100,
+                        fontSize: 14,
+                        fontStyle: "bold",
+                        fontFamily: "Arial",
+                        wrapWords: 7,     // 👈 5 words per line
+                        lineHeight: 2,  // 👈 mm gap (adjust karo)
+                    },
+
                     endDate: {
-                        text:
-                            result.endDate ||
-                            "",
+                        text: result.endDate || "",
                         x: 39,
                         y: 73.2,
                         align: "left",
                         maxWidth: 100,
                         fontSize: 14,
                         fontStyle: "bold",
-                        fontFamily:
-                            "Arial",
+                        fontFamily: "Arial",
                     },
 
                     fatherName: {
-                        text:
-                            result.fatherName ||
-                            "",
+                        text: result.fatherName || "",
                         x: 50,
                         y: 40,
                         align: "center",
                         maxWidth: 100,
                         fontSize: 30,
-                        fontStyle:
-                            "bold",
-                        fontFamily:
-                            "Arial",
+                        fontStyle: "bold",
+                        fontFamily: "Arial",
                     },
 
                     selfImage: {
-                        image:
-                            result.selfImage ||
-                            "",
+                        image: result.selfImage || "",
                         x: 11,
                         y: 81,
                         width: 25,
@@ -591,9 +605,7 @@ const AuthorityLetterPrint1 = () => {
                     },
 
                     qrImage: {
-                        image:
-                            result.qrimage ||
-                            "",
+                        image: result.qrimage || "",
                         x: 87,
                         y: 90,
                         width: 25,
@@ -601,9 +613,7 @@ const AuthorityLetterPrint1 = () => {
                     },
 
                     enrollmentNo: {
-                        text:
-                            result.enrollmentNo ||
-                            "",
+                        text: result.enrollmentNo || "",
                         x: 32.5,
                         y: 22.4,
                         align: "left",
@@ -627,8 +637,7 @@ const AuthorityLetterPrint1 = () => {
                 // ==========================================
                 const pdf =
                     new jsPDF({
-                        orientation:
-                            "portrait",
+                        orientation: "portrait",
                         unit: "mm",
                         format: "a4",
                         compress: false,
@@ -673,6 +682,7 @@ const AuthorityLetterPrint1 = () => {
                     FIELDS.name,
                     FIELDS.fatherName,
                     FIELDS.address,
+                    FIELDS.centreName,
                     FIELDS.endDate,
                     FIELDS.enrollmentNo,
                 ].forEach(
@@ -688,9 +698,7 @@ const AuthorityLetterPrint1 = () => {
                 // PDF BLOB
                 // ==========================================
                 const pdfBlob =
-                    pdf.output(
-                        "blob"
-                    );
+                    pdf.output("blob");
 
                 const pdfUrl =
                     URL.createObjectURL(
@@ -724,9 +732,7 @@ const AuthorityLetterPrint1 = () => {
                 const checkPdfClosed =
                     setInterval(
                         () => {
-                            if (
-                                newTab.closed
-                            ) {
+                            if (newTab.closed) {
                                 clearInterval(
                                     checkPdfClosed
                                 );
@@ -736,9 +742,7 @@ const AuthorityLetterPrint1 = () => {
                                 );
 
                                 // Previous page
-                                navigate(
-                                    -1
-                                );
+                                navigate(-1);
                             }
                         },
                         500
@@ -757,9 +761,7 @@ const AuthorityLetterPrint1 = () => {
                             pdfUrl
                         );
                     },
-                    60 *
-                    60 *
-                    1000
+                    60 * 60 * 1000
                 );
             } catch (error) {
                 console.error(

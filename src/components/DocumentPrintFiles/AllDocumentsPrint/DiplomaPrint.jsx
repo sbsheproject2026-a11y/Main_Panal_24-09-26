@@ -4,6 +4,7 @@ import jsPDF from "jspdf";
 import { printDiplomaApi } from "../../AllServicesFiles/AdminStudentService";
 
 const DiplomaPrint = () => {
+    console.log("🔵 DiplomaPrint component LOADED"); 
     const { id } = useParams();
     const navigate = useNavigate();
     const printedId = useRef(null);
@@ -15,6 +16,28 @@ const DiplomaPrint = () => {
     const FONT_SIZE = 18;
     const TEXT_SCALE = 4;
     const FONT_COLOR = "#000000";
+
+    // ==========================================
+    // ✅ ROLE-BASED REDIRECT PATH
+    // ==========================================
+    const getRedirectPath = () => {
+       
+    const roleId = String(localStorage.getItem("RoleId") || "").trim();
+        // Admin (5) → confirm-addmissions
+        if (roleId === "5") {
+            return "/confirm-addmissions";
+        }
+
+        // Employee / Franchise (33, 6, 90) → student-print-list
+        if (
+            roleId === "33"  
+        ) {
+            return "/student-print-list";
+        }
+
+        // Fallback
+        return "/";
+    };
 
     useEffect(() => {
         if (!id || printedId.current === id) return;
@@ -502,8 +525,9 @@ const DiplomaPrint = () => {
                     "Diploma data nahi mila."
                 );
 
+                // ✅ Role-based redirect
                 navigate(
-                    "/confirm-addmissions"
+                    getRedirectPath()
                 );
 
                 return;
@@ -814,8 +838,9 @@ const DiplomaPrint = () => {
                                 pdfUrl
                             );
 
+                            // ✅ Role-based redirect
                             navigate(
-                                "/confirm-addmissions"
+                                getRedirectPath()
                             );
                         }
                     },

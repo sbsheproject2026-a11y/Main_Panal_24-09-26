@@ -25,6 +25,28 @@ const MigrationCertificate = () => {
     const MIN_FONT_SIZE = 8;
 
     // =========================================================
+    // ✅ ROLE-BASED REDIRECT PATH
+    // =========================================================
+    const getRedirectPath = () => {
+        const roleId = String(
+            localStorage.getItem("RoleId") || ""
+        ).trim();
+
+        // Admin (5) → confirm-addmissions
+        if (roleId === "5") {
+            return "/confirm-addmissions";
+        }
+
+        // Franchise (33) → student-print-list
+        if (roleId === "33") {
+            return "/student-print-list";
+        }
+
+        // Fallback
+        return "/";
+    };
+
+    // =========================================================
     // PAGE LOAD
     // =========================================================
     useEffect(() => {
@@ -241,7 +263,9 @@ const MigrationCertificate = () => {
 
             if (!result) {
                 alert("Migration Certificate data nahi mila.");
-                navigate("/confirm-addmissions");
+
+                // ✅ Role-based redirect
+                navigate(getRedirectPath());
                 return;
             }
 
@@ -409,7 +433,9 @@ const MigrationCertificate = () => {
                 if (newTab.closed) {
                     clearInterval(checkPdfClosed);
                     URL.revokeObjectURL(pdfUrl);
-                    navigate("/confirm-addmissions");
+
+                    // ✅ Role-based redirect
+                    navigate(getRedirectPath());
                 }
             }, 500);
 

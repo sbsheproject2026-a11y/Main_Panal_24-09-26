@@ -1,4 +1,4 @@
-import Dashboard from "./Dashboard";
+ import Dashboard from "./Dashboard";
 import MasterType from "./MasterDetail/MasterType";
 import MasterTypeDetails from "./MasterDetail/MasterTypeDetails";
 import CourseCreate from "./Course/CourseCreate";
@@ -16,25 +16,19 @@ import EmployeeList from "./Employee/EmployeeList";
 import EmployeeFrenchiseAssing from "./Employee/EmployeeFrenchiseAssing";
 import EmployeeUpdate from "./Employee/EmployeeUpdate";
 import Usersprofile from "./Employee/Usersprofile";
- 
+
 import SendToConfirmStudent from "./AdminStudent/SendToConfirmStudent";
 import ConfirmStudent from "./AdminStudent/ConfirmStudent";
 import SubjectCreate from "./Course/SubjectCreate";
 import SetMarksStudent from "./AdminStudent/SetMarksStudent";
 import UpgradeStudent from "./AdminStudent/UpgradeStudent";
 import RollNoList from "./AdminStudent/RollNoList";
-import DiplomaPrint from "../DocumentPrintFiles/AllDocumentsPrint/DiplomaPrint";
-import MarksheetPrint from "../DocumentPrintFiles/AllDocumentsPrint/MarksheetPrint";
-import MigrationCertificate from "../DocumentPrintFiles/AllDocumentsPrint/MigrationCertificate";
-import IdCard from "../DocumentPrintFiles/AllDocumentsPrint/IdCard";
-import AdmitCardPrint from "../DocumentPrintFiles/AllDocumentsPrint/AdmitCardPrint";
 import EnquiriesList from "./EnquiriesList";
 import AccRegisterList from "./Frenchise/AccRegisterList";
 import StudyCentreUpdate from "./Frenchise/StudyCentreUpdate";
 import WalletList from "./WalletWorking/WalletList";
 import WalletRecharge from "./WalletWorking/WalletRecharge";
 import ProductAmountAdd from "./Course/ProductAmountAdd";
-import AuthorityLetterPrint from "../DocumentPrintFiles/AllDocumentsPrint/AuthorityLetterPrint";
 import AccUpdate from "./Frenchise/AccUpdate";
 import CourseCategory from "./Course/CourseCategory";
 import Department from "./Course/Department";
@@ -44,65 +38,50 @@ import AccPendingList from "./Frenchise/AccPendingList";
 import PendingWalletRequest from "./WalletWorking/PendingWalletRequest";
 import FranchiseCommission from "./Course/FranchiseCommission";
 import SetCourseCommission from "./Course/SetCourseCommission";
-import FranchiseIdCard from "../DocumentPrintFiles/AllDocumentsPrint/FranchiseIdCard";
- 
 import RejectList from "./Frenchise/RejectList";
- 
- 
- 
- 
+
 
 const adminRoutes = [
-    { path: "/dashboard", element: <Dashboard /> },
-  
-    { path: "/website-content", element: <WebsiteContent /> },
-    { path: "/mastertype", element: <MasterType /> },
-    { path: "/mastertypeDetails", element: <MasterTypeDetails /> },
-    { path: "/course-category", element: <CourseCategory /> },
-    { path: "/department", element: <Department /> },
-    { path: "/mastersession", element: <MasterSession /> },
-    { path: "/course-create", element: <CourseCreate /> },
-    { path: "/course-list", element: <CourseList /> },
-    { path: "/course-update/:id", element: <CourseUpdate /> },
-    { path: "/franchise-create", element: <FrenchiseCreate /> },
-    { path: "/franchise-list", element: <FrenchiseList /> },
-    { path: "/reject-list", element: <RejectList /> },
-    { path: "/acc-pending", element: <AccPendingList /> },
-    { path: "/acc-list", element: <AccRegisterList /> },
-    { path: "/pending-wallet-request", element: <PendingWalletRequest /> },
-    { path: "/franchise-commission", element: <FranchiseCommission /> },
-    { path: "/Course-commission", element: <SetCourseCommission /> },
-    { path: "/admin-wallet-list", element: <WalletList /> },
-    { path: "/admin-wallet-recharge", element: <WalletRecharge /> },
-    { path: "/frenchise-update/:id", element: <FrenchiseUpdate /> },
-    { path: "/acc-update/:id", element: <AccUpdate /> },
-    { path: "/study-centre-update/:id", element: <StudyCentreUpdate /> },
-    { path: "/employee-create", element: <EmployeeCreate /> },
-    { path: "/employee-list", element: <EmployeeList /> },
-    { path: "/enquiries-list", element: <EnquiriesList /> },
-    { path: "/employee-update/:id", element: <EmployeeUpdate /> },
-    { path: "/users-profile", element: <Usersprofile /> },
-    { path: "/employee-frenchise-assign", element: <EmployeeFrenchiseAssing /> },
-    { path: "/state", element: <State /> },
-    { path: "/district", element: <District /> },
-    { path: "/city", element: <City /> },
-    { path: "/confirm-addmissions", element: <ConfirmStudent /> },
-    { path: "/send-to-confirm-student", element: <SendToConfirmStudent /> },
-    { path: "/subject-create/:id", element: <SubjectCreate /> },
-    { path: "/course-amount/:id", element: <ProductAmountAdd /> },
-    { path: "/course-material/:id", element: <CourseMaterial /> },
-    { path: "/student-setmarks", element: <SetMarksStudent /> },
-    { path: "/student-upgrade", element: <UpgradeStudent /> },
-    { path: "/student-rollno-list", element: <RollNoList /> },
-    { path: "/diploma-print/:id", element: <DiplomaPrint /> },
-    { path: "/migration-certificate/:id", element: <MigrationCertificate /> },
-    { path: "/marksheet-print/:id", element: <MarksheetPrint /> },
-    { path: "/authority-letterPrint-print/:id", element: <AuthorityLetterPrint /> },
-    { path: "/id-card-print/:id", element: <FranchiseIdCard /> },
-    { path: "/admit-card-print/:id", element: <AdmitCardPrint /> },
-    { path: "/id-card/:id", element: <IdCard /> }
-     
-    
+    { path: "/dashboard", element: <Dashboard />, role: ["5"] },
+    { path: "/website-content", element: <WebsiteContent />, role: ["5"] },
+    { path: "/mastertype", element: <MasterType />, role: ["5"] },
+    { path: "/mastertypeDetails", element: <MasterTypeDetails />, role: ["5"] },
+    { path: "/course-category", element: <CourseCategory />, role: ["5"] },
+    { path: "/department", element: <Department />, role: ["5"] },
+    { path: "/mastersession", element: <MasterSession />, role: ["5"] },
+    { path: "/course-create", element: <CourseCreate />, role: ["5"] },
+    { path: "/course-list", element: <CourseList />, role: ["5"] },
+    { path: "/course-update/:id", element: <CourseUpdate />, role: ["5"] },
+    { path: "/franchise-create", element: <FrenchiseCreate />, role: ["5"] },
+    { path: "/franchise-list", element: <FrenchiseList />, role: ["5"] },
+    { path: "/reject-list", element: <RejectList />, role: ["5"] },
+    { path: "/acc-pending", element: <AccPendingList />, role: ["5"] },
+    { path: "/acc-list", element: <AccRegisterList />, role: ["5"] },
+    { path: "/pending-wallet-request", element: <PendingWalletRequest />, role: ["5"] },
+    { path: "/franchise-commission", element: <FranchiseCommission />, role: ["5"] },
+    { path: "/Course-commission", element: <SetCourseCommission />, role: ["5"] },
+    { path: "/admin-wallet-list", element: <WalletList />, role: ["5"] },
+    { path: "/admin-wallet-recharge", element: <WalletRecharge />, role: ["5"] },
+    { path: "/frenchise-update/:id", element: <FrenchiseUpdate />, role: ["5"] },
+    { path: "/acc-update/:id", element: <AccUpdate />, role: ["5"] },
+    { path: "/study-centre-update/:id", element: <StudyCentreUpdate />, role: ["5"] },
+    { path: "/employee-create", element: <EmployeeCreate />, role: ["5"] },
+    { path: "/employee-list", element: <EmployeeList />, role: ["5"] },
+    { path: "/enquiries-list", element: <EnquiriesList />, role: ["5"] },
+    { path: "/employee-update/:id", element: <EmployeeUpdate />, role: ["5"] },
+    { path: "/users-profile", element: <Usersprofile />, role: ["5"] },
+    { path: "/employee-frenchise-assign", element: <EmployeeFrenchiseAssing />, role: ["5"] },
+    { path: "/state", element: <State />, role: ["5"] },
+    { path: "/district", element: <District />, role: ["5"] },
+    { path: "/city", element: <City />, role: ["5"] },
+    { path: "/confirm-addmissions", element: <ConfirmStudent />, role: ["5"] },
+    { path: "/send-to-confirm-student", element: <SendToConfirmStudent />, role: ["5"] },
+    { path: "/subject-create/:id", element: <SubjectCreate />, role: ["5"] },
+    { path: "/course-amount/:id", element: <ProductAmountAdd />, role: ["5"] },
+    { path: "/course-material/:id", element: <CourseMaterial />, role: ["5"] },
+    { path: "/student-setmarks", element: <SetMarksStudent />, role: ["5"] },
+    { path: "/student-upgrade", element: <UpgradeStudent />, role: ["5"] },
+    { path: "/student-rollno-list", element: <RollNoList />, role: ["5"] },
 ];
 
 export default adminRoutes;

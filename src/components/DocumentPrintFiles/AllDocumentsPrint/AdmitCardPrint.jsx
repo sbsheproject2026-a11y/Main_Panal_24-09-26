@@ -15,6 +15,28 @@ const AdmitCardPrint = () => {
     const FONT_COLOR = "#000000";
     const MIN_FONT_SIZE = 7;
 
+    // =========================================================
+    // ✅ ROLE-BASED REDIRECT PATH
+    // =========================================================
+    const getRedirectPath = () => {
+        const roleId = String(
+            localStorage.getItem("RoleId") || ""
+        ).trim();
+
+        // Admin (5) → confirm-addmissions
+        if (roleId === "5") {
+            return "/confirm-addmissions";
+        }
+
+        // Franchise (33) → student-print-list
+        if (roleId === "33") {
+            return "/student-print-list";
+        }
+
+        // Fallback
+        return "/";
+    };
+
     useEffect(() => {
         if (!id || printedId.current === id) return;
 
@@ -288,7 +310,9 @@ const AdmitCardPrint = () => {
 
             if (!result) {
                 alert("Diploma data nahi mila.");
-                navigate("/confirm-addmissions");
+
+                // ✅ Role-based redirect
+                navigate(getRedirectPath());
                 return;
             }
 
@@ -450,7 +474,9 @@ const AdmitCardPrint = () => {
                 if (newTab.closed) {
                     clearInterval(checkPdfClosed);
                     URL.revokeObjectURL(pdfUrl);
-                    navigate("/confirm-addmissions");
+
+                    // ✅ Role-based redirect
+                    navigate(getRedirectPath());
                 }
             }, 500);
 

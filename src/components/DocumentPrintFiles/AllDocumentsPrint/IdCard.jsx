@@ -1,5 +1,4 @@
- 
-import React, { useEffect, useRef } from "react";
+ import React, { useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import { printDiplomaApi } from "../../AllServicesFiles/AdminStudentService";
@@ -34,6 +33,30 @@ const IdCard = () => {
 
     // Long text ke liye minimum font size
     const MIN_FONT_SIZE = 7;
+
+
+    // =========================================================
+    // ✅ ROLE-BASED REDIRECT PATH
+    // =========================================================
+
+    const getRedirectPath = () => {
+        const roleId = String(
+            localStorage.getItem("RoleId") || ""
+        ).trim();
+
+        // Admin (5) → confirm-addmissions
+        if (roleId === "5") {
+            return "/confirm-addmissions";
+        }
+
+        // Franchise (33) → student-print-list
+        if (roleId === "33") {
+            return "/student-print-list";
+        }
+
+        // Fallback
+        return "/";
+    };
 
 
     // =========================================================
@@ -515,9 +538,8 @@ const IdCard = () => {
                     "Student data nahi mila."
                 );
 
-                navigate(
-                    "/confirm-addmissions"
-                );
+                // ✅ Role-based redirect
+                navigate(getRedirectPath());
 
                 return;
             }
@@ -880,9 +902,8 @@ const IdCard = () => {
                             pdfUrl
                         );
 
-                        navigate(
-                            "/confirm-addmissions"
-                        );
+                        // ✅ Role-based redirect
+                        navigate(getRedirectPath());
 
                     }
 
@@ -945,7 +966,7 @@ const IdCard = () => {
             <button
                 onClick={() =>
                     navigate(
-                        "/confirm-addmissions"
+                        getRedirectPath()
                     )
                 }
                 style={{
@@ -967,4 +988,3 @@ const IdCard = () => {
 };
 
 export default IdCard;
- 

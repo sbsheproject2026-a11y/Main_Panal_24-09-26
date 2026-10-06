@@ -16,6 +16,9 @@ import UpdatePassword from "./EmployeePage/UpdatePassword";
 import WalletRecharge1 from "./WalletWorking/WalletRecharge1";
 import FranchiseIdCard from "./DocumentPrintFiles/FranchiseIdCard";
 import AddressPrint from "./EmpFranchise/AddressPrint";
+import SetMarksStudent from "./Students/SetMarksStudent";
+import ConfirmStudent from "./Students/ConfirmStudent";
+ 
  
 
 
@@ -40,6 +43,9 @@ const employeeRoutes = [
     // ===== Sirf Role 33 (Franchise) ke liye =====
     { path: "/emp-franchise-list", element: <EmpFranchiseList />, role: ["33"] },
     { path: "/address-print", element: <AddressPrint  />, role: ["33"] },
+    { path: "/set-marks", element: <SetMarksStudent  />, role: ["33"] },
+    { path: "/student-print-list", element: <ConfirmStudent  />, role: ["33"] },
+    
 
      
 ];

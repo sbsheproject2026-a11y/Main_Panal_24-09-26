@@ -15,6 +15,7 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 function CourseCreate() {
   const navigate = useNavigate();
 
+  const [studyMode, setStudyMode ] = useState([]);
   const [durations, setDurations] = useState([]);
   const [durationTypes, setDurationTypes] = useState([]);
   const [courseTypes, setCourseTypes] = useState([]);
@@ -38,6 +39,7 @@ function CourseCreate() {
     categoryId: 0,
     departmentId: 0,
     totalClass: 0,
+    studyModeId: 0,
     classNo: 0,
     isActive: 1,
   });
@@ -60,6 +62,7 @@ function CourseCreate() {
   ]);
 
   useEffect(() => {
+    loadStudyMode();
     loadCourseType();
     loadCourseCategory();
     loadDuration();
@@ -69,6 +72,14 @@ function CourseCreate() {
     loadMaterialTypes();
   }, []);
 
+  const loadStudyMode = async () => {
+    try {
+      const result = await getDuration(23);
+      setStudyMode(result?.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const loadDuration = async () => {
     try {
       const result = await getDuration(11);
@@ -209,6 +220,9 @@ function CourseCreate() {
 
     if (!formData.categoryId || formData.categoryId === 0) {
       newErrors.categoryId = "Course Category is required";
+    }
+    if (!formData.studyModeId || formData.studyModeId === 0) {
+      newErrors.studyModeId = "Study Mode is required";
     }
 
     if (!formData.departmentId || formData.departmentId === 0) {
@@ -834,6 +848,48 @@ function CourseCreate() {
                   </div>
 
                   <div className="row">
+
+
+                    <div className="col-md-4">
+                      <div className="course-field">
+                        <label className="course-label">
+                          Study Mode<span>*</span>
+                        </label>
+
+                        <select
+                          className={`course-select ${errors.studyModeId
+                              ? "course-select-error"
+                              : ""
+                            }`}
+                          value={formData.studyModeId}
+                          onChange={(e) =>
+                            handleSelectChange(
+                              e,
+                              "studyModeId"
+                            )
+                          }
+                        >
+                          <option value={0}>
+                            Select Study Mode
+                          </option>
+
+                          {studyMode.map((item) => (
+                            <option
+                              key={item.id}
+                              value={item.id}
+                            >
+                              {item.name}
+                            </option>
+                          ))}
+                        </select>
+
+                        {errors.studyModeId && (
+                          <span className="course-error">
+                            {errors.studyModeId}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     <div className="col-md-4">
                       <div className="course-field">
                         <label className="course-label">

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Login from './components/LoginFile/Login'
 
@@ -7,15 +7,21 @@ import AdminLayout from './components/AdminArea/AllLayout/AdminLayout'
 import EmployeeLayout from './components/EmployeeArea/EmployeeLayout/EmployeeLayout'
 
 import adminRoutes from './components/AdminArea/AdminRoutes'
-
 import employeeRoutes from './components/EmployeeArea/EmployeeRoute'
+import studentRoute from './components/StudentArea/StudentRoute'
 
 import AdmissionConsultantRegistration from './components/WebsiteForms/AdmissionConsultantRegistration'
 import StudentRegistration from './components/WebsiteForms/StudentRegistration'
 import StudyCenterRegistration from './components/WebsiteForms/StudyCenterRegistration'
 import Success from './components/WebsiteForms/Success'
-import FranchiseLayout from './components/EmployeeArea/FranchiseLayout/FranchiseLayout'
-import studentRoute from './components/StudentArea/StudentRoute'
+
+import DiplomaPrint from './components/DocumentPrintFiles/AllDocumentsPrint/DiplomaPrint'
+import MigrationCertificate from './components/DocumentPrintFiles/AllDocumentsPrint/MigrationCertificate'
+import MarksheetPrint from './components/DocumentPrintFiles/AllDocumentsPrint/MarksheetPrint'
+import AdmitCardPrint from './components/DocumentPrintFiles/AllDocumentsPrint/AdmitCardPrint'
+import IdCard from './components/DocumentPrintFiles/AllDocumentsPrint/IdCard'
+import AuthorityLetterPrint from './components/DocumentPrintFiles/AllDocumentsPrint/AuthorityLetterPrint'
+import FranchiseIdCard from './components/EmployeeArea/DocumentPrintFiles/FranchiseIdCard'
 
 
 function App() {
@@ -24,7 +30,7 @@ function App() {
         <>
             <Routes>
 
-                {/* Login */}
+                {/* ================= Public Routes ================= */}
                 <Route path="/" element={<Login />} />
                 <Route path="/acc-apply" element={<AdmissionConsultantRegistration />} />
                 <Route path="/student-apply" element={<StudentRegistration />} />
@@ -32,21 +38,37 @@ function App() {
                 <Route path="/success" element={<Success />} />
 
 
-                {/* ================= Admin (Role 5) ================= */}
-                <Route element={<ProtectedRoute allowedRole="5" />}>
+                {/* ================= Admin (Role 5 only) ================= */}
+                <Route element={<ProtectedRoute allowedRole={["5"]} />}>
                     <Route element={<AdminLayout />}>
-                        {adminRoutes.map((route) => (
-                            <Route
-                                key={route.path}
-                                path={route.path}
-                                element={route.element}
-                            />
-                        ))}
+                        {adminRoutes
+                            .filter((route) =>
+                                route.role?.some((r) => ["5"].includes(r))
+                            )
+                            .map((route) => (
+                                <Route
+                                    key={route.path}
+                                    path={route.path}
+                                    element={route.element}
+                                />
+                            ))}
                     </Route>
                 </Route>
 
 
-                {/* ================= Employee (Role 6, 90) ================= */}
+                {/* ================= Common — Admin (5) + Franchise (33) ================= */}
+                {/* 👇 Print pages — full screen, bina layout */}
+             <Route element={<ProtectedRoute allowedRole={["5", "33"]} />}>
+    <Route path="/diploma-print/:id" element={<DiplomaPrint />} />
+    <Route path="/migration-certificate/:id" element={<MigrationCertificate />} />
+    <Route path="/marksheet-print/:id" element={<MarksheetPrint />} />
+    <Route path="/authority-letterPrint-print/:id" element={<AuthorityLetterPrint />} />
+    <Route path="/id-card-print/:id" element={<FranchiseIdCard />} />
+    <Route path="/admit-card-print/:id" element={<AdmitCardPrint />} />
+    <Route path="/id-card/:id" element={<IdCard />} />
+</Route>
+
+
                 {/* ================= Employee + Franchise (Role 6, 90, 33) ================= */}
                 <Route element={<ProtectedRoute allowedRole={["6", "90", "33"]} />}>
                     <Route element={<EmployeeLayout />}>
@@ -65,22 +87,19 @@ function App() {
                 </Route>
 
 
-
-
-
                 {/* ================= Student (Role 7) ================= */}
                 <Route element={<ProtectedRoute allowedRole="7" />}>
-    {studentRoute.map((route) => (
-        <Route
-            key={route.path}
-            path={route.path}
-            element={route.element}
-        />
-    ))}
-</Route>
+                    {studentRoute.map((route) => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={route.element}
+                        />
+                    ))}
+                </Route>
 
 
-                {/* Fallback */}
+                {/* ================= Fallback ================= */}
                 <Route path="*" element={<Navigate to="/" replace />} />
 
             </Routes>
