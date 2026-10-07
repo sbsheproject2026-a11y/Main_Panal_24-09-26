@@ -23,6 +23,7 @@ import IdCard from './components/DocumentPrintFiles/AllDocumentsPrint/IdCard'
 import AuthorityLetterPrint from './components/DocumentPrintFiles/AllDocumentsPrint/AuthorityLetterPrint'
 import FranchiseIdCard from './components/EmployeeArea/DocumentPrintFiles/FranchiseIdCard'
 import AdmissionFormPrint from './components/WebsiteForms/AdmissionFormPrint'
+import ViewDetails from './components/EmployeeArea/Students/ViewDetails'
 
 
 function App() {
@@ -37,6 +38,8 @@ function App() {
                 <Route path="/student-apply" element={<StudentRegistration />} />
                 <Route path="/study-centre-apply" element={<StudyCenterRegistration />} />
               <Route path="/admission-form-print/:id" element={<AdmissionFormPrint />} />
+           
+            
                 <Route path="/success" element={<Success />} />
  
 

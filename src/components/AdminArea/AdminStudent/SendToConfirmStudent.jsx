@@ -23,6 +23,15 @@ function SendToConfirmStudent() {
         navigate(`/student-update/${id}`);
     };
 
+     const handleformprint = (id) => {
+    navigate(`/admission-form-print/${id}`);
+  };
+  
+
+  const handleView = (id) => {
+    navigate(`/student-view/${id}`);
+  };
+
     useEffect(() => {
         loadStudents();
     }, [pageNo, pageSize, search]);
@@ -879,6 +888,22 @@ function SendToConfirmStudent() {
                                                          
 
                                                         <td>
+                                                             <button
+                                  type="button"
+                                  className="student-action view"
+                                  onClick={() => handleformprint(item.id)}
+                                  title="View Student"
+                                >
+                                 Print
+                                </button>
+                                <button
+                                  type="button"
+                                  className="student-action view"
+                                  onClick={() => handleView(item.id)}
+                                  title="View Student"
+                                >
+                                  <i className="bi bi-eye-fill"></i>
+                                </button>
                                                             <button
                                                                 type="button"
                                                                 className="student-action-icon"

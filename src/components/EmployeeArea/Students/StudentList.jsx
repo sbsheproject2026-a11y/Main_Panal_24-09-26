@@ -25,6 +25,9 @@ function StudentList() {
 
   const navigate = useNavigate();
 
+  const handleformprint = (id) => {
+    navigate(`/admission-form-print/${id}`);
+  };
   const handleEdit = (id) => {
     navigate(`/student-update/${id}`);
   };
@@ -1022,6 +1025,14 @@ function StudentList() {
 
                             <td className="action-column">
                               <div className="student-actions">
+                                <button
+                                  type="button"
+                                  className="student-action view"
+                                  onClick={() => handleformprint(item.id)}
+                                  title="View Student"
+                                >
+                                 Print
+                                </button>
                                 <button
                                   type="button"
                                   className="student-action view"

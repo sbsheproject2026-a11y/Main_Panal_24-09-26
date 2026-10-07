@@ -1016,14 +1016,14 @@ function StudentUpdate() {
             </div>
           </div>
 
-          <button
+          {/* <button
             type="button"
             className="student-back-btn"
             onClick={() => navigate("/student-list")}
           >
             <i className="bi bi-arrow-left"></i>
             Back to Students
-          </button>
+          </button> */}
         </div>
 
         <div className="student-profile-card">
@@ -1881,14 +1881,14 @@ function StudentUpdate() {
             </div>
 
             <div className="student-form-footer">
-              <button
+              {/* <button
                 type="button"
                 className="student-cancel-btn"
                 onClick={() => navigate("/student-list")}
               >
                 <i className="bi bi-arrow-left"></i>
                 Back
-              </button>
+              </button> */}
 
               <button type="submit" className="student-update-btn">
                 <i className="bi bi-check2-circle"></i>

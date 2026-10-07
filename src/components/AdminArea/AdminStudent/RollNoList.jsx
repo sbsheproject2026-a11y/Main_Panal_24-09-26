@@ -1,23 +1,42 @@
- import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     GetConfirmAddmissions
-     
+
 } from "../../AllServicesFiles/AdminStudentService";
 import { FILE_URL } from "../../api";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 function RollNoList() {
+       const navigate = useNavigate();
     const [data, setData] = useState([]);
     const [search, setSearch] = useState("");
     const [pageNo, setPageNo] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [totalRecords, setTotalRecords] = useState(0);
     const [loading, setLoading] = useState(false);
-     const [searchParams] = useSearchParams();
-  const studyModeId = Number(searchParams.get("studyModeId")) || 0;
+    const [searchParams] = useSearchParams();
+    const studyModeId = Number(searchParams.get("studyModeId")) || 0;
+
+
+
+    // ✅ PRINT
+const handlePrint = (id) => {
+    navigate(`/admission-form-print/${id}`);
+};
+
+// ✅ VIEW
+const handleView = (id) => {
+    navigate(`/student-view1/${id}`);
+};
+
+// ✅ EDIT
+const handleEdit = (id) => {
+    navigate(`/student-update1/${id}`);
+};
+
     useEffect(() => {
         loadStudents();
-    }, [pageNo, pageSize, search,studyModeId]);
+    }, [pageNo, pageSize, search, studyModeId]);
 
     const loadStudents = async () => {
         try {
@@ -338,6 +357,172 @@ function RollNoList() {
                         max-width: none !important;
                     }
                 }
+
+                /* ========================================
+   Student Action Buttons (Print + View)
+======================================== */
+.student-action-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.student-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    outline: none;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.student-action i {
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* ---------- Print Button ---------- */
+.student-action.print {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-color: #bae6fd;
+}
+
+.student-action.print:hover {
+    background: #0369a1;
+    color: #ffffff;
+    border-color: #0369a1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(3, 105, 161, 0.25);
+}
+
+.student-action.print:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(3, 105, 161, 0.2);
+}
+
+/* ---------- View Button ---------- */
+.student-action.view {
+    background: #dcfce7;
+    color: #15803d;
+    border-color: #bbf7d0;
+}
+
+.student-action.view:hover {
+    background: #15803d;
+    color: #ffffff;
+    border-color: #15803d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(21, 128, 61, 0.25);
+}
+
+.student-action.view:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(21, 128, 61, 0.2);
+}
+
+/* ---------- Focus (accessibility) ---------- */
+.student-action:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+}
+
+/* ---------- Mobile: icon-only buttons ---------- */
+@media (max-width: 576px) {
+    .student-action {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .student-action span {
+        display: none; /* sirf icon dikhega */
+    }
+
+    .student-action i {
+        font-size: 15px;
+    }
+}
+
+/* ---------- Header Actions (Back + Edit) ---------- */
+.view-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ---------- Edit Button ---------- */
+.view-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 20px;
+    background: linear-gradient(135deg, #198754, #20c997);
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.25);
+}
+
+.view-edit-btn:hover {
+    background: linear-gradient(135deg, #146c43, #1aa179);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(25, 135, 84, 0.35);
+}
+
+.view-edit-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
+}
+
+.view-edit-btn i {
+    font-size: 15px;
+}
+
+.view-edit-btn:focus-visible {
+    outline: 2px solid #20c997;
+    outline-offset: 2px;
+}
+
+/* ---------- Bottom Actions (Back + Edit aligned) ---------- */
+.view-bottom-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0 32px;
+    flex-wrap: wrap;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 576px) {
+    .view-header-actions,
+    .view-bottom-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .view-edit-btn,
+    .view-back-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
                 `}
             </style>
 
@@ -530,8 +715,9 @@ function RollNoList() {
                                             <th> FATHER NAME </th>
                                             <th> CONTACT </th>
                                             <th> ADDRESS </th>
-                                           <th>Franchise Name</th>
-                                                <th>Course Name</th>
+                                            <th>Franchise Name</th>
+                                            <th>Course Name</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
 
@@ -585,17 +771,17 @@ function RollNoList() {
                                                     </td>
 
                                                     <td>
-                                                        
-                                                            <i className="bi bi-card-text me-1"></i>
-                                                            {item.enrollmentNo || "-"}
-                                                       
+
+                                                        <i className="bi bi-card-text me-1"></i>
+                                                        {item.enrollmentNo || "-"}
+
                                                     </td>
 
                                                     <td>
-                                                         
-                                                            <i className="bi bi-hash me-1"></i>
-                                                            {item.rollno || "-"}
-                                                       
+
+                                                        <i className="bi bi-hash me-1"></i>
+                                                        {item.rollno || "-"}
+
                                                     </td>
 
                                                     <td>
@@ -622,8 +808,45 @@ function RollNoList() {
                                                         </span>
                                                     </td>
 
-                                                     <td>{item.instituteName || "-"}</td>
-                                                        <td>{item.courseName || "-"}</td>
+                                                    <td>{item.instituteName || "-"}</td>
+                                                    <td>{item.courseName || "-"}</td>
+
+                                                   <td>
+    <div className="student-action-group">
+        {/* Print */}
+        <button
+            type="button"
+            className="student-action print"
+            onClick={() => handlePrint(item.id)}
+            title="Print Form"
+        >
+            <i className="bi bi-printer-fill"></i>
+            <span>Print</span>
+        </button>
+
+        {/* View */}
+        <button
+            type="button"
+            className="student-action view"
+            onClick={() => handleView(item.id)}
+            title="View Student"
+        >
+            <i className="bi bi-eye-fill"></i>
+            <span>View</span>
+        </button>
+
+        {/* Edit */}
+        <button
+            type="button"
+            className="student-action edit"
+            onClick={() => handleEdit(item.id)}
+            title="Edit Student"
+        >
+            <i className="bi bi-pencil-square"></i>
+            <span>Edit</span>
+        </button>
+    </div>
+</td>
                                                 </tr>
                                             ))
                                         ) : (

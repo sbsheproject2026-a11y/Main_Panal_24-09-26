@@ -6,7 +6,7 @@ import StudentList from "./Students/StudentList";
 import StudentUpdate from "./Students/StudentUpdate";
 import Profile from "./EmployeePage/Profile";
 import NeedHelp from "./EmployeePage/NeedHelp";
-import ViewDetails from "./Students/ViewDetails";
+ 
 import AcademicDetailsupdate from "./Students/AcademicDetailsupdate";
 
 import WalletList from "./WalletWorking/WalletList";
@@ -18,6 +18,7 @@ import FranchiseIdCard from "./DocumentPrintFiles/FranchiseIdCard";
 import AddressPrint from "./EmpFranchise/AddressPrint";
 import SetMarksStudent from "./Students/SetMarksStudent";
 import ConfirmStudent from "./Students/ConfirmStudent";
+import ViewDetails from "./Students/ViewDetails";
  
  
 

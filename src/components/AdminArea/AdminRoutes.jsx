@@ -39,6 +39,8 @@ import PendingWalletRequest from "./WalletWorking/PendingWalletRequest";
 import FranchiseCommission from "./Course/FranchiseCommission";
 import SetCourseCommission from "./Course/SetCourseCommission";
 import RejectList from "./Frenchise/RejectList";
+import ViewDetails from "../EmployeeArea/Students/ViewDetails";
+import StudentUpdate from "../EmployeeArea/Students/StudentUpdate";
  
 
 
@@ -72,6 +74,8 @@ const adminRoutes = [
     { path: "/employee-update/:id", element: <EmployeeUpdate />, role: ["5"] },
     { path: "/users-profile", element: <Usersprofile />, role: ["5"] },
     { path: "/employee-frenchise-assign", element: <EmployeeFrenchiseAssing />, role: ["5"] },
+    { path: "/student-view1/:id", element: <ViewDetails />, role: ["5"] },
+    { path: "/student-update1/:id", element: <StudentUpdate />, role: ["5"] },
     { path: "/state", element: <State />, role: ["5"] },
     { path: "/district", element: <District />, role: ["5"] },
     { path: "/city", element: <City />, role: ["5"] },

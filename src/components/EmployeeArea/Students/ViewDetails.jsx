@@ -350,16 +350,7 @@ function ViewDetails() {
 
           </div>
 
-          <button
-            className="btn btn-light border"
-            onClick={() => navigate(-1)}
-            style={{
-              borderRadius: "10px",
-            }}
-          >
-            <i className="bi bi-arrow-left me-2"></i>
-            Back
-          </button>
+        
 
         </div>
 
@@ -810,12 +801,9 @@ function ViewDetails() {
                               <button
                                 type="button"
                                 className="btn btn-sm btn-outline-danger"
-                                onClick={() => {
-                                  window.open(
-                                    item.fileName,
-                                    "_blank"
-                                  );
-                                }}
+                               onClick={() => {
+    window.open(`${FILE_URL}${item.fileName}`, "_blank", "noopener,noreferrer");
+}}
                               >
                                 <i className="bi bi-file-earmark-pdf me-1"></i>
                                 View PDF
@@ -1063,21 +1051,7 @@ function ViewDetails() {
 
           </Section>
 
-          {/* Bottom Back Button */}
-          <div className="text-end mb-4">
-
-            <button
-              className="btn btn-secondary px-4"
-              onClick={() => navigate(-1)}
-              style={{
-                borderRadius: "10px",
-              }}
-            >
-              <i className="bi bi-arrow-left me-2"></i>
-              Back
-            </button>
-
-          </div>
+          
 
         </div>
 
