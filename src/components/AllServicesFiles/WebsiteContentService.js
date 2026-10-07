@@ -16,6 +16,7 @@ export const getWebsiteContents = async () => {
   // =========================
 
   data.append("ProductTypeId", formData.productTypeId || "");
+  data.append("SrNo", formData.srNo1 || "");
   data.append("Title", formData.title || "");
   data.append("ShortDescription", formData.shortDesc || "");
   data.append("Descrption", formData.desc || "");

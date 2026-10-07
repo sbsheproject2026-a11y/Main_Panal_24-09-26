@@ -8,9 +8,20 @@ const AuthorityLetterPrint = () => {
     const navigate = useNavigate();
     const printedId = useRef(null);
 
-    // ✅ Custom size — 200 x 283 (A4 ratio maintain)
-    const PAGE_WIDTH = 200;
-    const PAGE_HEIGHT = 283;
+    // ✅ Page size (A4)
+    const PAGE_WIDTH = 210;
+    const PAGE_HEIGHT = 297;
+
+    // ✅ Printer safe margin — border cut nahi hoga
+    const PRINT_MARGIN = 5;
+
+    // ✅ Inner area (background ke andar)
+    const INNER_WIDTH = PAGE_WIDTH - PRINT_MARGIN * 2;
+    const INNER_HEIGHT = PAGE_HEIGHT - PRINT_MARGIN * 2;
+
+    // ✅ % → mm conversion (margin ke saath)
+    const getX = (percent) => PRINT_MARGIN + (percent / 100) * INNER_WIDTH;
+    const getY = (percent) => PRINT_MARGIN + (percent / 100) * INNER_HEIGHT;
 
     const FONT_SIZE = 18;
     const TEXT_SCALE = 4;
@@ -86,8 +97,8 @@ const AuthorityLetterPrint = () => {
         try {
             const image = await loadImage(field.image);
 
-            const x = (field.x / 100) * PAGE_WIDTH;
-            const y = (field.y / 100) * PAGE_HEIGHT;
+            const x = getX(field.x);   // ✅ margin ke saath
+            const y = getY(field.y);   // ✅ margin ke saath
 
             const width = field.width || 25;
             const height = field.height || 25;
@@ -198,8 +209,8 @@ const AuthorityLetterPrint = () => {
 
         if (!textImage) return;
 
-        const x = (field.x / 100) * PAGE_WIDTH;
-        const y = (field.y / 100) * PAGE_HEIGHT;
+        const x = getX(field.x);   // ✅ margin ke saath
+        const y = getY(field.y);   // ✅ margin ke saath
 
         const pixelToMm = 25.4 / (96 * TEXT_SCALE);
 
@@ -207,8 +218,8 @@ const AuthorityLetterPrint = () => {
         let imageHeight = textImage.height * pixelToMm;
 
         const maxWidth = Math.min(
-            field.maxWidth || PAGE_WIDTH,
-            PAGE_WIDTH
+            field.maxWidth || INNER_WIDTH,   // ✅ inner width
+            INNER_WIDTH                       // ✅ inner width
         );
 
         if (imageWidth > maxWidth) {
@@ -247,8 +258,8 @@ const AuthorityLetterPrint = () => {
 
         if (!text) return;
 
-        const x = (field.x / 100) * PAGE_WIDTH;
-        const y = (field.y / 100) * PAGE_HEIGHT;
+        const x = getX(field.x);   // ✅ margin ke saath
+        const y = getY(field.y);   // ✅ margin ke saath
 
         const fontSize = field.fontSize || FONT_SIZE;
         const fontStyle = field.fontStyle || "normal";
@@ -285,8 +296,6 @@ const AuthorityLetterPrint = () => {
                 lines.push(words.slice(i, i + field.wrapWords).join(" "));
             }
 
-            // ✅ Gap sirf field.lineHeight se control hoga (mm me)
-            // 2 = tight, 2.5 = balanced, 3 = loose
             const lineHeightMm = field.lineHeight || 2.5;
 
             lines.forEach((line, index) => {
@@ -334,11 +343,13 @@ const AuthorityLetterPrint = () => {
                 name: {
                     text: result.name || "",
                     x: 26,
-                    y: 46.5,
+                    y: 45,
                     align: "left",
                     maxWidth: 100,
-                    fontSize: 16,
+                    fontSize: 13,
                     fontStyle: "bold",
+                    wrapWords: 4,
+                    lineHeight: 2.5,
                     fontFamily: "Arial",
                 },
 
@@ -348,11 +359,11 @@ const AuthorityLetterPrint = () => {
                     y: 49.5,
                     align: "left",
                     maxWidth: 150,
-                    fontSize: 12,
+                    fontSize: 10,
                     fontStyle: "normal",
                     fontFamily: "Arial",
-                    wrapWords: 10,      // 👈 words per line
-                    lineHeight: 2.5,   // 👈 mm gap
+                    wrapWords: 8,
+                    lineHeight: 2.5,
                 },
 
                 endDate: {
@@ -369,16 +380,38 @@ const AuthorityLetterPrint = () => {
                 fatherName: {
                     text: result.fatherName || "",
                     x: 50,
-                    y: 35,
+                    y: 34,
                     align: "center",
                     maxWidth: 100,
-                    fontSize: 26,
+                    fontSize: 16,
                     fontStyle: "bold",
                     fontFamily: "Arial",
                 },
 
-                centreName: {
-                    text: result.centreName || "",
+                relacition: {
+                    text: result.relacition || "",
+                    x: 50,
+                    y: 36.5,
+                    align: "center",
+                    maxWidth: 100,
+                    fontSize: 13,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
+
+                fatherName1: {
+                    text: result.fatherName1 || "",
+                    x: 50,
+                    y: 39,
+                    align: "center",
+                    maxWidth: 100,
+                    fontSize: 16,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
+
+                entityType: {
+                    text: result.entityType || "",
                     x: 50,
                     y: 60,
                     align: "center",
@@ -386,8 +419,21 @@ const AuthorityLetterPrint = () => {
                     fontSize: 18,
                     fontStyle: "bold",
                     fontFamily: "Arial",
-                    wrapWords: 5,      // 👈 words per line
-                    lineHeight: 2.5,   // 👈 mm gap
+                    wrapWords: 5,
+                    lineHeight: 2.5,
+                },
+
+                centreName: {
+                    text: result.centreName || "",
+                    x: 50,
+                    y: 77,
+                    align: "center",
+                    maxWidth: 100,
+                    fontSize: 18,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                    wrapWords: 5,
+                    lineHeight: 2.5,
                 },
 
                 selfImage: {
@@ -426,7 +472,7 @@ const AuthorityLetterPrint = () => {
             );
 
             // ==========================================
-            // CREATE PDF — ✅ Custom 200 x 283
+            // CREATE PDF — A4
             // ==========================================
             const pdf = new jsPDF({
                 orientation: "portrait",
@@ -436,15 +482,15 @@ const AuthorityLetterPrint = () => {
             });
 
             // ==========================================
-            // BACKGROUND IMAGE — ✅ Full 200 x 283
+            // BACKGROUND IMAGE — ✅ Margin ke saath (border safe)
             // ==========================================
             pdf.addImage(
                 backgroundImage,
                 "JPEG",
-                0,
-                0,
-                PAGE_WIDTH,
-                PAGE_HEIGHT,
+                PRINT_MARGIN,          // ✅ x = 5 mm
+                PRINT_MARGIN,          // ✅ y = 5 mm
+                INNER_WIDTH,           // ✅ width = 200 mm
+                INNER_HEIGHT,          // ✅ height = 287 mm
                 undefined,
                 "FAST"
             );
@@ -466,9 +512,12 @@ const AuthorityLetterPrint = () => {
                 FIELDS.name,
                 FIELDS.fatherName,
                 FIELDS.centreName,
+                FIELDS.entityType,
                 FIELDS.address,
                 FIELDS.endDate,
                 FIELDS.enrollmentNo,
+                FIELDS.fatherName1,
+                FIELDS.relacition,
             ].forEach((field) => {
                 drawText(pdf, field);
             });

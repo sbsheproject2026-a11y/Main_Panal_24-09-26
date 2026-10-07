@@ -68,11 +68,15 @@ export const employeecreateWallet = async (formData) => {
   return response.data;
 };
 
-export const getWalletBalance = async () => {
-  const response = await api.get("/AdminWallet/wallet-getall");
+export const getWalletBalance = async (franchiseId) => {
+  const response = await api.get("/AdminWallet/wallet-getall", {
+    params: franchiseId ? { franchiseId } : {},
+  });
 
   return response.data;
 };
+
+
 export const getPendingWalletBalance = async () => {
   const response = await api.get("/AdminWallet/penfing-wallet-getall");
 

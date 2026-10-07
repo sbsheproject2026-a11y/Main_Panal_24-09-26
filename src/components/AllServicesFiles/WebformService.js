@@ -42,6 +42,8 @@ export const createStudentfordata = async (formData) => {
     data.append("mobileNo", formData.mobileNo);
     data.append("email", formData.email);
     data.append("idNumber", formData.idNumber);
+    data.append("studyModeId", formData.studyModeId);
+    data.append("referenceId", formData.referenceId);
 
     // =========================================================
     // Images
@@ -233,4 +235,10 @@ export const createStudentfordata = async (formData) => {
     });
 
     return response.data;
+};
+
+export const getFrenchises = async (id) => {
+  const response = await api.get(`/DropDown/dropdown-franchise/${id}`);
+
+  return response.data;
 };

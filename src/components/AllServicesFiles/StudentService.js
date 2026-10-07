@@ -179,6 +179,13 @@ export const getStudentById = async (id) => {
 
     return response.data;
 };
+export const getStudentdetailById = async (id) => {
+    const response = await api.get(
+        `/Home/student-details-print/${id}`
+    );
+
+    return response.data;
+};
  
 export const getStudentAcademicDetails = async (id) => {
     const response = await api.get(

@@ -804,11 +804,9 @@ function SendToConfirmStudent() {
                                                 <th>Father Name</th>
                                                 <th>Address</th>
                                                 <th>Mobile No</th>
-                                                <th>UserName</th>
-                                                <th>Password</th>
-                                                <th>City</th>
-                                                <th>District</th>
-                                                <th>State</th>
+                                                <th>Franchise Name</th>
+                                                <th>Course Name</th>
+                                                 
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -876,11 +874,9 @@ function SendToConfirmStudent() {
                                                         <td>{item.fatherName || "-"}</td>
                                                         <td>{item.address || "-"}</td>
                                                         <td>{item.mobileNo || "-"}</td>
-                                                        <td>{item.userName || "-"}</td>
-                                                        <td>{item.password || "-"}</td>
-                                                        <td>{item.cityName || "-"}</td>
-                                                        <td>{item.districtName || "-"}</td>
-                                                        <td>{item.stateName || "-"}</td>
+                                                        <td>{item.instituteName || "-"}</td>
+                                                        <td>{item.courseName || "-"}</td>
+                                                         
 
                                                         <td>
                                                             <button

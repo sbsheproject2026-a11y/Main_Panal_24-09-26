@@ -1,5 +1,5 @@
  import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   GetConfirmAddmissions,
  
@@ -18,18 +18,24 @@ function ConfirmStudent() {
 
   const navigate = useNavigate();
 
+  // ✅ URL se studyModeId read karo (?studyModeId=88 / 89)
+  const [searchParams] = useSearchParams();
+  const studyModeId = Number(searchParams.get("studyModeId")) || 0;
+
   useEffect(() => {
     loadStudents();
-  }, [pageNo, pageSize, search]);
+  }, [pageNo, pageSize, search, studyModeId]);   // ✅ studyModeId dependency
 
   const loadStudents = async () => {
     try {
       setLoading(true);
 
+      // ✅ studyModeId bhi bhejo API ko
       const result = await GetConfirmAddmissions(
         pageNo,
         pageSize,
-        search
+        search,
+        studyModeId
       );
 
       const response = result?.data;
@@ -125,6 +131,26 @@ function ConfirmStudent() {
     navigate(url);
   };
 
+  // ✅ Header title — Online / Offline ke hisaab se
+  const getPageTitle = () => {
+    if (studyModeId === 88) return "Confirmed Students - Online";
+    if (studyModeId === 89) return "Confirmed Students - Offline";
+    return "Confirmed Students";
+  };
+
+  // ✅ Badge color — Online/Offline
+  const getHeaderBadge = () => {
+    if (studyModeId === 88) {
+      return { bg: "#eaf3ff", color: "#1473d4", icon: "bi-globe2", label: "ONLINE" };
+    }
+    if (studyModeId === 89) {
+      return { bg: "#fff3e8", color: "#e87917", icon: "bi-geo-alt-fill", label: "OFFLINE" };
+    }
+    return null;
+  };
+
+  const headerBadge = getHeaderBadge();
+
   return (
     <>
       <style>{`
@@ -196,12 +222,10 @@ function ConfirmStudent() {
           box-sizing: border-box;
         }
 
-        /* Header — auto width, auto height */
         .confirm-table th {
           white-space: nowrap;
         }
 
-        /* Body — auto width, auto height */
         .confirm-table td {
           white-space: nowrap;
         }
@@ -274,6 +298,18 @@ function ConfirmStudent() {
           background: #aeb5c2;
         }
 
+        /* ✅ Mode badge */
+        .confirm-mode-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 12px;
+          border-radius: 30px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.4px;
+        }
+
         @media (max-width: 768px) {
           .confirm-table-wrapper {
             width: 0 !important;
@@ -330,7 +366,7 @@ function ConfirmStudent() {
                     >
                       <i className="bi bi-person-check-fill"></i>
                     </span>
-                    Confirmed Students
+                    {getPageTitle()}
                   </h5>
 
                   <p className="text-muted mb-0 small">
@@ -338,17 +374,33 @@ function ConfirmStudent() {
                   </p>
                 </div>
 
-                <div
-                  className="px-3 py-2 rounded-pill"
-                  style={{
-                    background: "#eaf8f0",
-                    color: "#198754",
-                    fontSize: "13px",
-                    fontWeight: "600"
-                  }}
-                >
-                  <i className="bi bi-check-circle-fill me-1"></i>
-                  {totalRecords} TOTAL CONFIRMED
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                  {/* ✅ Mode badge */}
+                  {headerBadge && (
+                    <div
+                      className="confirm-mode-badge"
+                      style={{
+                        background: headerBadge.bg,
+                        color: headerBadge.color,
+                      }}
+                    >
+                      <i className={`bi ${headerBadge.icon}`}></i>
+                      {headerBadge.label}
+                    </div>
+                  )}
+
+                  <div
+                    className="px-3 py-2 rounded-pill"
+                    style={{
+                      background: "#eaf8f0",
+                      color: "#198754",
+                      fontSize: "13px",
+                      fontWeight: "600"
+                    }}
+                  >
+                    <i className="bi bi-check-circle-fill me-1"></i>
+                    {totalRecords} TOTAL CONFIRMED
+                  </div>
                 </div>
               </div>
             </div>
@@ -518,7 +570,10 @@ function ConfirmStudent() {
                       </th>
 
                       <th className="py-3 pe-4 text-muted small fw-bold">
-                        CITY
+                        Franchise Name
+                      </th>
+                      <th className="py-3 pe-4 text-muted small fw-bold">
+                        Course Name
                       </th>
                     </tr>
                   </thead>
@@ -659,7 +714,7 @@ function ConfirmStudent() {
 
                           <td className="pe-4">
                             <span
-                              className="badge rounded-pill px-3 py-2 confirm-badge"
+                              
                               style={{
                                 background: "#f1f8f5",
                                 color: "#198754",
@@ -667,7 +722,20 @@ function ConfirmStudent() {
                               }}
                             >
                               <i className="bi bi-building me-1"></i>
-                              {item.cityName || "-"}
+                              {item.instituteName || "-"}
+                            </span>
+                          </td>
+                          <td className="pe-4">
+                            <span
+                              
+                              style={{
+                                background: "#f1f8f5",
+                                color: "#198754",
+                                fontWeight: "600"
+                              }}
+                            >
+                              <i className="bi bi-building me-1"></i>
+                              {item.courseName || "-"}
                             </span>
                           </td>
                         </tr>
@@ -1017,7 +1085,7 @@ function ConfirmStudent() {
 
                     <div className="col-md-6">
                       <DocumentButton
-                        icon="bi-file-earmark-bar-graph-fill"
+                        icon="bi bi-file-earmark-bar-graph-fill"
                         title="Marksheet 1st"
                         subtitle={
                           selectedStudent.rollno

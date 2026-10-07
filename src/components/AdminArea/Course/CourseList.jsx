@@ -1,4 +1,4 @@
- import React, { useEffect, useState } from "react";
+ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCourseDelete, getCourses } from "../../AllServicesFiles/CourseService";
 
@@ -8,10 +8,12 @@ function CourseList() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(0);
     const [pageNo, setPageNo] = useState(1);
-    const [pageSize] = useState(10);
-    const [totalRecords, setTotalRecords] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
     const [loading, setLoading] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+
+    // ✅ Dropdown state
+    const [openDropdown, setOpenDropdown] = useState(null);
 
     const navigate = useNavigate();
 
@@ -22,6 +24,7 @@ function CourseList() {
     const handleAddSubject = (id) => {
         navigate(`/subject-create/${id}`);
     };
+
     const handleAddmaterial = (id) => {
         navigate(`/course-material/${id}`);
     };
@@ -30,31 +33,70 @@ function CourseList() {
         navigate(`/course-amount/${id}`);
     };
 
+    // ✅ Sirf ek baar load
     useEffect(() => {
         loadCourses();
-    }, [pageNo, pageSize, search]);
+    }, []);
+
+    // ✅ Outside click — dropdown band
+    useEffect(() => {
+        const closeDropdown = () => setOpenDropdown(null);
+        document.addEventListener("click", closeDropdown);
+        return () => document.removeEventListener("click", closeDropdown);
+    }, []);
 
     const loadCourses = async () => {
         try {
             setLoading(true);
 
-            const result = await getCourses(pageNo, pageSize, search);
+            const result = await getCourses();
 
-            setData(result?.data?.data || []);
-            setTotalRecords(result?.data?.totalRecords || 0);
+            const allData = result?.data?.data || [];
+
+            setData(allData);
+            setPageNo(1);
         } catch (error) {
             console.log(error);
             setData([]);
-            setTotalRecords(0);
         } finally {
             setLoading(false);
         }
     };
 
+    // ✅ Frontend search filter
+    const filteredData = useMemo(() => {
+        if (!search.trim()) return data;
+
+        const s = search.toLowerCase();
+
+        return data.filter(
+            (item) =>
+                (item.code || "").toLowerCase().includes(s) ||
+                (item.name || "").toLowerCase().includes(s) ||
+                (item.nameHindi || "").toLowerCase().includes(s)
+        );
+    }, [data, search]);
+
+    // ✅ Reset page jab search ya pageSize badle
+    useEffect(() => {
+        setPageNo(1);
+    }, [search, pageSize]);
+
+    // ✅ Frontend pagination
+    const totalRecords = filteredData.length;
     const totalPages = Math.ceil(totalRecords / pageSize);
+
+    const paginatedData = useMemo(() => {
+        const start = (pageNo - 1) * pageSize;
+        return filteredData.slice(start, start + pageSize);
+    }, [filteredData, pageNo, pageSize]);
 
     const handleSearch = (e) => {
         setSearch(e.target.value);
+    };
+
+    const handlePageSize = (e) => {
+        setPageSize(Number(e.target.value));
         setPageNo(1);
     };
 
@@ -227,11 +269,47 @@ function CourseList() {
                     gap: 20px;
                     min-width: 0;
                     max-width: 100%;
+                    flex-wrap: wrap;
+                }
+
+                .course-toolbar-left {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                }
+
+                .course-page-size {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: #7c8799;
+                    font-size: 13px;
+                    white-space: nowrap;
+                }
+
+                .course-page-size select {
+                    height: 43px;
+                    padding: 0 30px 0 12px;
+                    border: 1px solid #dfe3ea;
+                    border-radius: 9px;
+                    background: #fff;
+                    color: #334155;
+                    font-size: 13px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    outline: none;
+                    transition: .2s ease;
+                }
+
+                .course-page-size select:focus {
+                    border-color: #4154f1;
+                    box-shadow: 0 0 0 3px rgba(65,84,241,.08);
                 }
 
                 .course-search {
                     position: relative;
-                    width: 380px;
+                    width: 320px;
                     max-width: 100%;
                 }
 
@@ -300,7 +378,7 @@ function CourseList() {
                     min-width: 100% !important;
                     max-width: 100% !important;
                     overflow-x: auto !important;
-                    overflow-y: hidden !important;
+                    overflow-y: visible !important;
                     position: relative;
                     box-sizing: border-box;
                     border-top: 1px solid #edf0f5;
@@ -327,10 +405,6 @@ function CourseList() {
                 .course-table-wrapper::-webkit-scrollbar-thumb:hover {
                     background: #8f98a8;
                 }
-
-                /* ============================================
-                   TABLE — AUTO WIDTH + AUTO HEIGHT
-                   ============================================ */
 
                 .course-table {
                     width: auto !important;
@@ -557,26 +631,79 @@ function CourseList() {
                     border-color: #dc3545;
                 }
 
-                .subject-btn {
-                    height: 34px;
-                    padding: 0 11px;
-                    border: none;
-                    border-radius: 7px;
-                    background: #4154f1;
-                    color: white;
-                    font-size: 12px;
-                    font-weight: 600;
+                /* ✅ Action dropdown */
+                .action-dropdown-wrapper {
+                    position: relative;
+                    display: inline-block;
+                }
+
+                .more-btn {
+                    color: #475467;
+                    border-color: #dfe3ea;
+                    background: #fff;
+                }
+
+                .more-btn:hover,
+                .more-btn.active {
+                    color: #4154f1;
+                    background: #eef2ff;
+                    border-color: #4154f1;
+                }
+
+                .action-dropdown-menu {
+                    position: absolute;
+                    top: calc(100% + 6px);
+                    right: 0;
+                    z-index: 999;
+                    min-width: 210px;
+                    background: #fff;
+                    border: 1px solid #e7eaf0;
+                    border-radius: 10px;
+                    box-shadow: 0 10px 30px rgba(30, 41, 59, .12);
+                    padding: 6px;
+                    animation: dropdownFade .15s ease;
+                }
+
+                @keyframes dropdownFade {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-5px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .dropdown-item-btn {
+                    width: 100%;
                     display: flex;
                     align-items: center;
-                    gap: 5px;
+                    gap: 10px;
+                    padding: 10px 12px;
+                    border: none;
+                    background: transparent;
+                    border-radius: 7px;
+                    color: #414a5d;
+                    font-size: 13px;
+                    font-weight: 500;
                     cursor: pointer;
-                    transition: .18s ease;
+                    transition: .15s ease;
+                    text-align: left;
                     white-space: nowrap;
                 }
 
-                .subject-btn:hover {
-                    background: #3042d8;
-                    transform: translateY(-1px);
+                .dropdown-item-btn i {
+                    font-size: 15px;
+                    color: #4154f1;
+                    width: 18px;
+                    display: flex;
+                    justify-content: center;
+                }
+
+                .dropdown-item-btn:hover {
+                    background: #f4f6ff;
+                    color: #4154f1;
                 }
 
                 .course-pagination {
@@ -587,6 +714,7 @@ function CourseList() {
                     justify-content: space-between;
                     align-items: center;
                     gap: 15px;
+                    flex-wrap: wrap;
                 }
 
                 .pagination-info {
@@ -825,8 +953,22 @@ function CourseList() {
                         flex-direction: column;
                     }
 
+                    .course-toolbar-left {
+                        width: 100%;
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+
                     .course-search {
                         width: 100%;
+                    }
+
+                    .course-page-size {
+                        width: 100%;
+                    }
+
+                    .course-page-size select {
+                        flex: 1;
                     }
 
                     .course-card-header {
@@ -929,24 +1071,44 @@ function CourseList() {
 
                                 <div className="course-toolbar">
 
-                                    <div className="course-search">
-                                        <i className="bi bi-search"></i>
+                                    <div className="course-toolbar-left">
 
-                                        <input
-                                            type="text"
-                                            placeholder="Search by code or course name..."
-                                            value={search}
-                                            onChange={handleSearch}
-                                        />
+                                        <div className="course-page-size">
+                                            <span>Show</span>
 
-                                        {search && (
-                                            <button
-                                                type="button"
-                                                onClick={clearSearch}
+                                            <select
+                                                value={pageSize}
+                                                onChange={handlePageSize}
                                             >
-                                                <i className="bi bi-x-circle-fill"></i>
-                                            </button>
-                                        )}
+                                                <option value={10}>10</option>
+                                                <option value={25}>25</option>
+                                                <option value={50}>50</option>
+                                                <option value={100}>100</option>
+                                            </select>
+
+                                            <span>entries</span>
+                                        </div>
+
+                                        <div className="course-search">
+                                            <i className="bi bi-search"></i>
+
+                                            <input
+                                                type="text"
+                                                placeholder="Search by code or course name..."
+                                                value={search}
+                                                onChange={handleSearch}
+                                            />
+
+                                            {search && (
+                                                <button
+                                                    type="button"
+                                                    onClick={clearSearch}
+                                                >
+                                                    <i className="bi bi-x-circle-fill"></i>
+                                                </button>
+                                            )}
+                                        </div>
+
                                     </div>
 
                                     <div className="course-info">
@@ -991,7 +1153,7 @@ function CourseList() {
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                ) : data.length === 0 ? (
+                                                ) : paginatedData.length === 0 ? (
 
                                                     <tr>
                                                         <td colSpan="10">
@@ -1026,7 +1188,7 @@ function CourseList() {
 
                                                 ) : (
 
-                                                    data.map((item, index) => (
+                                                    paginatedData.map((item, index) => (
 
                                                         <tr
                                                             key={
@@ -1113,10 +1275,6 @@ function CourseList() {
 
                                                             </td>
 
-                                                            {/* ============================================
-                                                                ACTIONS — all buttons visible
-                                                            ============================================ */}
-
                                                             <td>
 
                                                                 <div className="course-actions">
@@ -1150,47 +1308,66 @@ function CourseList() {
                                                                         <i className="bi bi-trash3"></i>
                                                                     </button>
 
-                                                                    <button
-                                                                        type="button"
-                                                                        className="subject-btn"
-                                                                        onClick={() =>
-                                                                            handleAddSubject(
-                                                                                item.id
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <i className="bi bi-plus-circle"></i>
-                                                                        Subject
-                                                                    </button>
-
-                                                                    <button
-                                                                        type="button"
-                                                                        className="subject-btn"
-                                                                        onClick={() =>
-                                                                            handleAddmaterial(
-                                                                                item.id
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <i className="bi bi-plus-circle"></i>
-                                                                        Course-Material
-                                                                    </button>
-
-                                                                    {(!item.parentId ||
-                                                                        item.parentId === 0) && (
+                                                                    <div className="action-dropdown-wrapper">
                                                                         <button
                                                                             type="button"
-                                                                            className="subject-btn"
-                                                                            onClick={() =>
-                                                                                handleAddAmount(
-                                                                                    item.id
-                                                                                )
-                                                                            }
+                                                                            className={`action-btn more-btn ${openDropdown === item.id ? "active" : ""}`}
+                                                                            title="More Actions"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setOpenDropdown(
+                                                                                    openDropdown === item.id ? null : item.id
+                                                                                );
+                                                                            }}
                                                                         >
-                                                                            <i className="bi bi-plus-circle"></i>
-                                                                            Amount
+                                                                            <i className="bi bi-three-dots-vertical"></i>
                                                                         </button>
-                                                                    )}
+
+                                                                        {openDropdown === item.id && (
+                                                                            <div
+                                                                                className="action-dropdown-menu"
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                            >
+                                                                                <button
+                                                                                    type="button"
+                                                                                    className="dropdown-item-btn"
+                                                                                    onClick={() => {
+                                                                                        setOpenDropdown(null);
+                                                                                        handleAddSubject(item.id);
+                                                                                    }}
+                                                                                >
+                                                                                    <i className="bi bi-journal-plus"></i>
+                                                                                    <span>Add Subject</span>
+                                                                                </button>
+
+                                                                                <button
+                                                                                    type="button"
+                                                                                    className="dropdown-item-btn"
+                                                                                    onClick={() => {
+                                                                                        setOpenDropdown(null);
+                                                                                        handleAddmaterial(item.id);
+                                                                                    }}
+                                                                                >
+                                                                                    <i className="bi bi-folder-plus"></i>
+                                                                                    <span>Add Course-Material</span>
+                                                                                </button>
+
+                                                                                {(!item.parentId || item.parentId === 0) && (
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        className="dropdown-item-btn"
+                                                                                        onClick={() => {
+                                                                                            setOpenDropdown(null);
+                                                                                            handleAddAmount(item.id);
+                                                                                        }}
+                                                                                    >
+                                                                                        <i className="bi bi-currency-rupee"></i>
+                                                                                        <span>Add Amount</span>
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
 
                                                                 </div>
 

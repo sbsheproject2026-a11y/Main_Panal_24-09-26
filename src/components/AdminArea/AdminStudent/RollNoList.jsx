@@ -4,6 +4,7 @@ import {
      
 } from "../../AllServicesFiles/AdminStudentService";
 import { FILE_URL } from "../../api";
+import { useSearchParams } from "react-router-dom";
 
 function RollNoList() {
     const [data, setData] = useState([]);
@@ -12,15 +13,16 @@ function RollNoList() {
     const [pageSize, setPageSize] = useState(10);
     const [totalRecords, setTotalRecords] = useState(0);
     const [loading, setLoading] = useState(false);
-
+     const [searchParams] = useSearchParams();
+  const studyModeId = Number(searchParams.get("studyModeId")) || 0;
     useEffect(() => {
         loadStudents();
-    }, [pageNo, pageSize, search]);
+    }, [pageNo, pageSize, search,studyModeId]);
 
     const loadStudents = async () => {
         try {
             setLoading(true);
-            const result = await GetConfirmAddmissions(pageNo, pageSize, search);
+            const result = await GetConfirmAddmissions(pageNo, pageSize, search, studyModeId);
             const responseData = result?.data;
             setData(responseData?.data || []);
             setTotalRecords(responseData?.totalRecords || 0);
@@ -528,7 +530,8 @@ function RollNoList() {
                                             <th> FATHER NAME </th>
                                             <th> CONTACT </th>
                                             <th> ADDRESS </th>
-                                            <th> CITY </th>
+                                           <th>Franchise Name</th>
+                                                <th>Course Name</th>
                                         </tr>
                                     </thead>
 
@@ -619,11 +622,8 @@ function RollNoList() {
                                                         </span>
                                                     </td>
 
-                                                    <td>
-                                                        <span className="rollno-city">
-                                                            {item.cityName || "-"}
-                                                        </span>
-                                                    </td>
+                                                     <td>{item.instituteName || "-"}</td>
+                                                        <td>{item.courseName || "-"}</td>
                                                 </tr>
                                             ))
                                         ) : (

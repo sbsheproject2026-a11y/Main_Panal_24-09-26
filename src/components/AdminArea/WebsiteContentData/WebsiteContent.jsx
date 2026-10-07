@@ -1,10 +1,10 @@
- import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
- 
 
-import {   updateWebsiteContent, getWebsiteContentById,getWebsiteContents, } from "../../AllServicesFiles/WebsiteContentService";
+
+import { updateWebsiteContent, getWebsiteContentById, getWebsiteContents, createWebsiteContent, } from "../../AllServicesFiles/WebsiteContentService";
 import { getDepartment } from "../../AllServicesFiles/EmployeeService";
 
 const WebsiteContent = () => {
@@ -40,7 +40,7 @@ const WebsiteContent = () => {
     const [formData, setFormData] = useState({
         id: 0,
         productTypeId: "",
-        srNo: null,
+        srNo1: null,
         title: "",
         subTitle: "",
         shortDesc: "",
@@ -1711,7 +1711,7 @@ const WebsiteContent = () => {
                             >
 
                                 {paginatedData.length ===
-                                0 ? (
+                                    0 ? (
 
                                     <div
                                         className="empty-state"
@@ -1741,6 +1741,9 @@ const WebsiteContent = () => {
 
                                             <tr>
 
+                                                <th>
+                                                    #
+                                                </th>
                                                 <th>
                                                     Title
                                                 </th>
@@ -1776,6 +1779,15 @@ const WebsiteContent = () => {
                                                         }
                                                     >
 
+                                                        {/* TITLE */}
+
+                                                        <td
+                                                            className="title-cell"
+                                                        >
+                                                            {
+                                                                 index + 1
+                                                            }
+                                                        </td>
                                                         {/* TITLE */}
 
                                                         <td
@@ -1969,11 +1981,10 @@ const WebsiteContent = () => {
                                                 <button
                                                     type="button"
                                                     key={page}
-                                                    className={`page-btn ${
-                                                        currentPage === page
+                                                    className={`page-btn ${currentPage === page
                                                             ? "active"
                                                             : ""
-                                                    }`}
+                                                        }`}
                                                     onClick={() =>
                                                         goToPage(
                                                             page
@@ -2484,6 +2495,18 @@ const WebsiteContent = () => {
                     color: #ff6600;
                 }
 
+                .table-input-srno {
+                    width: 30%;
+                    min-width: 50px;
+                    height: 40px;
+                    border:
+                        1px solid #dce1e8;
+                    border-radius: 7px;
+                    padding: 8px 10px;
+                    font-size: 13px;
+                    outline: none;
+                    background: #fff;
+                }
                 .table-input {
                     width: 100%;
                     min-width: 150px;
@@ -2932,7 +2955,31 @@ const WebsiteContent = () => {
                                 <div className="row">
 
                                     <div
-                                        className="col-md-6 mb-3"
+                                        className="col-md-2 mb-3"
+                                    >
+
+                                        <label
+                                            className="form-label"
+                                        >
+                                           SrNo
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="srNo1"
+                                            value={
+                                                formData.srNo1
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
+                                            className="form-control"
+                                            
+                                        />
+
+                                    </div>
+                                    <div
+                                        className="col-md-4 mb-3"
                                     >
 
                                         <label
@@ -3188,6 +3235,9 @@ const WebsiteContent = () => {
                                             <tr>
 
                                                 <th>
+                                                    #
+                                                </th>
+                                                <th>
                                                     Sr. No.
                                                 </th>
 
@@ -3245,6 +3295,27 @@ const WebsiteContent = () => {
 
                                                             </td>
 
+                                                            <td>
+
+                                                                <input
+                                                                    type="text"
+                                                                    name="srNo"
+                                                                    value={
+                                                                        item.srNo
+                                                                    }
+                                                                    onChange={(
+                                                                        e
+                                                                    ) =>
+                                                                        handleItemChange(
+                                                                            item.id,
+                                                                            e
+                                                                        )
+                                                                    }
+                                                                    className="table-input-srno"
+
+                                                                />
+
+                                                            </td>
                                                             <td>
 
                                                                 <input
@@ -3390,23 +3461,7 @@ const WebsiteContent = () => {
                                                                         Active
                                                                     </label>
 
-                                                                    {item.isActive ? (
 
-                                                                        <span
-                                                                            className="item-active-badge"
-                                                                        >
-                                                                            ON
-                                                                        </span>
-
-                                                                    ) : (
-
-                                                                        <span
-                                                                            className="item-inactive-badge"
-                                                                        >
-                                                                            OFF
-                                                                        </span>
-
-                                                                    )}
 
                                                                 </div>
 

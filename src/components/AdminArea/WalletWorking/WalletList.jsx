@@ -1,24 +1,45 @@
  import React, { useEffect, useMemo, useState } from "react";
-import { getWalletBalance } from "../../AllServicesFiles/WalletService";
+import { getFrenchisesAssign1, getWalletBalance } from "../../AllServicesFiles/WalletService";
 
 const WalletList = () => {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [frenchises, setFrenchises] = useState([]);
+
+  // ✅ franchise state
+  const [formData, setFormData] = useState({
+    franchiseId: "",
+  });
 
   // ✅ pagination state
   const [pageNo, setPageNo] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
-    loadWallets();
+    loadFrenchises();
+    loadWallets(); // ✅ normal view - saara data
   }, []);
 
-  const loadWallets = async () => {
+  const loadFrenchises = async () => {
+    try {
+      const result = await getFrenchisesAssign1(9);
+      setFrenchises(result?.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // ✅ franchiseId optional param
+  const loadWallets = async (franchiseId) => {
     try {
       setLoading(true);
-      const result = await getWalletBalance();
+
+      const result = franchiseId
+        ? await getWalletBalance(franchiseId)
+        : await getWalletBalance();
+
       setTransactions(result?.data || []);
     } catch (error) {
       console.log("Wallet load error:", error);
@@ -26,6 +47,19 @@ const WalletList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ✅ franchise change → wallet reload
+  const handleFranchiseChange = (e) => {
+    const franchiseId = e.target.value;
+
+    setFormData((prev) => ({
+      ...prev,
+      franchiseId,
+    }));
+
+    setPageNo(1);
+    loadWallets(franchiseId);
   };
 
   // =========================================================
@@ -227,6 +261,61 @@ const WalletList = () => {
         }
 
         /* =========================
+           FRANCHISE FILTER
+        ========================= */
+
+        .franchise-filter-wrap {
+          max-width: 1250px;
+          margin: 0 auto 20px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+          background: #fff;
+          padding: 16px 20px;
+          border: 1px solid #e7ebf2;
+          border-radius: 13px;
+          box-shadow: 0 5px 20px rgba(31, 45, 75, 0.035);
+        }
+
+        .franchise-filter-wrap label {
+          font-size: 13px;
+          font-weight: 700;
+          color: #303944;
+          white-space: nowrap;
+        }
+
+        .franchise-filter-wrap label span {
+          color: #ef4444;
+          margin-left: 3px;
+        }
+
+        .franchise-select {
+          flex: 1;
+          min-width: 220px;
+          height: 42px;
+          padding: 0 14px;
+          border: 1px solid #dfe4ea;
+          border-radius: 10px;
+          outline: none;
+          background: #fff;
+          color: #252d36;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all .2s ease;
+        }
+
+        .franchise-select:hover {
+          border-color: #c7c9ff;
+        }
+
+        .franchise-select:focus {
+          border-color: #5b55e7;
+          box-shadow: 0 0 0 3px rgba(91, 85, 231, 0.10);
+        }
+
+        /* =========================
            SUMMARY
         ========================= */
 
@@ -365,7 +454,6 @@ const WalletList = () => {
           cursor: pointer;
         }
 
-        /* ✅ page size selector */
         .page-size-wrap {
           display: flex;
           align-items: center;
@@ -389,7 +477,7 @@ const WalletList = () => {
         }
 
         /* =========================================================
-           TABLE RESPONSIVE — only this area scrolls
+           TABLE RESPONSIVE
         ========================================================= */
 
         .table-responsive {
@@ -404,26 +492,19 @@ const WalletList = () => {
           scrollbar-color: #c9ced8 #eef1f5;
         }
 
-        .table-responsive::-webkit-scrollbar {
-          height: 9px;
-        }
-
+        .table-responsive::-webkit-scrollbar { height: 9px; }
         .table-responsive::-webkit-scrollbar-track {
           background: #eef1f5;
           border-radius: 10px;
         }
-
         .table-responsive::-webkit-scrollbar-thumb {
           background: #c9ced8;
           border-radius: 10px;
         }
-
-        .table-responsive::-webkit-scrollbar-thumb:hover {
-          background: #aeb5c2;
-        }
+        .table-responsive::-webkit-scrollbar-thumb:hover { background: #aeb5c2; }
 
         /* =========================================================
-           TABLE — AUTO WIDTH + AUTO HEIGHT
+           TABLE
         ========================================================= */
 
         .wallet-table {
@@ -457,12 +538,8 @@ const WalletList = () => {
         }
 
         .wallet-table tbody tr { transition: 0.15s ease; }
-
         .wallet-table tbody tr:hover { background: #fafbff; }
-
-        .wallet-table tbody tr:last-child td {
-          border-bottom: none;
-        }
+        .wallet-table tbody tr:last-child td { border-bottom: none; }
 
         /* =========================
            WALLET ID
@@ -472,19 +549,6 @@ const WalletList = () => {
           display: flex;
           align-items: center;
           gap: 10px;
-        }
-
-        .wallet-row-icon {
-          width: 37px;
-          height: 37px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 9px;
-          background: #efeeff;
-          color: #5b55e7;
-          font-size: 15px;
-          font-weight: 800;
         }
 
         .wallet-id strong {
@@ -678,9 +742,7 @@ const WalletList = () => {
           white-space: nowrap;
         }
 
-        .pagination-info strong {
-          color: #334155;
-        }
+        .pagination-info strong { color: #334155; }
 
         .pagination {
           display: flex;
@@ -732,9 +794,7 @@ const WalletList = () => {
         ========================= */
 
         @media (max-width: 1050px) {
-          .wallet-summary {
-            grid-template-columns: repeat(2, 1fr);
-          }
+          .wallet-summary { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 750px) {
@@ -763,9 +823,14 @@ const WalletList = () => {
         }
 
         @media (max-width: 520px) {
-          .wallet-summary {
-            grid-template-columns: 1fr;
+          .wallet-summary { grid-template-columns: 1fr; }
+
+          .franchise-filter-wrap {
+            flex-direction: column;
+            align-items: stretch;
           }
+
+          .franchise-select { width: 100%; }
 
           .table-tools {
             flex-direction: column;
@@ -773,11 +838,9 @@ const WalletList = () => {
           }
 
           .wallet-search { width: 100%; }
-
           .status-filter { width: 100%; }
 
           .page-size-wrap { width: 100%; justify-content: flex-start; }
-
           .page-size-select { flex: 1; }
 
           .pagination-wrap {
@@ -802,6 +865,28 @@ const WalletList = () => {
               Manage wallet transactions, debit/credit entries and status.
             </p>
           </div>
+        </div>
+
+        {/* ✅ Franchise Filter */}
+        <div className="franchise-filter-wrap">
+          <label>
+            Select Franchise <span>*</span>
+          </label>
+
+          <select
+            className="franchise-select"
+            name="franchiseId"
+            value={formData.franchiseId}
+            onChange={handleFranchiseChange}
+          >
+            <option value="">All Franchises</option>
+
+            {frenchises.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Summary Cards */}
@@ -878,7 +963,6 @@ const WalletList = () => {
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
                 >
-                
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
@@ -895,7 +979,6 @@ const WalletList = () => {
               <thead>
                 <tr>
                   <th>Sr.No.</th>
-             
                   <th>Type</th>
                   <th>Remark</th>
                   <th>DR</th>
@@ -909,7 +992,7 @@ const WalletList = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="9" className="no-data">
+                    <td colSpan="8" className="no-data">
                       <div>
                         <span>⏳</span>
                         <strong>Loading...</strong>
@@ -922,15 +1005,12 @@ const WalletList = () => {
                     <tr key={item.id}>
                       <td>
                         <div className="wallet-id">
-                         
                           <div>
                             <strong>{item.id}</strong>
                             <span>{item.transactionNumber || ""}</span>
                           </div>
                         </div>
                       </td>
-
-                       
 
                       <td>
                         <span className="type-badge">
@@ -984,7 +1064,7 @@ const WalletList = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="9" className="no-data">
+                    <td colSpan="8" className="no-data">
                       <div>
                         <span>⌕</span>
                         <strong>No transactions found</strong>
@@ -1007,7 +1087,6 @@ const WalletList = () => {
 
             {totalPages > 0 && (
               <div className="pagination-wrap">
-
                 <div className="pagination-info">
                   Page <strong>{pageNo}</strong> of{" "}
                   <strong>{totalPages}</strong>
@@ -1043,7 +1122,6 @@ const WalletList = () => {
                     ›
                   </button>
                 </div>
-
               </div>
             )}
           </div>

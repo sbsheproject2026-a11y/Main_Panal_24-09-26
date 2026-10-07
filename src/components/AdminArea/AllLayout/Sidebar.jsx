@@ -60,7 +60,7 @@ function Sidebar({ sidebarOpen }) {
                   <i className="bi bi-circle"></i><span>Confirm Study Centre List</span>
                 </Link>
               </li>
-              
+
               <li>
                 <Link to="/acc-list">
                   <i className="bi bi-circle"></i><span>Confirm Acc List</span>
@@ -86,7 +86,7 @@ function Sidebar({ sidebarOpen }) {
                   <i className="bi bi-circle"></i><span>Set Franchise Commission</span>
                 </Link>
               </li>
-              
+
 
             </ul>
           </li>
@@ -139,8 +139,13 @@ function Sidebar({ sidebarOpen }) {
                 </Link>
               </li>
               <li>
-                <Link to="/student-rollno-list">
-                  <i className="bi bi-circle"></i><span>Student RollNo  List</span>
+                <Link to="/student-rollno-list?studyModeId=88">
+                  <i className="bi bi-circle"></i><span>Student RollNo  List Online</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/student-rollno-list?studyModeId=89">
+                  <i className="bi bi-circle"></i><span>Student RollNo  List Offline</span>
                 </Link>
               </li>
 
@@ -150,8 +155,15 @@ function Sidebar({ sidebarOpen }) {
                 </Link>
               </li>
               <li>
-                <Link to="/confirm-addmissions">
-                  <i className="bi bi-circle"></i><span>Student Confirm & Print</span>
+                <Link to="/confirm-addmissions?studyModeId=88">
+                  <i className="bi bi-circle"></i>
+                  <span>Student Confirm & Print Online</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/confirm-addmissions?studyModeId=89">
+                  <i className="bi bi-circle"></i>
+                  <span>Student Confirm & Print Offline</span>
                 </Link>
               </li>
               <li>
@@ -189,13 +201,13 @@ function Sidebar({ sidebarOpen }) {
             </ul>
           </li>
 
-              <li className="nav-item">
+          <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#forms-nav-website" data-bs-toggle="collapse" href="#">
               <i className="bi bi-journal-text"></i><span>Website Content</span><i className="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="forms-nav-website" className="nav-content collapse " data-bs-parent="#sidebar-nav">
-              
-             
+
+
               <li>
                 <Link to="/website-content">
                   <i className="bi bi-circle"></i><span>Website Content</span>

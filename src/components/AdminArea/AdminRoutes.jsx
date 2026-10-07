@@ -39,6 +39,7 @@ import PendingWalletRequest from "./WalletWorking/PendingWalletRequest";
 import FranchiseCommission from "./Course/FranchiseCommission";
 import SetCourseCommission from "./Course/SetCourseCommission";
 import RejectList from "./Frenchise/RejectList";
+ 
 
 
 const adminRoutes = [
@@ -82,6 +83,7 @@ const adminRoutes = [
     { path: "/student-setmarks", element: <SetMarksStudent />, role: ["5"] },
     { path: "/student-upgrade", element: <UpgradeStudent />, role: ["5"] },
     { path: "/student-rollno-list", element: <RollNoList />, role: ["5"] },
+    
 ];
 
 export default adminRoutes;

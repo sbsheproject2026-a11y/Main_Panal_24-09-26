@@ -6,10 +6,10 @@ export const GetConfirmToAdmin = (pageNo, pageSize, search) => {
     );
 };
 
-export const GetConfirmAddmissions = (pageNo, pageSize, search) => {
-    return api.get(
-      `/RequestStudent/request-student-confirm-addmissions?spageNo=${pageNo}&pageSize=${pageSize}&search=${search}`
-    );
+export const GetConfirmAddmissions = (pageNo, pageSize, search, studyModeId = 0) => {
+  return api.get(
+    `/RequestStudent/request-student-confirm-addmissions?spageNo=${pageNo}&pageSize=${pageSize}&search=${search}&studyModeId=${studyModeId}`
+  );
 };
 
 

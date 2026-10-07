@@ -23,6 +23,7 @@ function MasterTypeDetails() {
     file: null,
     parentId: null,
     isActive: 0,
+    srNo:0,
     masterTypeId: 0,
   });
 
@@ -107,6 +108,7 @@ function MasterTypeDetails() {
       file: null,
       parentId: null,
       isActive: 0,
+      srNo: 0,
       masterTypeId: 0,
     });
   };
@@ -121,7 +123,7 @@ function MasterTypeDetails() {
         id: result.id,
         code: result.code || "",
         name: result.name || "",
-        isActive: result.isActive ? 1 : 0,
+        srNo: result.srNo || 0,
         filePath: result.filePath || null,
         file: result.file || null,
         parentId: result.parentId || null,
@@ -545,7 +547,29 @@ function MasterTypeDetails() {
 
                   {/* CODE */}
 
-                  <div className="col-md-6">
+                  <div className="col-md-2">
+                    <label className="form-label-modern">
+                      SrNo
+                    </label>
+
+                    <div className="input-group-modern">
+                      <span className="input-icon">
+                        <i className="bi bi-hash"></i>
+                      </span>
+
+                      <input
+                        type="number"
+                        name="srNo"
+                        className="form-control modern-input"
+                        placeholder="Enter srNo"
+                        value={formData.srNo}
+                        onChange={handleChange}
+                      />
+                    </div>
+
+                     
+                  </div>
+                  <div className="col-md-4">
                     <label className="form-label-modern">
                       Code
                     </label>

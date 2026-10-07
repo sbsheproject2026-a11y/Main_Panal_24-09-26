@@ -539,15 +539,17 @@ const AuthorityLetterPrint1 = () => {
                 // ==========================================
                 const FIELDS = {
                     name: {
-                        text: result.name || "",
-                        x: 25,
-                        y: 46.5,
-                        align: "left",
-                        maxWidth: 100,
-                        fontSize: 16,
-                        fontStyle: "bold",
-                        fontFamily: "Arial",
-                    },
+                    text: result.name || "",
+                    x: 26,
+                    y: 45,
+                    align: "left",
+                    maxWidth: 100,
+                    fontSize: 14,
+                    fontStyle: "bold",
+                    wrapWords: 5,      // 👈 8 se 5 kiya — jaldi wrap hoga
+                    lineHeight: 2.5,   // 👈 same as address
+                    fontFamily: "Arial",
+                },
 
                     address: {
                         text: result.address || "",

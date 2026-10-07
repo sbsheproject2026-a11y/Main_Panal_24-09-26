@@ -1,4 +1,4 @@
- import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Login from './components/LoginFile/Login'
 
@@ -22,6 +22,7 @@ import AdmitCardPrint from './components/DocumentPrintFiles/AllDocumentsPrint/Ad
 import IdCard from './components/DocumentPrintFiles/AllDocumentsPrint/IdCard'
 import AuthorityLetterPrint from './components/DocumentPrintFiles/AllDocumentsPrint/AuthorityLetterPrint'
 import FranchiseIdCard from './components/EmployeeArea/DocumentPrintFiles/FranchiseIdCard'
+import AdmissionFormPrint from './components/WebsiteForms/AdmissionFormPrint'
 
 
 function App() {
@@ -35,8 +36,9 @@ function App() {
                 <Route path="/acc-apply" element={<AdmissionConsultantRegistration />} />
                 <Route path="/student-apply" element={<StudentRegistration />} />
                 <Route path="/study-centre-apply" element={<StudyCenterRegistration />} />
+              <Route path="/admission-form-print/:id" element={<AdmissionFormPrint />} />
                 <Route path="/success" element={<Success />} />
-
+ 
 
                 {/* ================= Admin (Role 5 only) ================= */}
                 <Route element={<ProtectedRoute allowedRole={["5"]} />}>
@@ -58,15 +60,15 @@ function App() {
 
                 {/* ================= Common — Admin (5) + Franchise (33) ================= */}
                 {/* 👇 Print pages — full screen, bina layout */}
-             <Route element={<ProtectedRoute allowedRole={["5", "33"]} />}>
-    <Route path="/diploma-print/:id" element={<DiplomaPrint />} />
-    <Route path="/migration-certificate/:id" element={<MigrationCertificate />} />
-    <Route path="/marksheet-print/:id" element={<MarksheetPrint />} />
-    <Route path="/authority-letterPrint-print/:id" element={<AuthorityLetterPrint />} />
-    <Route path="/id-card-print/:id" element={<FranchiseIdCard />} />
-    <Route path="/admit-card-print/:id" element={<AdmitCardPrint />} />
-    <Route path="/id-card/:id" element={<IdCard />} />
-</Route>
+                <Route element={<ProtectedRoute allowedRole={["5", "33"]} />}>
+                    <Route path="/diploma-print/:id" element={<DiplomaPrint />} />
+                    <Route path="/migration-certificate/:id" element={<MigrationCertificate />} />
+                    <Route path="/marksheet-print/:id" element={<MarksheetPrint />} />
+                    <Route path="/authority-letterPrint-print/:id" element={<AuthorityLetterPrint />} />
+                    <Route path="/id-card-print/:id" element={<FranchiseIdCard />} />
+                    <Route path="/admit-card-print/:id" element={<AdmitCardPrint />} />
+                    <Route path="/id-card/:id" element={<IdCard />} />
+                </Route>
 
 
                 {/* ================= Employee + Franchise (Role 6, 90, 33) ================= */}

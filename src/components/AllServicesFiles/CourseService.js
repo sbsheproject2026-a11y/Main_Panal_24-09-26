@@ -1,9 +1,7 @@
 import api from "../api";
 
-export const getCourses = (pageNo, pageSize, search) => {
-    return api.get(
-      `/Course/course-getall?referenceId=1&pageNo=${pageNo}&pageSize=${pageSize}&search=${search}`
-    );
+export const getCourses = () => {
+    return api.get("/Course/course-getall");
 };
 
 export const getCourseById = async (id) => {
