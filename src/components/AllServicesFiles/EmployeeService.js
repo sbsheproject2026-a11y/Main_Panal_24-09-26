@@ -227,3 +227,33 @@ export const deleteEnquiry = async (id) => {
 
     return response.data;
 };
+
+export const getRtiList = (id) => {
+    return api.get(
+      "/Enquiries/rtidata-getall"
+    );
+};
+
+// ============================================================
+// UPDATE RTI STATUS
+// ============================================================
+export const updateRtiStatus = async (payload) => {
+  const response = await api.post(
+    "/Enquiries/update-rti-status",
+    payload,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  return response.data;
+};
+
+export const deleteRTI = async (id) => {
+    const response = await api.delete(
+        `/Enquiries/rti-delete/${id}`
+    );
+
+    return response.data;
+};

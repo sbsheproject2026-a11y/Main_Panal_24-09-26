@@ -21,9 +21,11 @@ import MarksheetPrint from './components/DocumentPrintFiles/AllDocumentsPrint/Ma
 import AdmitCardPrint from './components/DocumentPrintFiles/AllDocumentsPrint/AdmitCardPrint'
 import IdCard from './components/DocumentPrintFiles/AllDocumentsPrint/IdCard'
 import AuthorityLetterPrint from './components/DocumentPrintFiles/AllDocumentsPrint/AuthorityLetterPrint'
-import FranchiseIdCard from './components/EmployeeArea/DocumentPrintFiles/FranchiseIdCard'
+ 
 import AdmissionFormPrint from './components/WebsiteForms/AdmissionFormPrint'
-import ViewDetails from './components/EmployeeArea/Students/ViewDetails'
+import FranchiseIdCard from './components/DocumentPrintFiles/AllDocumentsPrint/FranchiseIdCard'
+import AuthorityLetterPrintNew from './components/DocumentPrintFiles/AllDocumentsPrint/AuthorityLetterPrintNew'
+ 
 
 
 function App() {
@@ -63,11 +65,11 @@ function App() {
 
                 {/* ================= Common — Admin (5) + Franchise (33) ================= */}
                 {/* 👇 Print pages — full screen, bina layout */}
-                <Route element={<ProtectedRoute allowedRole={["5", "33"]} />}>
+                <Route element={<ProtectedRoute allowedRole={["5", "33","6", "90"]} />}>
                     <Route path="/diploma-print/:id" element={<DiplomaPrint />} />
                     <Route path="/migration-certificate/:id" element={<MigrationCertificate />} />
                     <Route path="/marksheet-print/:id" element={<MarksheetPrint />} />
-                    <Route path="/authority-letterPrint-print/:id" element={<AuthorityLetterPrint />} />
+                    <Route path="/authority-letterPrint-print/:id" element={<AuthorityLetterPrintNew />} />
                     <Route path="/id-card-print/:id" element={<FranchiseIdCard />} />
                     <Route path="/admit-card-print/:id" element={<AdmitCardPrint />} />
                     <Route path="/id-card/:id" element={<IdCard />} />

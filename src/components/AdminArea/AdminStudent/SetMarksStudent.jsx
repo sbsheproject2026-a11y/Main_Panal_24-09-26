@@ -421,45 +421,40 @@ function SetMarksStudent() {
                       Student List
                     </h5>
 
-                    <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        className="form-control"
-                        placeholder="Enter Roll No"
-                        value={rollNo}
-                        onChange={(e) =>
-                          setRollNo(
-                            e.target.value.replace(/\D/g, "")
-                          )
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            handleSetMarks();
-                          }
-                        }}
-                        style={{
-                          width: "180px",
-                          height: "38px",
-                          borderRadius: "10px",
-                        }}
-                      />
+                  <div className="d-flex align-items-center gap-2 flex-wrap">
+  <input
+    type="text"
+    className="form-control"
+    placeholder="Enter Roll No"
+    value={rollNo}
+    onChange={(e) => setRollNo(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === "Enter") {
+        handleSetMarks();
+      }
+    }}
+    style={{
+      width: "180px",
+      height: "38px",
+      borderRadius: "10px",
+    }}
+  />
 
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={handleSetMarks}
-                        disabled={!rollNo.trim() || isSaving}
-                        style={{
-                          height: "38px",
-                          whiteSpace: "nowrap",
-                          borderRadius: "10px",
-                        }}
-                      >
-                        <i className="bi bi-pencil-square me-1"></i>
-                        Set Marks
-                      </button>
-                    </div>
+  <button
+    type="button"
+    className="btn btn-primary"
+    onClick={handleSetMarks}
+    disabled={!rollNo.trim() || isSaving}
+    style={{
+      height: "38px",
+      whiteSpace: "nowrap",
+      borderRadius: "10px",
+    }}
+  >
+    <i className="bi bi-pencil-square me-1"></i>
+    Set Marks
+  </button>
+</div>
                   </div>
 
                   <div className="row g-3 align-items-center mb-3">

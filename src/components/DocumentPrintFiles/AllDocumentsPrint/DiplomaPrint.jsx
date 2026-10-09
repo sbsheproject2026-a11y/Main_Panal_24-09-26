@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import { printDiplomaApi } from "../../AllServicesFiles/AdminStudentService";
 
 const DiplomaPrint = () => {
-    console.log("🔵 DiplomaPrint component LOADED"); 
+    console.log("🔵 DiplomaPrint component LOADED");
     const { id } = useParams();
     const navigate = useNavigate();
     const printedId = useRef(null);
@@ -13,30 +13,38 @@ const DiplomaPrint = () => {
     const PAGE_WIDTH = 200;
     const PAGE_HEIGHT = 283;
 
+    // ✅ Print margin (mm) — page ke border se andar space
+    const PRINT_MARGIN = 5;
+
+    // ✅ Effective drawing area (margin ke andar)
+    const CONTENT_WIDTH = PAGE_WIDTH - PRINT_MARGIN * 2;   // 190
+    const CONTENT_HEIGHT = PAGE_HEIGHT - PRINT_MARGIN * 2; // 273
+
     const FONT_SIZE = 18;
     const TEXT_SCALE = 4;
     const FONT_COLOR = "#000000";
 
     // ==========================================
-    // ✅ ROLE-BASED REDIRECT PATH
+    // ✅ GO BACK TO PREVIOUS PAGE (jahan se aaya tha)
     // ==========================================
-    const getRedirectPath = () => {
-       
-    const roleId = String(localStorage.getItem("RoleId") || "").trim();
-        // Admin (5) → confirm-addmissions
-        if (roleId === "5") {
-            return "/confirm-addmissions";
-        }
+    const goBackToPreviousPage = () => {
+        // Agar history me previous entry hai to back karo
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            // Fallback — direct open hone pe role-based path
+            const roleId = String(
+                localStorage.getItem("RoleId") || ""
+            ).trim();
 
-        // Employee / Franchise (33, 6, 90) → student-print-list
-        if (
-            roleId === "33"  
-        ) {
-            return "/student-print-list";
+            if (roleId === "5") {
+                navigate("/confirm-addmissions", { replace: true });
+            } else if (roleId === "33") {
+                navigate("/student-print-list", { replace: true });
+            } else {
+                navigate("/", { replace: true });
+            }
         }
-
-        // Fallback
-        return "/";
     };
 
     useEffect(() => {
@@ -101,6 +109,9 @@ const DiplomaPrint = () => {
         return /[\u0900-\u097F]/.test(text);
     };
 
+    // ==========================================
+    // DRAW IMAGE (with margin)
+    // ==========================================
     const drawImage = async (
         pdf,
         field,
@@ -114,13 +125,16 @@ const DiplomaPrint = () => {
                     field.image
                 );
 
+            // ✅ margin ke saath calculate
             const x =
+                PRINT_MARGIN +
                 (field.x / 100) *
-                PAGE_WIDTH;
+                CONTENT_WIDTH;
 
             const y =
+                PRINT_MARGIN +
                 (field.y / 100) *
-                PAGE_HEIGHT;
+                CONTENT_HEIGHT;
 
             const width =
                 field.width || 25;
@@ -329,7 +343,7 @@ const DiplomaPrint = () => {
     };
 
     // ==========================================
-    // DRAW HINDI TEXT
+    // DRAW HINDI TEXT (with margin)
     // ==========================================
     const drawHindiText = (
         pdf,
@@ -342,13 +356,16 @@ const DiplomaPrint = () => {
 
         if (!textImage) return;
 
+        // ✅ margin ke saath calculate
         const x =
+            PRINT_MARGIN +
             (field.x / 100) *
-            PAGE_WIDTH;
+            CONTENT_WIDTH;
 
         const y =
+            PRINT_MARGIN +
             (field.y / 100) *
-            PAGE_HEIGHT;
+            CONTENT_HEIGHT;
 
         const pixelToMm =
             25.4 /
@@ -365,8 +382,8 @@ const DiplomaPrint = () => {
         const maxWidth =
             Math.min(
                 field.maxWidth ||
-                PAGE_WIDTH,
-                PAGE_WIDTH
+                CONTENT_WIDTH,
+                CONTENT_WIDTH
             );
 
         if (
@@ -416,7 +433,7 @@ const DiplomaPrint = () => {
     };
 
     // ==========================================
-    // DRAW ENGLISH TEXT
+    // DRAW ENGLISH TEXT (with margin)
     // ==========================================
     const drawEnglishText = (
         pdf,
@@ -431,13 +448,16 @@ const DiplomaPrint = () => {
 
         if (!text) return;
 
+        // ✅ margin ke saath calculate
         const x =
+            PRINT_MARGIN +
             (field.x / 100) *
-            PAGE_WIDTH;
+            CONTENT_WIDTH;
 
         const y =
+            PRINT_MARGIN +
             (field.y / 100) *
-            PAGE_HEIGHT;
+            CONTENT_HEIGHT;
 
         const fontSize =
             field.fontSize ||
@@ -525,10 +545,8 @@ const DiplomaPrint = () => {
                     "Diploma data nahi mila."
                 );
 
-                // ✅ Role-based redirect
-                navigate(
-                    getRedirectPath()
-                );
+                // ✅ Wapas usi page pe jao jahan se aaya tha
+                goBackToPreviousPage();
 
                 return;
             }
@@ -732,15 +750,15 @@ const DiplomaPrint = () => {
                 });
 
             // ==========================================
-            // ADD BACKGROUND
+            // ADD BACKGROUND — ✅ margin ke andar
             // ==========================================
             pdf.addImage(
                 backgroundImage,
                 "JPEG",
-                0,
-                0,
-                PAGE_WIDTH,
-                PAGE_HEIGHT,
+                PRINT_MARGIN,           // ✅ x = 5
+                PRINT_MARGIN,           // ✅ y = 5
+                CONTENT_WIDTH,          // ✅ width = 190
+                CONTENT_HEIGHT,         // ✅ height = 273
                 undefined,
                 "FAST"
             );
@@ -818,6 +836,9 @@ const DiplomaPrint = () => {
                     "Popup blocked hai. Browser mein popup allow karo."
                 );
 
+                // ✅ Wapas usi page pe jao
+                goBackToPreviousPage();
+
                 return;
             }
 
@@ -838,10 +859,8 @@ const DiplomaPrint = () => {
                                 pdfUrl
                             );
 
-                            // ✅ Role-based redirect
-                            navigate(
-                                getRedirectPath()
-                            );
+                            // ✅ Wapas usi page pe jao jahan se aaya tha
+                            goBackToPreviousPage();
                         }
                     },
                     500
@@ -872,6 +891,9 @@ const DiplomaPrint = () => {
                 error?.message ||
                 "Diploma PDF banane mein error aa gaya."
             );
+
+            // ✅ Error case me bhi wapas usi page pe jao
+            goBackToPreviousPage();
         }
     };
 

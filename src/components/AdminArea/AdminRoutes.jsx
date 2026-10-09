@@ -23,7 +23,7 @@ import SubjectCreate from "./Course/SubjectCreate";
 import SetMarksStudent from "./AdminStudent/SetMarksStudent";
 import UpgradeStudent from "./AdminStudent/UpgradeStudent";
 import RollNoList from "./AdminStudent/RollNoList";
-import EnquiriesList from "./EnquiriesList";
+ 
 import AccRegisterList from "./Frenchise/AccRegisterList";
 import StudyCentreUpdate from "./Frenchise/StudyCentreUpdate";
 import WalletList from "./WalletWorking/WalletList";
@@ -41,6 +41,8 @@ import SetCourseCommission from "./Course/SetCourseCommission";
 import RejectList from "./Frenchise/RejectList";
 import ViewDetails from "../EmployeeArea/Students/ViewDetails";
 import StudentUpdate from "../EmployeeArea/Students/StudentUpdate";
+import EnquiriesList from "./Enquiries/EnquiriesList";
+import RTIList from "./Enquiries/RTIList";
  
 
 
@@ -71,6 +73,7 @@ const adminRoutes = [
     { path: "/employee-create", element: <EmployeeCreate />, role: ["5"] },
     { path: "/employee-list", element: <EmployeeList />, role: ["5"] },
     { path: "/enquiries-list", element: <EnquiriesList />, role: ["5"] },
+    { path: "/r-t-i-list", element: <RTIList />, role: ["5"] },
     { path: "/employee-update/:id", element: <EmployeeUpdate />, role: ["5"] },
     { path: "/users-profile", element: <Usersprofile />, role: ["5"] },
     { path: "/employee-frenchise-assign", element: <EmployeeFrenchiseAssing />, role: ["5"] },

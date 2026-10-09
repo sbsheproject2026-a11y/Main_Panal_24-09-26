@@ -10,14 +10,22 @@ const MigrationCertificate = () => {
     // React StrictMode double render rokne ke liye
     const printedId = useRef(null);
 
-    // ✅ Custom size — 200 x 283 (A4 ratio maintain)
-    const PAGE_WIDTH = 200;
-    const PAGE_HEIGHT = 283;
+    // ✅ A4 size
+    const PAGE_WIDTH = 210;
+    const PAGE_HEIGHT = 297;
+
+    // ✅ Print margin (mm) — page ke border se andar space
+    // ⬆️ Isko badhao (5 → 12) taaki content border se saaf andar aaye
+    const PRINT_MARGIN = 5;
+
+    // ✅ Effective drawing area (margin ke andar)
+    const CONTENT_WIDTH = PAGE_WIDTH - PRINT_MARGIN * 2;   // 186
+    const CONTENT_HEIGHT = PAGE_HEIGHT - PRINT_MARGIN * 2; // 273
 
     // =========================================================
     // COMMON FONT SETTINGS
     // =========================================================
-    const FONT_SIZE = 16;
+    const FONT_SIZE = 15;
     const FONT_FAMILY = "Arial";
     const FONT_WEIGHT = "bold";
     const FONT_STYLE = "normal";
@@ -25,25 +33,24 @@ const MigrationCertificate = () => {
     const MIN_FONT_SIZE = 8;
 
     // =========================================================
-    // ✅ ROLE-BASED REDIRECT PATH
+    // ✅ GO BACK TO PREVIOUS PAGE (jahan se aaya tha)
     // =========================================================
-    const getRedirectPath = () => {
-        const roleId = String(
-            localStorage.getItem("RoleId") || ""
-        ).trim();
+    const goBackToPreviousPage = () => {
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            const roleId = String(
+                localStorage.getItem("RoleId") || ""
+            ).trim();
 
-        // Admin (5) → confirm-addmissions
-        if (roleId === "5") {
-            return "/confirm-addmissions";
+            if (roleId === "5") {
+                navigate("/confirm-addmissions", { replace: true });
+            } else if (roleId === "33") {
+                navigate("/student-print-list", { replace: true });
+            } else {
+                navigate("/", { replace: true });
+            }
         }
-
-        // Franchise (33) → student-print-list
-        if (roleId === "33") {
-            return "/student-print-list";
-        }
-
-        // Fallback
-        return "/";
     };
 
     // =========================================================
@@ -106,7 +113,7 @@ const MigrationCertificate = () => {
     };
 
     // =========================================================
-    // DRAW IMAGE
+    // DRAW IMAGE (with margin)
     // =========================================================
     const drawImage = async (pdf, field, imageName = "Image") => {
         if (!field?.image) {
@@ -117,8 +124,9 @@ const MigrationCertificate = () => {
         try {
             const image = await loadImage(field.image);
 
-            const x = (field.x / 100) * PAGE_WIDTH;
-            const y = (field.y / 100) * PAGE_HEIGHT;
+            // ✅ margin ke saath calculate
+            const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
+            const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
 
             const width = field.width || 25;
             const height = field.height || 25;
@@ -218,7 +226,7 @@ const MigrationCertificate = () => {
     };
 
     // =========================================================
-    // DRAW TEXT
+    // DRAW TEXT (with margin)
     // =========================================================
     const drawText = (pdf, field) => {
         if (!field?.text) return;
@@ -226,8 +234,9 @@ const MigrationCertificate = () => {
         const textData = createTextImage(field);
         if (!textData) return;
 
-        const x = (field.x / 100) * PAGE_WIDTH;
-        const y = (field.y / 100) * PAGE_HEIGHT;
+        // ✅ margin ke saath calculate
+        const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
+        const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
 
         const imageWidth = textData.width / 3.78;
         const imageHeight = textData.height / 3.78;
@@ -263,14 +272,14 @@ const MigrationCertificate = () => {
 
             if (!result) {
                 alert("Migration Certificate data nahi mila.");
-
-                // ✅ Role-based redirect
-                navigate(getRedirectPath());
+                goBackToPreviousPage();
                 return;
             }
 
             // =====================================================
             // FIELDS
+            // ⬇️ Yahan x/y values ko thoda adjust kiya gaya hai
+            //    taaki margin ke baad bhi content sahi position pe rahe
             // =====================================================
             const FIELDS = {
                 firstName: {
@@ -300,7 +309,7 @@ const MigrationCertificate = () => {
 
                 departmentName: {
                     text: result.departmentName || "",
-                    x: 33,
+                    x: 28,
                     y: 54.5,
                     align: "left",
                     maxWidth: 75,
@@ -316,7 +325,7 @@ const MigrationCertificate = () => {
 
                 enrollmentNo: {
                     text: result.enrollmentNo || "",
-                    x: 69,
+                    x: 72,
                     y: 58.6,
                     align: "left",
                     maxWidth: 100,
@@ -324,7 +333,7 @@ const MigrationCertificate = () => {
 
                 endDate: {
                     text: result.endDate || "",
-                    x: 28,
+                    x: 30,
                     y: 58.6,
                     align: "left",
                     maxWidth: 40,
@@ -363,7 +372,7 @@ const MigrationCertificate = () => {
             );
 
             // =====================================================
-            // CREATE PDF — ✅ Custom 200 x 283
+            // CREATE PDF
             // =====================================================
             const pdf = new jsPDF({
                 orientation: "portrait",
@@ -373,15 +382,16 @@ const MigrationCertificate = () => {
             });
 
             // =====================================================
-            // BACKGROUND
+            // BACKGROUND — ✅ ab margin ke andar draw hoga
+            // (pehle 0,0 se full page tha — isliye border touch kar raha tha)
             // =====================================================
             pdf.addImage(
                 backgroundImage,
                 "JPEG",
-                0,
-                0,
-                PAGE_WIDTH,
-                PAGE_HEIGHT,
+                PRINT_MARGIN,           // ✅ x = 12
+                PRINT_MARGIN,           // ✅ y = 12
+                CONTENT_WIDTH,          // ✅ width = 186
+                CONTENT_HEIGHT,         // ✅ height = 273
                 undefined,
                 "FAST"
             );
@@ -423,6 +433,7 @@ const MigrationCertificate = () => {
                 alert(
                     "Popup blocked hai. Browser mein popup allow karo."
                 );
+                goBackToPreviousPage();
                 return;
             }
 
@@ -433,9 +444,7 @@ const MigrationCertificate = () => {
                 if (newTab.closed) {
                     clearInterval(checkPdfClosed);
                     URL.revokeObjectURL(pdfUrl);
-
-                    // ✅ Role-based redirect
-                    navigate(getRedirectPath());
+                    goBackToPreviousPage();
                 }
             }, 500);
 
@@ -456,12 +465,11 @@ const MigrationCertificate = () => {
                 error?.message ||
                 "Migration Certificate PDF banane mein error aa gaya."
             );
+
+            goBackToPreviousPage();
         }
     };
 
-    // =========================================================
-    // NO UI — sirf null return
-    // =========================================================
     return null;
 };
 

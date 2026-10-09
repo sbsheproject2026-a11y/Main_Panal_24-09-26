@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import {
   getEnquiries,
   deleteEnquiry
-} from "../AllServicesFiles/EmployeeService";
+} from "../../AllServicesFiles/EmployeeService";
 
 function EnquiriesList() {
   const [data, setData] = useState([]);

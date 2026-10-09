@@ -7,17 +7,21 @@ const MarksheetPrint = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    // React StrictMode double render rokne ke liye
     const printedId = useRef(null);
 
-    // ✅ Custom size — 200 x 283 (A4 ratio maintain)
-    const PAGE_WIDTH = 200;
-    const PAGE_HEIGHT = 283;
+    // ✅ BADA size — A3 (297 x 420 mm)
+    const PAGE_WIDTH = 297;
+    const PAGE_HEIGHT = 420;
+
+    const PRINT_MARGIN = 5;
+
+    const CONTENT_WIDTH = PAGE_WIDTH - PRINT_MARGIN * 2;   // 287
+    const CONTENT_HEIGHT = PAGE_HEIGHT - PRINT_MARGIN * 2; // 410
 
     // =========================================================
     // COMMON TEXT SETTINGS
     // =========================================================
-    const FONT_SIZE = 13;
+    const FONT_SIZE = 14;
     const FONT_FAMILY = "Times New Roman";
     const FONT_WEIGHT = "bold";
     const FONT_STYLE = "normal";
@@ -25,25 +29,38 @@ const MarksheetPrint = () => {
     const MIN_FONT_SIZE = 7;
 
     // =========================================================
-    // ✅ ROLE-BASED REDIRECT PATH
+    // ✅ SUBJECT ROW SETTINGS
     // =========================================================
-    const getRedirectPath = () => {
-        const roleId = String(
-            localStorage.getItem("RoleId") || ""
-        ).trim();
+    const SUBJECT_START_Y = 57.5;
+    const SUBJECT_ROW_HEIGHT = 2.4;           // normal row height
+    const SUBJECT_LINE_HEIGHT = 1.2;          // ⬅️ 1.8 → 1.2 (lines paas aa gayi)
+    const SUBJECT_FONT_SIZE = 12;
+    const SUBJECT_MAX_WIDTH = 150;
+    const SUBJECT_MAX_CHARS_PER_LINE = 55;    // ⬅️ 55 (aapne bola)
+    const SUBJECT_MAX_LINES = 2;
 
-        // Admin (5) → confirm-addmissions
-        if (roleId === "5") {
-            return "/confirm-addmissions";
+    // ✅ Line 1 ko thoda upar shift karo (taaki row ke andar center rahe)
+    const SUBJECT_LINE1_OFFSET = -0.6;        // ⬅️ line 1 ko upar shift
+
+    // =========================================================
+    // ✅ GO BACK TO PREVIOUS PAGE
+    // =========================================================
+    const goBackToPreviousPage = () => {
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            const roleId = String(
+                localStorage.getItem("RoleId") || ""
+            ).trim();
+
+            if (roleId === "5") {
+                navigate("/confirm-addmissions", { replace: true });
+            } else if (roleId === "33") {
+                navigate("/student-print-list", { replace: true });
+            } else {
+                navigate("/", { replace: true });
+            }
         }
-
-        // Franchise (33) → student-print-list
-        if (roleId === "33") {
-            return "/student-print-list";
-        }
-
-        // Fallback
-        return "/";
     };
 
     // =========================================================
@@ -51,7 +68,6 @@ const MarksheetPrint = () => {
     // =========================================================
     useEffect(() => {
         if (!id) return;
-
         if (printedId.current === id) return;
 
         printedId.current = id;
@@ -117,8 +133,8 @@ const MarksheetPrint = () => {
         try {
             const image = await loadImage(field.image);
 
-            const x = (field.x / 100) * PAGE_WIDTH;
-            const y = (field.y / 100) * PAGE_HEIGHT;
+            const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
+            const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
 
             const width = field.width || 25;
             const height = field.height || 25;
@@ -135,8 +151,6 @@ const MarksheetPrint = () => {
                 undefined,
                 "FAST"
             );
-
-            console.log(`${imageName} PDF mein add ho gayi.`);
         } catch (error) {
             console.error(
                 `${imageName} PDF mein add nahi hui:`,
@@ -173,20 +187,25 @@ const MarksheetPrint = () => {
 
         let textWidth = 0;
 
-        while (true) {
+        if (field.noShrink) {
             ctx.font = `${fontStyle} ${fontWeight} ${currentFontSize}px "${fontFamily}"`;
             textWidth = ctx.measureText(text).width;
-
-            if (textWidth <= maxWidthPx) break;
-
-            currentFontSize -= 0.25 * scale;
-
-            if (currentFontSize <= MIN_FONT_SIZE * scale) {
-                currentFontSize = MIN_FONT_SIZE * scale;
-
+        } else {
+            while (true) {
                 ctx.font = `${fontStyle} ${fontWeight} ${currentFontSize}px "${fontFamily}"`;
                 textWidth = ctx.measureText(text).width;
-                break;
+
+                if (textWidth <= maxWidthPx) break;
+
+                currentFontSize -= 0.25 * scale;
+
+                if (currentFontSize <= MIN_FONT_SIZE * scale) {
+                    currentFontSize = MIN_FONT_SIZE * scale;
+
+                    ctx.font = `${fontStyle} ${fontWeight} ${currentFontSize}px "${fontFamily}"`;
+                    textWidth = ctx.measureText(text).width;
+                    break;
+                }
             }
         }
 
@@ -237,8 +256,8 @@ const MarksheetPrint = () => {
         const textData = createTextImage(field);
         if (!textData) return;
 
-        const x = (field.x / 100) * PAGE_WIDTH;
-        const y = (field.y / 100) * PAGE_HEIGHT;
+        const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
+        const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
 
         const imageWidth = (textData.width / textData.scale) / 3.78;
         const imageHeight = (textData.height / textData.scale) / 3.78;
@@ -264,7 +283,78 @@ const MarksheetPrint = () => {
     };
 
     // =========================================================
-    // DRAW SUBJECTS
+    // ✅ DRAW WRAPPED TEXT (character-based)
+    // =========================================================
+    const drawWrappedText = (pdf, field, options = {}) => {
+        if (!field?.text) return 0;
+
+        const text = String(field.text).trim();
+        if (!text) return 0;
+
+        const {
+            maxCharsPerLine = SUBJECT_MAX_CHARS_PER_LINE,
+            lineHeightPercent = SUBJECT_LINE_HEIGHT,
+            maxLines = SUBJECT_MAX_LINES,
+        } = options;
+
+        const words = text.split(/\s+/).filter(Boolean);
+
+        const lines = [];
+        let currentLine = "";
+        let currentLength = 0;
+
+        words.forEach((word) => {
+            const wordLength = word.length;
+            const spaceNeeded = currentLine ? 1 : 0;
+
+            if (
+                currentLength + wordLength + spaceNeeded <=
+                maxCharsPerLine
+            ) {
+                currentLine += (currentLine ? " " : "") + word;
+                currentLength += wordLength + spaceNeeded;
+            } else {
+                if (currentLine) {
+                    lines.push(currentLine);
+                }
+                currentLine = word;
+                currentLength = wordLength;
+            }
+        });
+
+        if (currentLine) {
+            lines.push(currentLine);
+        }
+
+        const finalLines = lines.slice(0, maxLines);
+
+        // ✅ Har line draw karo — 2 lines ho toh row ke andar center karo
+        const totalLines = finalLines.length;
+
+        finalLines.forEach((lineText, index) => {
+            // ✅ Line 1 thoda upar, Line 2 thoda neeche (same row me fit)
+            // 2 lines ke liye: line1 = y + offset, line2 = y + offset + lineHeight
+            let lineY = field.y + index * lineHeightPercent;
+
+            // Agar 2 lines hain toh dono ko thoda upar shift karo
+            // taaki row ke andar center rahen
+            if (totalLines === 2) {
+                lineY += SUBJECT_LINE1_OFFSET;
+            }
+
+            drawText(pdf, {
+                ...field,
+                text: lineText,
+                y: lineY,
+                noShrink: true,
+            });
+        });
+
+        return finalLines.length;
+    };
+
+    // =========================================================
+    // ✅ DRAW SUBJECTS
     // =========================================================
     const drawSubjects = (pdf, subjects) => {
         if (!Array.isArray(subjects)) return;
@@ -273,9 +363,34 @@ const MarksheetPrint = () => {
             (item) => item?.code && item?.name
         );
 
-        validSubjects.forEach((subject, index) => {
-            const y = 57.5 + index * 2.4;
+        let cumulativeY = SUBJECT_START_Y;
 
+        validSubjects.forEach((subject, index) => {
+            const y = cumulativeY;
+
+            // ✅ Subject Name — WRAPPED
+            const linesUsed = drawWrappedText(
+                pdf,
+                {
+                    text: subject.name,
+                    x: 15,
+                    y,
+                    fontSize: SUBJECT_FONT_SIZE,
+                    fontFamily: "Arial",
+                    fontWeight: "normal",
+                    fontStyle: FONT_STYLE,
+                    color: FONT_COLOR,
+                    align: "left",
+                    maxWidth: SUBJECT_MAX_WIDTH,
+                },
+                {
+                    maxCharsPerLine: SUBJECT_MAX_CHARS_PER_LINE,
+                    lineHeightPercent: SUBJECT_LINE_HEIGHT,
+                    maxLines: SUBJECT_MAX_LINES,
+                }
+            );
+
+            // ✅ Baaki columns — sab `y` pe hi rahenge (line 1 ke saath)
             drawText(pdf, {
                 text: subject.code,
                 x: 11,
@@ -287,19 +402,6 @@ const MarksheetPrint = () => {
                 color: FONT_COLOR,
                 align: "center",
                 maxWidth: 30,
-            });
-
-            drawText(pdf, {
-                text: subject.name,
-                x: 15,
-                y,
-                fontSize: 12,
-                fontFamily: "Arial",
-                fontWeight: "normal",
-                fontStyle: FONT_STYLE,
-                color: FONT_COLOR,
-                align: "left",
-                maxWidth: 50,
             });
 
             drawText(pdf, {
@@ -379,6 +481,16 @@ const MarksheetPrint = () => {
                 align: "center",
                 maxWidth: 40,
             });
+
+            // ✅ Agli row ke liye y calculate karo (dynamic)
+            const extraLines = linesUsed - 1;
+            const rowHeight =
+                extraLines > 0
+                    ? SUBJECT_ROW_HEIGHT +
+                      extraLines * SUBJECT_LINE_HEIGHT
+                    : SUBJECT_ROW_HEIGHT;
+
+            cumulativeY += rowHeight;
         });
     };
 
@@ -393,17 +505,12 @@ const MarksheetPrint = () => {
 
             if (!result) {
                 alert("Marksheet data nahi mila.");
-
-                // ✅ Role-based redirect
-                navigate(getRedirectPath());
+                goBackToPreviousPage();
                 return;
             }
 
             console.log("Marksheet Data:", result);
 
-            // =====================================================
-            // FIELDS
-            // =====================================================
             const FIELDS = {
                 name: {
                     text: result.name || "",
@@ -417,20 +524,18 @@ const MarksheetPrint = () => {
                     align: "left",
                     maxWidth: 100,
                 },
-
                 session: {
                     text: result.session || "",
-                    x: 76,
+                    x: 66,
                     y: 33.9,
                     fontSize: FONT_SIZE,
                     fontFamily: FONT_FAMILY,
                     fontWeight: FONT_WEIGHT,
                     fontStyle: FONT_STYLE,
                     color: FONT_COLOR,
-                    align: "center",
+                    align: "left",
                     maxWidth: 50,
                 },
-
                 fatherName: {
                     text: result.fatherName || "",
                     x: 21,
@@ -443,20 +548,18 @@ const MarksheetPrint = () => {
                     align: "left",
                     maxWidth: 100,
                 },
-
                 studentYear: {
                     text: result.studentYear || "",
-                    x: 71,
+                    x: 67,
                     y: 36.3,
                     fontSize: FONT_SIZE,
                     fontFamily: FONT_FAMILY,
                     fontWeight: FONT_WEIGHT,
                     fontStyle: FONT_STYLE,
                     color: FONT_COLOR,
-                    align: "center",
+                    align: "left",
                     maxWidth: 50,
                 },
-
                 motherName: {
                     text: result.motherName || "",
                     x: 22,
@@ -469,46 +572,42 @@ const MarksheetPrint = () => {
                     align: "left",
                     maxWidth: 100,
                 },
-
                 dob: {
                     text: result.dob || "",
-                    x: 25,
+                    x: 20,
                     y: 41.1,
                     fontSize: FONT_SIZE,
                     fontFamily: FONT_FAMILY,
                     fontWeight: FONT_WEIGHT,
                     fontStyle: FONT_STYLE,
                     color: FONT_COLOR,
-                    align: "center",
+                    align: "left",
                     maxWidth: 50,
                 },
-
                 centreName: {
                     text: result.centreName || "",
-                    x: 48.6,
-                    y: 43.8,
+                    x: 26.5,
+                    y: 43.7,
                     fontSize: FONT_SIZE,
                     fontFamily: FONT_FAMILY,
                     fontWeight: FONT_WEIGHT,
                     fontStyle: FONT_STYLE,
                     color: FONT_COLOR,
-                    align: "center",
+                    align: "left",
                     maxWidth: 100,
                 },
-
                 courseName: {
                     text: result.courseName || "",
-                    x: 34.5,
+                    x: 20,
                     y: 46.3,
                     fontSize: FONT_SIZE,
                     fontFamily: FONT_FAMILY,
                     fontWeight: FONT_WEIGHT,
                     fontStyle: FONT_STYLE,
                     color: FONT_COLOR,
-                    align: "center",
+                    align: "left",
                     maxWidth: 75,
                 },
-
                 selfImage: {
                     image: result.selfImage || "",
                     x: 85,
@@ -516,7 +615,6 @@ const MarksheetPrint = () => {
                     width: 25,
                     height: 30,
                 },
-
                 qrImage: {
                     image: result.qrimage || "",
                     x: 50,
@@ -524,7 +622,6 @@ const MarksheetPrint = () => {
                     width: 25,
                     height: 25,
                 },
-
                 enrollmentNo: {
                     text: result.enrollmentNo || "",
                     x: 72,
@@ -537,7 +634,6 @@ const MarksheetPrint = () => {
                     align: "left",
                     maxWidth: 50,
                 },
-
                 rollNo: {
                     text: result.rollno || "",
                     x: 66,
@@ -550,7 +646,6 @@ const MarksheetPrint = () => {
                     align: "left",
                     maxWidth: 50,
                 },
-
                 srnoDiploma: {
                     text: result.srnoDiploma || "",
                     x: 24,
@@ -563,10 +658,9 @@ const MarksheetPrint = () => {
                     align: "left",
                     maxWidth: 40,
                 },
-
                 issueDate: {
                     text: result.issueDate || "",
-                    x: 13.5,
+                    x: 14,
                     y: 94.3,
                     fontSize: FONT_SIZE,
                     fontFamily: FONT_FAMILY,
@@ -574,35 +668,32 @@ const MarksheetPrint = () => {
                     fontStyle: FONT_STYLE,
                     color: FONT_COLOR,
                     align: "left",
-                    maxWidth: 75,
+                    maxWidth: 100,
                 },
-
                 maxMarks: {
                     text: result.maxMarks || "",
-                    x: 49.5,
+                    x: 48,
                     y: 79.5,
                     fontSize: FONT_SIZE,
                     fontFamily: FONT_FAMILY,
                     fontWeight: FONT_WEIGHT,
                     fontStyle: FONT_STYLE,
                     color: FONT_COLOR,
-                    align: "center",
+                    align: "left",
                     maxWidth: 40,
                 },
-
                 totalMarks: {
                     text: result.totalMarks || "",
-                    x: 78,
+                    x: 77,
                     y: 79.5,
                     fontSize: FONT_SIZE,
                     fontFamily: FONT_FAMILY,
                     fontWeight: FONT_WEIGHT,
                     fontStyle: FONT_STYLE,
                     color: FONT_COLOR,
-                    align: "center",
+                    align: "left",
                     maxWidth: 40,
                 },
-
                 result: {
                     text: result.result || "",
                     x: 60,
@@ -612,21 +703,15 @@ const MarksheetPrint = () => {
                     fontWeight: FONT_WEIGHT,
                     fontStyle: FONT_STYLE,
                     color: FONT_COLOR,
-                    align: "center",
+                    align: "left",
                     maxWidth: 40,
                 },
             };
 
-            // =====================================================
-            // BACKGROUND
-            // =====================================================
             const backgroundImage = await loadImage(
                 "/assets/Documents/marksheet.jpeg"
             );
 
-            // =====================================================
-            // CREATE PDF — ✅ Custom 200 x 283
-            // =====================================================
             const pdf = new jsPDF({
                 orientation: "portrait",
                 unit: "mm",
@@ -634,33 +719,20 @@ const MarksheetPrint = () => {
                 compress: true,
             });
 
-            // =====================================================
-            // BACKGROUND
-            // =====================================================
             pdf.addImage(
                 backgroundImage,
                 "JPEG",
-                0,
-                0,
-                PAGE_WIDTH,
-                PAGE_HEIGHT,
+                PRINT_MARGIN,
+                PRINT_MARGIN,
+                CONTENT_WIDTH,
+                CONTENT_HEIGHT,
                 undefined,
                 "FAST"
             );
 
-            // =====================================================
-            // STUDENT IMAGE
-            // =====================================================
             await drawImage(pdf, FIELDS.selfImage, "Student Image");
-
-            // =====================================================
-            // QR IMAGE
-            // =====================================================
             await drawImage(pdf, FIELDS.qrImage, "QR Image");
 
-            // =====================================================
-            // TEXT FIELDS
-            // =====================================================
             const textFields = [
                 FIELDS.name,
                 FIELDS.fatherName,
@@ -683,14 +755,8 @@ const MarksheetPrint = () => {
                 drawText(pdf, field);
             });
 
-            // =====================================================
-            // DRAW SUBJECTS
-            // =====================================================
             drawSubjects(pdf, result.subjects);
 
-            // =====================================================
-            // OPEN PDF
-            // =====================================================
             const pdfBlob = pdf.output("blob");
             const pdfUrl = URL.createObjectURL(pdfBlob);
 
@@ -701,25 +767,18 @@ const MarksheetPrint = () => {
                 alert(
                     "Popup blocked hai. Browser mein popup allow karo."
                 );
+                goBackToPreviousPage();
                 return;
             }
 
-            // =====================================================
-            // PDF TAB CLOSE CHECK
-            // =====================================================
             const checkPdfClosed = setInterval(() => {
                 if (newTab.closed) {
                     clearInterval(checkPdfClosed);
                     URL.revokeObjectURL(pdfUrl);
-
-                    // ✅ Role-based redirect
-                    navigate(getRedirectPath());
+                    goBackToPreviousPage();
                 }
             }, 500);
 
-            // =====================================================
-            // SAFETY CLEANUP
-            // =====================================================
             setTimeout(() => {
                 clearInterval(checkPdfClosed);
                 URL.revokeObjectURL(pdfUrl);
@@ -731,12 +790,11 @@ const MarksheetPrint = () => {
                 error?.message ||
                 "Marksheet PDF banane mein error aa gaya."
             );
+
+            goBackToPreviousPage();
         }
     };
 
-    // =========================================================
-    // NO UI — sirf null return
-    // =========================================================
     return null;
 };
 

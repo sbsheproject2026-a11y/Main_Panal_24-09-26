@@ -254,6 +254,12 @@ function Sidebar({ sidebarOpen }) {
                   <span>Franchise Enquiries</span>
                 </Link>
               </li>
+              <li>
+                <Link to="r-t-i-list">
+                  <i className="bi bi-circle"></i>
+                  <span>RTI List</span>
+                </Link>
+              </li>
 
 
             </ul>

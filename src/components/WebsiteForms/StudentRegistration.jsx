@@ -354,18 +354,18 @@ const StudentRegistration = () => {
             setErrors((prev) => ({ ...prev, [name]: "" }));
         }
 
-        if (name === "name" && value.trim()) {
-            const currentValue = value;
-            try {
-                const hindi = await translateToHindi(currentValue);
-                setFormData((prev) => {
-                    if (prev.name !== currentValue) return prev;
-                    return { ...prev, nameHindi: hindi || "" };
-                });
-            } catch (error) {
-                console.error("Hindi Translation Error:", error);
-            }
-        }
+ if (name === "name" && value.trim()) {
+    const currentValue = value;
+    try {
+        const hindi = await translateToHindi(currentValue);
+        setFormData((prev) => {
+            if (prev.name !== currentValue) return prev;
+            return { ...prev, studentNameHindi: hindi || "" };  // ✅ FIXED
+        });
+    } catch (error) {
+        console.error("Hindi Translation Error:", error);
+    }
+}
 
         if (name === "fatherName" && value.trim()) {
             const currentValue = value;

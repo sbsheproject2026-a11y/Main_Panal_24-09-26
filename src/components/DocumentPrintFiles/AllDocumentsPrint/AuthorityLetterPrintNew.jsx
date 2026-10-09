@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import { printAuthorityLetterApi } from "../../AllServicesFiles/AdminStudentService";
 
-const AuthorityLetterPrint = () => {
+const AuthorityLetterPrintNew = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const printedId = useRef(null);
@@ -12,20 +12,41 @@ const AuthorityLetterPrint = () => {
     const PAGE_WIDTH = 210;
     const PAGE_HEIGHT = 297;
 
-    // ✅ Printer safe margin — border cut nahi hoga
+    // ✅ Printer safe margin
     const PRINT_MARGIN = 5;
 
-    // ✅ Inner area (background ke andar)
+    // ✅ Inner area
     const INNER_WIDTH = PAGE_WIDTH - PRINT_MARGIN * 2;
     const INNER_HEIGHT = PAGE_HEIGHT - PRINT_MARGIN * 2;
 
-    // ✅ % → mm conversion (margin ke saath)
+    // ✅ % → mm conversion
     const getX = (percent) => PRINT_MARGIN + (percent / 100) * INNER_WIDTH;
     const getY = (percent) => PRINT_MARGIN + (percent / 100) * INNER_HEIGHT;
 
     const FONT_SIZE = 18;
     const TEXT_SCALE = 4;
     const FONT_COLOR = "#000000";
+
+    // =========================================================
+    // ✅ GO BACK TO PREVIOUS PAGE
+    // =========================================================
+    const goBackToPreviousPage = () => {
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            const roleId = String(
+                localStorage.getItem("RoleId") || ""
+            ).trim();
+
+            if (roleId === "5") {
+                navigate("/confirm-addmissions", { replace: true });
+            } else if (roleId === "33") {
+                navigate("/student-print-list", { replace: true });
+            } else {
+                navigate("/", { replace: true });
+            }
+        }
+    };
 
     useEffect(() => {
         if (!id || printedId.current === id) return;
@@ -97,8 +118,8 @@ const AuthorityLetterPrint = () => {
         try {
             const image = await loadImage(field.image);
 
-            const x = getX(field.x);   // ✅ margin ke saath
-            const y = getY(field.y);   // ✅ margin ke saath
+            const x = getX(field.x);
+            const y = getY(field.y);
 
             const width = field.width || 25;
             const height = field.height || 25;
@@ -209,8 +230,8 @@ const AuthorityLetterPrint = () => {
 
         if (!textImage) return;
 
-        const x = getX(field.x);   // ✅ margin ke saath
-        const y = getY(field.y);   // ✅ margin ke saath
+        const x = getX(field.x);
+        const y = getY(field.y);
 
         const pixelToMm = 25.4 / (96 * TEXT_SCALE);
 
@@ -218,8 +239,8 @@ const AuthorityLetterPrint = () => {
         let imageHeight = textImage.height * pixelToMm;
 
         const maxWidth = Math.min(
-            field.maxWidth || INNER_WIDTH,   // ✅ inner width
-            INNER_WIDTH                       // ✅ inner width
+            field.maxWidth || INNER_WIDTH,
+            INNER_WIDTH
         );
 
         if (imageWidth > maxWidth) {
@@ -258,8 +279,8 @@ const AuthorityLetterPrint = () => {
 
         if (!text) return;
 
-        const x = getX(field.x);   // ✅ margin ke saath
-        const y = getY(field.y);   // ✅ margin ke saath
+        const x = getX(field.x);
+        const y = getY(field.y);
 
         const fontSize = field.fontSize || FONT_SIZE;
         const fontStyle = field.fontStyle || "normal";
@@ -287,7 +308,7 @@ const AuthorityLetterPrint = () => {
 
         if (!text) return;
 
-        // ✅ wrapWords — words per line, poora text show hoga
+        // ✅ wrapWords — words per line
         if (field.wrapWords && field.wrapWords > 0) {
             const words = text.split(/\s+/);
             const lines = [];
@@ -332,143 +353,272 @@ const AuthorityLetterPrint = () => {
 
             if (!result) {
                 alert("Authority Letter data nahi mila.");
-                navigate(-1);
+                goBackToPreviousPage();
                 return;
             }
+
+            console.log("Authority Letter Data:", result);
 
             // ==========================================
             // FIELDS
             // ==========================================
-            const FIELDS = {
-                name: {
-                    text: result.name || "",
-                    x: 26,
-                    y: 45,
-                    align: "left",
-                    maxWidth: 100,
-                    fontSize: 13,
-                    fontStyle: "bold",
-                    wrapWords: 5,
-                    lineHeight: 2.5,
-                    fontFamily: "Arial",
-                },
+             const FIELDS = {
+    
+   
+    
+   
 
-                address: {
-                    text: result.address || "",
-                    x: 18,
-                    y: 49.5,
-                    align: "left",
-                    maxWidth: 150,
-                    fontSize: 10,
-                    fontStyle: "normal",
-                    fontFamily: "Arial",
-                    wrapWords: 8,
-                    lineHeight: 2.5,
-                },
+    // =========================================================
+    // ✅ CERTIFICATE OF AUTHORIZATION FIELDS
+    // ❌ Koi fallback nahi — sirf result se aayega
+    // =========================================================
+    registrationLine: {
+        text: result.registrationLine || "",
+        x: 10,
+        y: 20,
+        align: "left",
+        maxWidth: 180,
+        fontSize: 14,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
+ enrollmentNo: {
+        text: result.enrollmentNo || "",
+        x: 40,
+        y: 20.5,
+        align: "left",
+        maxWidth: 70,
+        fontSize: 10,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
+    certificateTitle: {
+        text: result.certificateTitle || "",
+        x: 50,
+        y: 24,
+        align: "center",
+        maxWidth: 180,
+        fontSize: 20,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
 
-                endDate: {
-                    text: result.endDate || "",
-                    x: 50,
-                    y: 73.2,
-                    align: "center",
-                    maxWidth: 100,
-                    fontSize: 14,
-                    fontStyle: "bold",
-                    fontFamily: "Arial",
-                },
+    certifyLine: {
+        text: result.certifyLine || "",
+        x: 50,
+        y: 29,
+        align: "center",
+        maxWidth: 180,
+        fontSize: 16,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
 
-                fatherName: {
-                    text: result.fatherName || "",
-                    x: 50,
-                    y: 34,
-                    align: "center",
-                    maxWidth: 100,
-                    fontSize: 16,
-                    fontStyle: "bold",
-                    fontFamily: "Arial",
-                },
+    fatherName: {
+        text: result.fatherName || "",
+        x: 50,
+        y: 33,
+        align: "center",
+        maxWidth: 100,
+        fontSize: 16,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
 
-                relacition: {
-                    text: result.relacition || "",
-                    x: 50,
-                    y: 36.5,
-                    align: "center",
-                    maxWidth: 100,
-                    fontSize: 13,
-                    fontStyle: "bold",
-                    fontFamily: "Arial",
-                },
+    relacition: {
+        text: result.relacition || "",
+        x: 50,
+        y: 36,
+        align: "center",
+        maxWidth: 100,
+        fontSize: 13,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
 
-                fatherName1: {
-                    text: result.fatherName1 || "",
-                    x: 50,
-                    y: 39,
-                    align: "center",
-                    maxWidth: 100,
-                    fontSize: 16,
-                    fontStyle: "bold",
-                    fontFamily: "Arial",
-                },
+    fatherName1: {
+        text: result.fatherName1 || "",
+        x: 50,
+        y: 39,
+        align: "center",
+        maxWidth: 100,
+        fontSize: 16,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
 
-                entityType: {
-                    text: result.entityType || "",
-                    x: 50,
-                    y: 60,
-                    align: "center",
-                    maxWidth: 100,
-                    fontSize: 18,
-                    fontStyle: "bold",
-                    fontFamily: "Arial",
-                    wrapWords: 5,
-                    lineHeight: 2.5,
-                },
+     name: {
+    text: "Centre Name : " + (result.name || ""),
+    x: 10,
+    y: 45,
+    align: "left",
+    maxWidth: 100,
+    fontSize: 13,
+    fontStyle: "bold",
+    wrapWords: 10,
+    lineHeight: 2.5,
+    fontFamily: "Arial",
+},
 
-                centreName: {
-                    text: result.centreName || "",
-                    x: 50,
-                    y: 77,
-                    align: "center",
-                    maxWidth: 100,
-                    fontSize: 18,
-                    fontStyle: "bold",
-                    fontFamily: "Arial",
-                    wrapWords: 5,
-                    lineHeight: 2.5,
-                },
+    address: {
+        text: "Address : " +  result.address || "",
+        x: 10,
+        y: 49.5,
+        align: "left",
+        maxWidth: 150,
+        fontSize: 13,
+        fontStyle: "normal",
+        fontFamily: "Arial",
+        wrapWords: 8,
+        lineHeight: 2.5,
+    },
 
-                selfImage: {
-                    image: result.selfImage || "",
-                    x: 11,
-                    y: 81,
-                    width: 25,
-                    height: 30,
-                },
+    
 
-                qrImage: {
-                    image: result.qrimage || "",
-                    x: 89,
-                    y: 92,
-                    width: 25,
-                    height: 25,
-                },
+    centreAddress: {
+        text: result.centreAddress || "",
+        x: 50,
+        y: 54,
+        align: "center",
+        maxWidth: 180,
+        fontSize: 18,
+        fontStyle: "normal",
+        fontFamily: "Arial",
+        wrapWords: 10,
+        lineHeight: 3,
+    },
+  entityType: {
+        text: result.entityType || "",
+        x: 50,
+        y: 58,
+        align: "center",
+        maxWidth: 100,
+        fontSize: 18,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+        wrapWords: 5,
+        lineHeight: 2.5,
+    },
 
-                enrollmentNo: {
-                    text: result.enrollmentNo || "",
-                    x: 32.5,
-                    y: 22.1,
-                    align: "left",
-                    maxWidth: 40,
-                    fontSize: 10,
-                    fontStyle: "bold",
-                    fontFamily: "Arial",
-                },
-            };
+    appointedLine: {
+        text: result.appointedLine || "",
+        x: 50,
+        y: 62,
+        align: "center",
+        maxWidth: 180,
+        fontSize: 14,
+        fontStyle: "normal",
+        fontFamily: "Arial",
+        wrapWords: 8,
+        lineHeight: 3,
+    },
+
+    endDate: {
+        text: result.endDate || "",
+        x: 50,
+        y: 69,
+        align: "center",
+        maxWidth: 100,
+        fontSize: 14,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
+
+    
+
+  
+    centreName: {
+        text: result.centreName || "",
+        x: 50,
+        y: 75,
+        align: "center",
+        maxWidth: 100,
+        fontSize: 18,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+        wrapWords: 5,
+        lineHeight: 2.5,
+    },
+
+    selfImage: {
+        image: result.selfImage || "",
+        x: 11,
+        y: 81,
+        width: 25,
+        height: 30,
+    },
+
+    qrImage: {
+        image: result.qrimage || "",
+        x: 89,
+        y: 92,
+        width: 25,
+        height: 25,
+    },
+
+    
+    signatoryLine: {
+        text: result.signatoryLine || "",
+        x: 83,
+        y: 85,
+        align: "center",
+        maxWidth: 80,
+        fontSize: 14,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
+
+    officeAddress: {
+        text: result.officeAddress || "",
+        x: 50,
+        y: 89,
+        align: "center",
+        maxWidth: 180,
+        fontSize: 12,
+        
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
+
+    corporateOffice: {
+        text: result.corporateOffice || "",
+        x: 50,
+        y: 91,
+        align: "center",
+        maxWidth: 180,
+        fontSize: 12,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
+
+    emailLine: {
+        text: result.emailLine || "",
+        x: 50,
+        y: 93,
+        align: "center",
+        maxWidth: 180,
+        fontSize: 11,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
+
+    websiteLine: {
+        text: result.websiteLine || "",
+        x: 50,
+        y: 95,
+        align: "center",
+        maxWidth: 180,
+        fontSize: 11,
+        fontStyle: "bold",
+        fontFamily: "Arial",
+    },
+};
 
             // ==========================================
             // BACKGROUND
             // ==========================================
             const backgroundImage = await loadImage(
-                "/assets/Documents/AuthorityLetter.jpeg"
+                "/assets/Documents/AuthorityLetter1.jpeg"
             );
 
             // ==========================================
@@ -482,44 +632,63 @@ const AuthorityLetterPrint = () => {
             });
 
             // ==========================================
-            // BACKGROUND IMAGE — ✅ Margin ke saath (border safe)
+            // BACKGROUND IMAGE — Margin ke saath
             // ==========================================
             pdf.addImage(
                 backgroundImage,
                 "JPEG",
-                PRINT_MARGIN,          // ✅ x = 5 mm
-                PRINT_MARGIN,          // ✅ y = 5 mm
-                INNER_WIDTH,           // ✅ width = 200 mm
-                INNER_HEIGHT,          // ✅ height = 287 mm
+                PRINT_MARGIN,
+                PRINT_MARGIN,
+                INNER_WIDTH,
+                INNER_HEIGHT,
                 undefined,
                 "FAST"
             );
 
             // ==========================================
-            // STUDENT IMAGE
+            // STUDENT IMAGE (agar hai)
             // ==========================================
-            await drawImage(pdf, FIELDS.selfImage, "Student Image");
+            if (FIELDS.selfImage?.image) {
+                await drawImage(pdf, FIELDS.selfImage, "Student Image");
+            }
 
             // ==========================================
-            // QR IMAGE
+            // QR IMAGE (agar hai)
             // ==========================================
-            await drawImage(pdf, FIELDS.qrImage, "QR Image");
+            if (FIELDS.qrImage?.image) {
+                await drawImage(pdf, FIELDS.qrImage, "QR Image");
+            }
 
             // ==========================================
-            // TEXT
+            // TEXT FIELDS — SAARE
             // ==========================================
             [
+                // ✅ Authority Letter fields
                 FIELDS.name,
-                FIELDS.fatherName,
-                FIELDS.centreName,
-                FIELDS.entityType,
                 FIELDS.address,
                 FIELDS.endDate,
-                FIELDS.enrollmentNo,
-                FIELDS.fatherName1,
+                FIELDS.fatherName,
                 FIELDS.relacition,
+                FIELDS.fatherName1,
+                FIELDS.entityType,
+                FIELDS.centreName,
+                FIELDS.enrollmentNo,
+
+                // ✅ Certificate of Authorization fields
+                FIELDS.registrationLine,
+                FIELDS.certificateTitle,
+                FIELDS.certifyLine,
+                FIELDS.centreAddress,
+                FIELDS.appointedLine,
+                FIELDS.signatoryLine,
+                FIELDS.officeAddress,
+                FIELDS.corporateOffice,
+                FIELDS.emailLine,
+                FIELDS.websiteLine,
             ].forEach((field) => {
-                drawText(pdf, field);
+                if (field?.text) {
+                    drawText(pdf, field);
+                }
             });
 
             // ==========================================
@@ -538,6 +707,7 @@ const AuthorityLetterPrint = () => {
                 alert(
                     "Popup blocked hai. Browser mein popup allow karo."
                 );
+                goBackToPreviousPage();
                 return;
             }
 
@@ -548,7 +718,7 @@ const AuthorityLetterPrint = () => {
                 if (newTab.closed) {
                     clearInterval(checkPdfClosed);
                     URL.revokeObjectURL(pdfUrl);
-                    navigate(-1);
+                    goBackToPreviousPage();
                 }
             }, 500);
 
@@ -566,13 +736,12 @@ const AuthorityLetterPrint = () => {
                 error?.message ||
                 "Authority Letter PDF banane mein error aa gaya."
             );
+
+            goBackToPreviousPage();
         }
     };
 
-    // ==========================================
-    // NO UI
-    // ==========================================
     return null;
 };
 
-export default AuthorityLetterPrint;
+export default AuthorityLetterPrintNew;

@@ -33,7 +33,7 @@ function FranchiseSidebar({ sidebarOpen }) {
 
               <li>
                 <Link
-                  to={`/authority-letterPrint/${localStorage.getItem("UserId")}`}
+                  to={`/authority-letterPrint-print/${localStorage.getItem("UserId")}`}
                 >
                   <i className="bi bi-circle"></i>
                   <span>Authority-Letter</span>
@@ -41,7 +41,7 @@ function FranchiseSidebar({ sidebarOpen }) {
               </li>
               <li>
                 <Link
-                  to={`/franchise-id-card/${localStorage.getItem("UserId")}`}
+                  to={`/id-card-print/${localStorage.getItem("UserId")}`}
                 >
                   <i className="bi bi-circle"></i>
                   <span>ID-Card </span>

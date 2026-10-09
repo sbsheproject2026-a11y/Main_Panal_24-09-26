@@ -12,29 +12,37 @@ const AdmitCardPrint = () => {
     const PAGE_WIDTH = 200;
     const PAGE_HEIGHT = 283;
 
+    // ✅ Print margin (mm) — page ke border se andar space
+    const PRINT_MARGIN = 5;
+
+    // ✅ Effective drawing area (margin ke andar)
+    const CONTENT_WIDTH = PAGE_WIDTH - PRINT_MARGIN * 2;   // 190
+    const CONTENT_HEIGHT = PAGE_HEIGHT - PRINT_MARGIN * 2; // 273
+
     const FONT_COLOR = "#000000";
     const MIN_FONT_SIZE = 7;
 
     // =========================================================
-    // ✅ ROLE-BASED REDIRECT PATH
+    // ✅ GO BACK TO PREVIOUS PAGE (jahan se aaya tha)
     // =========================================================
-    const getRedirectPath = () => {
-        const roleId = String(
-            localStorage.getItem("RoleId") || ""
-        ).trim();
+    const goBackToPreviousPage = () => {
+        // Agar history me previous entry hai to back karo
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            // Fallback — direct open hone pe role-based path
+            const roleId = String(
+                localStorage.getItem("RoleId") || ""
+            ).trim();
 
-        // Admin (5) → confirm-addmissions
-        if (roleId === "5") {
-            return "/confirm-addmissions";
+            if (roleId === "5") {
+                navigate("/confirm-addmissions", { replace: true });
+            } else if (roleId === "33") {
+                navigate("/student-print-list", { replace: true });
+            } else {
+                navigate("/", { replace: true });
+            }
         }
-
-        // Franchise (33) → student-print-list
-        if (roleId === "33") {
-            return "/student-print-list";
-        }
-
-        // Fallback
-        return "/";
     };
 
     useEffect(() => {
@@ -87,14 +95,18 @@ const AdmitCardPrint = () => {
         return "PNG";
     };
 
+    // =========================================================
+    // DRAW IMAGE (with margin)
+    // =========================================================
     const drawImage = async (pdf, field, imageName = "Image") => {
         if (!field?.image) return;
 
         try {
             const image = await loadImage(field.image);
 
-            const x = (field.x / 100) * PAGE_WIDTH;
-            const y = (field.y / 100) * PAGE_HEIGHT;
+            // ✅ margin ke saath calculate
+            const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
+            const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
 
             const width = field.width || 25;
             const height = field.height || 25;
@@ -201,6 +213,9 @@ const AdmitCardPrint = () => {
         };
     };
 
+    // =========================================================
+    // DRAW TEXT (with margin)
+    // =========================================================
     const drawText = (pdf, field) => {
         if (
             !field ||
@@ -214,8 +229,9 @@ const AdmitCardPrint = () => {
         const textData = createTextImage(field);
         if (!textData) return;
 
-        const x = (field.x / 100) * PAGE_WIDTH;
-        const y = (field.y / 100) * PAGE_HEIGHT;
+        // ✅ margin ke saath calculate
+        const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
+        const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
 
         const imageWidth = textData.width / textData.scale / 3.78;
         const imageHeight = textData.height / textData.scale / 3.78;
@@ -240,6 +256,9 @@ const AdmitCardPrint = () => {
         );
     };
 
+    // =========================================================
+    // DRAW SUBJECTS (with margin)
+    // =========================================================
     const drawSubjects = (pdf, subjects) => {
         if (!Array.isArray(subjects)) return;
 
@@ -281,7 +300,7 @@ const AdmitCardPrint = () => {
                 x: 10,
                 y,
                 align: "left",
-                maxWidth: 50,
+                maxWidth: 100,
                 fontSize: 13,
                 fontFamily: "Arial",
                 fontWeight: "bold",
@@ -294,7 +313,7 @@ const AdmitCardPrint = () => {
                 x: 87,
                 y,
                 align: "center",
-                maxWidth: 30,
+                maxWidth: 40,
                 fontSize: 13,
                 fontFamily: "Arial",
                 fontWeight: "bold",
@@ -311,8 +330,8 @@ const AdmitCardPrint = () => {
             if (!result) {
                 alert("Diploma data nahi mila.");
 
-                // ✅ Role-based redirect
-                navigate(getRedirectPath());
+                // ✅ Wapas usi page pe jao jahan se aaya tha
+                goBackToPreviousPage();
                 return;
             }
 
@@ -323,7 +342,7 @@ const AdmitCardPrint = () => {
                     y: 25,
                     align: "left",
                     maxWidth: 100,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontFamily: "Arial",
                     fontWeight: "bold",
                     fontStyle: "normal",
@@ -332,11 +351,11 @@ const AdmitCardPrint = () => {
 
                 session: {
                     text: result.session || "",
-                    x: 66,
+                    x: 68,
                     y: 25,
                     align: "center",
                     maxWidth: 50,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontFamily: "Arial",
                     fontWeight: "bold",
                     fontStyle: "normal",
@@ -346,10 +365,10 @@ const AdmitCardPrint = () => {
                 fatherName: {
                     text: result.fatherName || "",
                     x: 23,
-                    y: 29,
+                    y: 29.2,
                     align: "left",
                     maxWidth: 50,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontFamily: "Arial",
                     fontWeight: "bold",
                     fontStyle: "normal",
@@ -358,11 +377,11 @@ const AdmitCardPrint = () => {
 
                 centreName: {
                     text: result.centreName || "",
-                    x: 23,
-                    y: 37,
+                    x: 20,
+                    y: 37.2,
                     align: "left",
                     maxWidth: 100,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontFamily: "Arial",
                     fontWeight: "bold",
                     fontStyle: "normal",
@@ -371,11 +390,11 @@ const AdmitCardPrint = () => {
 
                 courseName: {
                     text: result.courseName || "",
-                    x: 15,
-                    y: 33,
+                    x: 14,
+                    y: 33.2,
                     align: "left",
                     maxWidth: 75,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontFamily: "Arial",
                     fontWeight: "bold",
                     fontStyle: "normal",
@@ -396,7 +415,7 @@ const AdmitCardPrint = () => {
                     y: 41.1,
                     align: "left",
                     maxWidth: 50,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontFamily: "Arial",
                     fontWeight: "bold",
                     fontStyle: "normal",
@@ -409,7 +428,7 @@ const AdmitCardPrint = () => {
                     y: 41.1,
                     align: "left",
                     maxWidth: 50,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontFamily: "Arial",
                     fontWeight: "bold",
                     fontStyle: "normal",
@@ -429,13 +448,16 @@ const AdmitCardPrint = () => {
                 compress: true,
             });
 
+            // =========================================================
+            // BACKGROUND — ✅ margin ke andar
+            // =========================================================
             pdf.addImage(
                 backgroundImage,
                 "JPEG",
-                0,
-                0,
-                PAGE_WIDTH,
-                PAGE_HEIGHT,
+                PRINT_MARGIN,           // ✅ x = 5
+                PRINT_MARGIN,           // ✅ y = 5
+                CONTENT_WIDTH,          // ✅ width = 190
+                CONTENT_HEIGHT,         // ✅ height = 273
                 undefined,
                 "FAST"
             );
@@ -467,6 +489,9 @@ const AdmitCardPrint = () => {
                 alert(
                     "Popup blocked hai. Browser mein popup allow karo."
                 );
+
+                // ✅ Wapas usi page pe jao
+                goBackToPreviousPage();
                 return;
             }
 
@@ -475,8 +500,8 @@ const AdmitCardPrint = () => {
                     clearInterval(checkPdfClosed);
                     URL.revokeObjectURL(pdfUrl);
 
-                    // ✅ Role-based redirect
-                    navigate(getRedirectPath());
+                    // ✅ Wapas usi page pe jao jahan se aaya tha
+                    goBackToPreviousPage();
                 }
             }, 500);
 
@@ -491,6 +516,9 @@ const AdmitCardPrint = () => {
                 error?.message ||
                 "Diploma PDF banane mein error aa gaya."
             );
+
+            // ✅ Error case me bhi wapas usi page pe jao
+            goBackToPreviousPage();
         }
     };
 

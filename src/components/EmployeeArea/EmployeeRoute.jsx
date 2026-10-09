@@ -6,15 +6,11 @@ import StudentList from "./Students/StudentList";
 import StudentUpdate from "./Students/StudentUpdate";
 import Profile from "./EmployeePage/Profile";
 import NeedHelp from "./EmployeePage/NeedHelp";
- 
 import AcademicDetailsupdate from "./Students/AcademicDetailsupdate";
-
 import WalletList from "./WalletWorking/WalletList";
-import AuthorityLetterPrint1 from "./DocumentPrintFiles/AuthorityLetterPrint1";
 import StudyCentreUpdate1 from "./EmployeePage/StudyCentreUpdate1";
 import UpdatePassword from "./EmployeePage/UpdatePassword";
 import WalletRecharge1 from "./WalletWorking/WalletRecharge1";
-import FranchiseIdCard from "./DocumentPrintFiles/FranchiseIdCard";
 import AddressPrint from "./EmpFranchise/AddressPrint";
 import SetMarksStudent from "./Students/SetMarksStudent";
 import ConfirmStudent from "./Students/ConfirmStudent";
@@ -37,8 +33,7 @@ const employeeRoutes = [
     { path: "/student-update/:id", element: <StudentUpdate />, role: ["6", "90", "33"] },
     { path: "/academic-update/:id", element: <AcademicDetailsupdate />, role: ["6", "90", "33"] },
     { path: "/details-update/:id", element: <StudyCentreUpdate1 />, role: ["6", "90", "33"] },
-    { path: "/authority-letterPrint/:id", element: <AuthorityLetterPrint1 />, role: ["6", "90", "33"] },
-    { path: "/franchise-id-card/:id", element: <FranchiseIdCard />, role: ["6", "90", "33"] },
+  
     { path: "/student-view/:id", element: <ViewDetails />, role: ["6", "90", "33"] },
 
     // ===== Sirf Role 33 (Franchise) ke liye =====
