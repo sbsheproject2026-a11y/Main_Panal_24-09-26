@@ -399,3 +399,21 @@ export const translateToHindi = async (text) => {
 
     return data[0][0][0];
 };
+
+ 
+
+ 
+
+export const getAmountDetail = async (userId, oId) => {
+    const response = await api.post(
+        `/Home/amount-detail`,
+        {
+            userId: parseInt(userId),
+            oId: parseInt(oId)
+        },
+        {
+            headers: { "Content-Type": "application/json" }
+        }
+    );
+    return response.data;
+};

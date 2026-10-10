@@ -1,4 +1,4 @@
- import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import { printAuthorityLetterApi } from "../../AllServicesFiles/AdminStudentService";
@@ -362,257 +362,277 @@ const AuthorityLetterPrintNew = () => {
             // ==========================================
             // FIELDS
             // ==========================================
-             const FIELDS = {
-    
-   
-    
-   
+            const FIELDS = {
+ 
+                // =========================================================
+                // ✅ CERTIFICATE OF AUTHORIZATION FIELDS
+                // ❌ Koi fallback nahi — sirf result se aayega
+                // =========================================================
+                registrationLine: {
+                    text: result.registrationLine || "",
+                    x: 10,
+                    y: 20,
+                    align: "left",
+                    maxWidth: 180,
+                    fontSize: 14,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
+                enrollmentNo: {
+                    text: result.enrollmentNo || "",
+                    x: 40,
+                    y: 20.5,
+                    align: "left",
+                    maxWidth: 70,
+                    fontSize: 10,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
+                certificateTitle: {
+                    text: result.certificateTitle || "",
+                    x: 50,
+                    y: 24,
+                    align: "center",
+                    maxWidth: 180,
+                    fontSize: 20,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
 
-    // =========================================================
-    // ✅ CERTIFICATE OF AUTHORIZATION FIELDS
-    // ❌ Koi fallback nahi — sirf result se aayega
-    // =========================================================
-    registrationLine: {
-        text: result.registrationLine || "",
-        x: 10,
-        y: 20,
-        align: "left",
-        maxWidth: 180,
-        fontSize: 14,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
- enrollmentNo: {
-        text: result.enrollmentNo || "",
-        x: 40,
-        y: 20.5,
-        align: "left",
-        maxWidth: 70,
-        fontSize: 10,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
-    certificateTitle: {
-        text: result.certificateTitle || "",
-        x: 50,
-        y: 24,
-        align: "center",
-        maxWidth: 180,
-        fontSize: 20,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
+                certifyLine: {
+                    text: result.certifyLine || "",
+                    x: 50,
+                    y: 29,
+                    align: "center",
+                    maxWidth: 180,
+                    fontSize: 16,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
 
-    certifyLine: {
-        text: result.certifyLine || "",
-        x: 50,
-        y: 29,
-        align: "center",
-        maxWidth: 180,
-        fontSize: 16,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
+                fatherName: {
+                    text: result.fatherName || "",
+                    x: 50,
+                    y: 33,
+                    align: "center",
+                    maxWidth: 100,
+                    fontSize: 16,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
 
-    fatherName: {
-        text: result.fatherName || "",
-        x: 50,
-        y: 33,
-        align: "center",
-        maxWidth: 100,
-        fontSize: 16,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
+                relacition: {
+                    text: result.relacition || "",
+                    x: 50,
+                    y: 36,
+                    align: "center",
+                    maxWidth: 100,
+                    fontSize: 13,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
 
-    relacition: {
-        text: result.relacition || "",
-        x: 50,
-        y: 36,
-        align: "center",
-        maxWidth: 100,
-        fontSize: 13,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
+                fatherName1: {
+                    text: result.fatherName1 || "",
+                    x: 50,
+                    y: 39,
+                    align: "center",
+                    maxWidth: 100,
+                    fontSize: 16,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
 
-    fatherName1: {
-        text: result.fatherName1 || "",
-        x: 50,
-        y: 39,
-        align: "center",
-        maxWidth: 100,
-        fontSize: 16,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
+                nametext: {
+                    text: "Centre Name : ",
+                    x: 7,
+                    y: 45,
+                    align: "left",
+                    maxWidth: 100,
+                    fontSize: 13,
+                    fontStyle: "bold",
+                    wrapWords: 10,
+                    lineHeight: 2.5,
+                    fontFamily: "Arial",
+                },
+                name: {
+                    text:(result.name || ""),
+                    x: 23,
+                    y: 45,
+                    align: "left",
+                    maxWidth: 100,
+                    fontSize: 13,
+                    fontStyle: "bold",
+                    wrapWords: 6,
+                    lineHeight: 2.5,
+                    fontFamily: "Arial",
+                },
 
-     name: {
-    text: "Centre Name : " + (result.name || ""),
-    x: 10,
-    y: 45,
-    align: "left",
-    maxWidth: 100,
-    fontSize: 13,
-    fontStyle: "bold",
-    wrapWords: 10,
-    lineHeight: 2.5,
-    fontFamily: "Arial",
-},
+                addressresult: {
+                    text: "Address : " || "",
+                    x: 7,
+                    y: 49.5,
+                    align: "left",
+                    maxWidth: 150,
+                    fontSize: 13,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                    wrapWords: 10,
+                    lineHeight: 2.5,
+                },
+                address: {
+                    text: result.address || "",
+                    x: 18,
+                    y: 49.5,
+                    align: "left",
+                    maxWidth: 150,
+                    fontSize: 11,
+                    fontStyle: "normal",
+                    fontFamily: "Arial",
+                    wrapWords: 10,
+                    lineHeight: 2,
+                },
 
-    address: {
-        text: "Address : " +  result.address || "",
-        x: 10,
-        y: 49.5,
-        align: "left",
-        maxWidth: 150,
-        fontSize: 13,
-        fontStyle: "normal",
-        fontFamily: "Arial",
-        wrapWords: 8,
-        lineHeight: 2.5,
-    },
 
-    
 
-    centreAddress: {
-        text: result.centreAddress || "",
-        x: 50,
-        y: 54,
-        align: "center",
-        maxWidth: 180,
-        fontSize: 18,
-        fontStyle: "normal",
-        fontFamily: "Arial",
-        wrapWords: 10,
-        lineHeight: 3,
-    },
-  entityType: {
-        text: result.entityType || "",
-        x: 50,
-        y: 58,
-        align: "center",
-        maxWidth: 100,
-        fontSize: 18,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-        wrapWords: 5,
-        lineHeight: 2.5,
-    },
+                centreAddress: {
+                    text: result.centreAddress || "",
+                    x: 50,
+                    y: 54,
+                    align: "center",
+                    maxWidth: 180,
+                    fontSize: 18,
+                    fontStyle: "normal",
+                    fontFamily: "Arial",
+                    wrapWords: 10,
+                    lineHeight: 3,
+                },
+                entityType: {
+                    text: result.entityType || "",
+                    x: 50,
+                    y: 58,
+                    align: "center",
+                    maxWidth: 100,
+                    fontSize: 18,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                    wrapWords: 5,
+                    lineHeight: 2.5,
+                },
 
-    appointedLine: {
-        text: result.appointedLine || "",
-        x: 50,
-        y: 62,
-        align: "center",
-        maxWidth: 180,
-        fontSize: 14,
-        fontStyle: "normal",
-        fontFamily: "Arial",
-        wrapWords: 8,
-        lineHeight: 3,
-    },
+                appointedLine: {
+                    text: result.appointedLine || "",
+                    x: 50,
+                    y: 62,
+                    align: "center",
+                    maxWidth: 180,
+                    fontSize: 14,
+                    fontStyle: "normal",
+                    fontFamily: "Arial",
+                    wrapWords: 8,
+                    lineHeight: 3,
+                },
 
-    endDate: {
-        text: result.endDate || "",
-        x: 50,
-        y: 69,
-        align: "center",
-        maxWidth: 100,
-        fontSize: 14,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
+                endDate: {
+                    text: result.endDate || "",
+                    x: 50,
+                    y: 69,
+                    align: "center",
+                    maxWidth: 100,
+                    fontSize: 14,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
 
-    
 
-  
-    centreName: {
-        text: result.centreName || "",
-        x: 50,
-        y: 75,
-        align: "center",
-        maxWidth: 100,
-        fontSize: 18,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-        wrapWords: 5,
-        lineHeight: 2.5,
-    },
 
-    selfImage: {
-        image: result.selfImage || "",
-        x: 11,
-        y: 81,
-        width: 25,
-        height: 30,
-    },
 
-    qrImage: {
-        image: result.qrimage || "",
-        x: 89,
-        y: 92,
-        width: 25,
-        height: 25,
-    },
+                centreName: {
+                    text: result.centreName || "",
+                    x: 50,
+                    y: 75,
+                    align: "center",
+                    maxWidth: 100,
+                    fontSize: 18,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                    wrapWords: 5,
+                    lineHeight: 2.5,
+                },
 
-    
-    signatoryLine: {
-        text: result.signatoryLine || "",
-        x: 83,
-        y: 85,
-        align: "center",
-        maxWidth: 80,
-        fontSize: 14,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
+                selfImage: {
+                    image: result.selfImage || "",
+                    x: 11,
+                    y: 81,
+                    width: 25,
+                    height: 30,
+                },
 
-    officeAddress: {
-        text: result.officeAddress || "",
-        x: 50,
-        y: 89,
-        align: "center",
-        maxWidth: 180,
-        fontSize: 12,
-        
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
+                qrImage: {
+                    image: result.qrimage || "",
+                    x: 89,
+                    y: 92,
+                    width: 25,
+                    height: 25,
+                },
 
-    corporateOffice: {
-        text: result.corporateOffice || "",
-        x: 50,
-        y: 91,
-        align: "center",
-        maxWidth: 180,
-        fontSize: 12,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
 
-    emailLine: {
-        text: result.emailLine || "",
-        x: 50,
-        y: 93,
-        align: "center",
-        maxWidth: 180,
-        fontSize: 11,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
+                signatoryLine: {
+                    text: result.signatoryLine || "",
+                    x: 83,
+                    y: 85,
+                    align: "center",
+                    maxWidth: 80,
+                    fontSize: 14,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
 
-    websiteLine: {
-        text: result.websiteLine || "",
-        x: 50,
-        y: 95,
-        align: "center",
-        maxWidth: 180,
-        fontSize: 11,
-        fontStyle: "bold",
-        fontFamily: "Arial",
-    },
-};
+                officeAddress: {
+                    text: result.officeAddress || "",
+                    x: 50,
+                    y: 89,
+                    align: "center",
+                    maxWidth: 180,
+                    fontSize: 12,
+
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
+
+                corporateOffice: {
+                    text: result.corporateOffice || "",
+                    x: 50,
+                    y: 91,
+                    align: "center",
+                    maxWidth: 180,
+                    fontSize: 12,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
+
+                emailLine: {
+                    text: result.emailLine || "",
+                    x: 50,
+                    y: 93,
+                    align: "center",
+                    maxWidth: 180,
+                    fontSize: 11,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
+
+                websiteLine: {
+                    text: result.websiteLine || "",
+                    x: 50,
+                    y: 95,
+                    align: "center",
+                    maxWidth: 180,
+                    fontSize: 11,
+                    fontStyle: "bold",
+                    fontFamily: "Arial",
+                },
+            };
 
             // ==========================================
             // BACKGROUND
@@ -665,7 +685,9 @@ const AuthorityLetterPrintNew = () => {
             [
                 // ✅ Authority Letter fields
                 FIELDS.name,
+                FIELDS.nametext,
                 FIELDS.address,
+                FIELDS.addressresult,
                 FIELDS.endDate,
                 FIELDS.fatherName,
                 FIELDS.relacition,

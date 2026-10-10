@@ -177,7 +177,7 @@ function Sidebar({ sidebarOpen }) {
           {/* <!-- End Charts Nav --> */}
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#charts-nav-wallet" data-bs-toggle="collapse" href="#">
-              <i className="bi bi-bar-chart"></i><span>Wallet</span><i className="bi bi-chevron-down ms-auto"></i>
+              <i className="bi bi-wallet2"></i><span>Wallet</span><i className="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="charts-nav-wallet" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 
@@ -234,10 +234,24 @@ function Sidebar({ sidebarOpen }) {
               </li>
             </ul>
           </li>
+          <li className="nav-item">
+            <a className="nav-link collapsed" data-bs-target="#icons-nav-1" data-bs-toggle="collapse" href="#">
+              <i className="bi bi-credit-card"></i><span>Payment Detail</span><i className="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="icons-nav-1" className="nav-content collapse " data-bs-parent="#sidebar-nav">
+
+              <li>
+                <Link to="/offline-payments">
+                  <i className="bi bi-circle"></i><span>Payment Detail</span>
+                </Link>
+              </li>
+              
+            </ul>
+          </li>
 
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#icons-navf" data-bs-toggle="collapse" href="#">
-              <i className="bi bi-gem"></i><span>Enquiry   Management</span><i className="bi bi-chevron-down ms-auto"></i>
+              <i className="bi-bullseye"></i><span>Enquiry   Management</span><i className="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="icons-navf" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 
@@ -266,7 +280,7 @@ function Sidebar({ sidebarOpen }) {
           </li>
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#icons-navl" data-bs-toggle="collapse" href="#">
-              <i className="bi bi-gem"></i><span>Location</span><i className="bi bi-chevron-down ms-auto"></i>
+              <i className="bi bi-pin-map"></i><span>Location</span><i className="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="icons-navl" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 

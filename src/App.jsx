@@ -25,6 +25,9 @@ import AuthorityLetterPrint from './components/DocumentPrintFiles/AllDocumentsPr
 import AdmissionFormPrint from './components/WebsiteForms/AdmissionFormPrint'
 import FranchiseIdCard from './components/DocumentPrintFiles/AllDocumentsPrint/FranchiseIdCard'
 import AuthorityLetterPrintNew from './components/DocumentPrintFiles/AllDocumentsPrint/AuthorityLetterPrintNew'
+import FeeCard from './components/WebsiteForms/FeeCard'
+ 
+import PaymentSuccess from './components/WebsiteForms/PaymentSuccess'
  
 
 
@@ -39,6 +42,9 @@ function App() {
                 <Route path="/acc-apply" element={<AdmissionConsultantRegistration />} />
                 <Route path="/student-apply" element={<StudentRegistration />} />
                 <Route path="/study-centre-apply" element={<StudyCenterRegistration />} />
+              <Route path="/fee" element={<FeeCard />} />
+            
+                 <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/admission-form-print/:id" element={<AdmissionFormPrint />} />
            
             

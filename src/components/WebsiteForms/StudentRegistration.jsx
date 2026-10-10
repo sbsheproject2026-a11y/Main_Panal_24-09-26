@@ -573,10 +573,15 @@ const StudentRegistration = () => {
 
             const result = await createStudentfordata(formData);
 
-            if (result?.message === "Successfully") {
-                navigate(`/admission-form-print/${result?.userid}`);
-                return;
-            }
+       if (result?.message === "Successfully") {
+    navigate("/fee", {
+        state: {
+            userId: result?.userid,
+            oId: result?.paymentid,
+        },
+    });
+    return;
+}
 
             toast.error(result?.message || "Registration failed");
         } catch (error) {

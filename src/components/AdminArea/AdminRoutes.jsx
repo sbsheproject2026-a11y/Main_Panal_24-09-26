@@ -43,6 +43,7 @@ import ViewDetails from "../EmployeeArea/Students/ViewDetails";
 import StudentUpdate from "../EmployeeArea/Students/StudentUpdate";
 import EnquiriesList from "./Enquiries/EnquiriesList";
 import RTIList from "./Enquiries/RTIList";
+import OfflinePaymentList from "./CommanList/OfflinePaymentList";
  
 
 
@@ -90,6 +91,7 @@ const adminRoutes = [
     { path: "/student-setmarks", element: <SetMarksStudent />, role: ["5"] },
     { path: "/student-upgrade", element: <UpgradeStudent />, role: ["5"] },
     { path: "/student-rollno-list", element: <RollNoList />, role: ["5"] },
+    { path: "/offline-payments", element: <OfflinePaymentList  />, role: ["5"] },
     
 ];
 
