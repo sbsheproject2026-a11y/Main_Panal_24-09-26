@@ -226,9 +226,9 @@ const StudentRegistration = () => {
         }
     };
 
-    const loadCourse = async (courseCategoryId) => {
+    const loadCourse = async (courseCategoryId,courseTypeId) => {
         try {
-            const result = await getCourse(courseCategoryId);
+            const result = await getCourse(courseCategoryId,courseTypeId);
             setCourses(result?.data || []);
         } catch (error) {
             console.error("Course Error:", error);
@@ -468,16 +468,24 @@ const StudentRegistration = () => {
         if (id) loadCourseCategory(id);
     };
 
-    const handleCourseCategoryChange = (selectedOption) => {
-        const id = selectedOption ? Number(selectedOption.value) : 0;
-        setFormData((prev) => ({
+  const handleCourseCategoryChange = (selectedOption) => {
+    const id = selectedOption ? Number(selectedOption.value) : 0;
+
+    setFormData((prev) => {
+        const updated = {
             ...prev,
             courseCategoryId: id,
             courseId: 0,
-        }));
-        setCourses([]);
-        if (id) loadCourse(id);
-    };
+        };
+
+        // Yahan prev.courseTypeId available hai
+        if (id) loadCourse(id, prev.courseTypeId);
+
+        return updated;
+    });
+
+    setCourses([]);
+};
 
     const handleStateChange = (selectedOption) => {
         const id = selectedOption ? Number(selectedOption.value) : 0;

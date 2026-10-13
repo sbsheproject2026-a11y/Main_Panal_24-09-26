@@ -1,7 +1,8 @@
  import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { GetConfirmToAdmin, sendToConfirmStatus } from '../../AllServicesFiles/AdminStudentService';
+import { GetConfirmToAdmin, sendToConfirmStatus  } from '../../AllServicesFiles/AdminStudentService';
 import { FILE_URL } from '../../api';
+import { getStudentFeeDetails } from '../../AllServicesFiles/PaymentService';
 
 function SendToConfirmStudent() {
 
@@ -17,20 +18,65 @@ function SendToConfirmStudent() {
     const [totalRecords, setTotalRecords] = useState(0);
     const [loading, setLoading] = useState(false);
 
+    // ✅ FEE MODAL STATES
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [feeDetails, setFeeDetails] = useState(null);
+    const [feeLoading, setFeeLoading] = useState(false);
+    const [feeError, setFeeError] = useState("");
+
     const navigate = useNavigate();
 
-    const handleEdit = (id) => {
-        navigate(`/student-update/${id}`);
+    // ✅ PRINT
+    const handlePrint = (id) => {
+        navigate(`/admission-form-print/${id}`);
     };
 
-     const handleformprint = (id) => {
-    navigate(`/admission-form-print/${id}`);
-  };
-  
+    // ✅ VIEW
+    const handleView = (id) => {
+        navigate(`/student-view1/${id}`);
+    };
 
-  const handleView = (id) => {
-    navigate(`/student-view/${id}`);
-  };
+    // ✅ EDIT
+    const handleEdit = (id) => {
+        navigate(`/student-update1/${id}`);
+    };
+
+    // ✅ FORMAT AMOUNT
+    const formatAmount = (amount) => {
+        if (amount === null || amount === undefined) return "N/A";
+        return `₹ ${Number(amount).toLocaleString("en-IN")}`;
+    };
+
+    // ✅ FEE BUTTON CLICK
+   const handleFeeClick = async (item) => {
+    setSelectedItem(item);
+    setFeeDetails(null);
+    setFeeError("");
+    setFeeLoading(true);
+
+    try {
+        const result = await getStudentFeeDetails(item.id);
+        
+
+        if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
+            setFeeDetails(result.data[0]);   // 👈 poori array save karo
+        } else {
+            setFeeError("No fee record found for this student");
+        }
+    } catch (err) {
+        console.error("Fee Error:", err);
+        setFeeError(err.response?.data?.message || "Failed to load fee details");
+    } finally {
+        setFeeLoading(false);
+    }
+};
+
+    // ✅ CLOSE FEE MODAL
+    const closeFeeModal = () => {
+        setSelectedItem(null);
+        setFeeDetails(null);
+        setFeeError("");
+    };
 
     useEffect(() => {
         loadStudents();
@@ -101,7 +147,6 @@ function SendToConfirmStudent() {
     };
 
     const confirmDelete = async () => {
-        // agar delete functionality chahiye to yahan likho
         setShowDeleteModal(false);
     };
 
@@ -231,10 +276,6 @@ function SendToConfirmStudent() {
                     font-size: 11px;
                 }
 
-                /* =====================================================
-                   TOOLBAR
-                ===================================================== */
-
                 .student-toolbar {
                     padding: 16px 24px;
                     display: flex;
@@ -315,10 +356,6 @@ function SendToConfirmStudent() {
                     outline: none;
                 }
 
-                /* =====================================================
-                   TABLE WRAPPER — only this area scrolls
-                ===================================================== */
-
                 .student-table-wrap {
                     width: 0 !important;
                     min-width: 100% !important;
@@ -349,10 +386,6 @@ function SendToConfirmStudent() {
                 .student-table-wrap::-webkit-scrollbar-thumb:hover {
                     background: #8f98a8;
                 }
-
-                /* =====================================================
-                   TABLE — AUTO WIDTH + AUTO HEIGHT
-                ===================================================== */
 
                 .student-table {
                     width: auto !important;
@@ -405,10 +438,6 @@ function SendToConfirmStudent() {
                     border-bottom: none !important;
                 }
 
-                /* =====================================================
-                   CELL CONTENT
-                ===================================================== */
-
                 .student-serial {
                     display: inline-flex;
                     align-items: center;
@@ -458,10 +487,6 @@ function SendToConfirmStudent() {
                     box-shadow: 0 4px 10px rgba(37,99,235,.2);
                 }
 
-                /* =====================================================
-                   EMPTY / LOADING
-                ===================================================== */
-
                 .student-empty {
                     padding: 55px 20px !important;
                     text-align: center;
@@ -480,10 +505,6 @@ function SendToConfirmStudent() {
                     text-align: center;
                     color: #737d91;
                 }
-
-                /* =====================================================
-                   PAGINATION
-                ===================================================== */
 
                 .student-pagination {
                     padding: 16px 24px;
@@ -577,10 +598,6 @@ function SendToConfirmStudent() {
                     white-space: nowrap;
                 }
 
-                /* =====================================================
-                   MODAL
-                ===================================================== */
-
                 .student-modal-overlay {
                     position: fixed;
                     inset: 0;
@@ -668,10 +685,6 @@ function SendToConfirmStudent() {
                     background: #bb2d3b;
                 }
 
-                /* =====================================================
-                   MOBILE
-                ===================================================== */
-
                 @media (max-width: 768px) {
                     .student-page-header {
                         align-items: flex-start;
@@ -696,6 +709,474 @@ function SendToConfirmStudent() {
                         align-items: center;
                     }
                 }
+
+                .student-action-group {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    flex-wrap: nowrap;
+                }
+
+                .student-action {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    padding: 7px 14px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    line-height: 1;
+                    border-radius: 8px;
+                    border: 1px solid transparent;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
+                    outline: none;
+                    text-decoration: none;
+                    font-family: inherit;
+                }
+
+                .student-action i {
+                    font-size: 14px;
+                    line-height: 1;
+                }
+
+                .student-action.print {
+                    background: #e0f2fe;
+                    color: #0369a1;
+                    border-color: #bae6fd;
+                }
+
+                .student-action.print:hover {
+                    background: #0369a1;
+                    color: #ffffff;
+                    border-color: #0369a1;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 10px rgba(3, 105, 161, 0.25);
+                }
+
+                .student-action.view {
+                    background: #dcfce7;
+                    color: #15803d;
+                    border-color: #bbf7d0;
+                }
+
+                .student-action.view:hover {
+                    background: #15803d;
+                    color: #ffffff;
+                    border-color: #15803d;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 10px rgba(21, 128, 61, 0.25);
+                }
+
+                .student-action.edit {
+                    background: #fef3c7;
+                    color: #b45309;
+                    border-color: #fde68a;
+                }
+
+                .student-action.edit:hover {
+                    background: #b45309;
+                    color: #ffffff;
+                    border-color: #b45309;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 10px rgba(180, 83, 9, 0.25);
+                }
+
+                .student-action:focus-visible {
+                    outline: 2px solid #6366f1;
+                    outline-offset: 2px;
+                }
+
+                @media (max-width: 576px) {
+                    .student-action {
+                        padding: 8px 10px;
+                        font-size: 12px;
+                    }
+
+                    .student-action span {
+                        display: none;
+                    }
+
+                    .student-action i {
+                        font-size: 15px;
+                    }
+                }
+
+                .list-btn {
+                    padding: 8px 16px;
+                    border: none;
+                    border-radius: 10px;
+                    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                    color: #fff;
+                    font-weight: 600;
+                    font-size: 13px;
+                    cursor: pointer;
+                    transition: all 0.25s ease;
+                    font-family: inherit;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    flex-shrink: 0;
+                }
+
+                .list-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+                }
+
+                /* ================================================
+                   FEE DETAILS MODAL
+                ================================================ */
+
+                .details-overlay {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 10000;
+                    background: rgba(15, 23, 42, .65);
+                    backdrop-filter: blur(3px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                }
+
+                .details-card {
+                    width: 100%;
+                    max-width: 640px;
+                    max-height: 90vh;
+                    background: #fff;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: 0 25px 60px rgba(0,0,0,.25);
+                }
+
+                .details-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 18px 22px;
+                    border-bottom: 1px solid #edf0f5;
+                }
+
+                .details-header h2 {
+                    margin: 0;
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: #1e293b;
+                }
+
+                .close-btn {
+                    border: none;
+                    background: transparent;
+                    font-size: 20px;
+                    color: #64748b;
+                    cursor: pointer;
+                    line-height: 1;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                }
+
+                .close-btn:hover {
+                    background: #f1f5f9;
+                    color: #1e293b;
+                }
+
+                .details-body {
+                    padding: 18px 22px;
+                    overflow-y: auto;
+                    flex: 1;
+                }
+
+                .detail-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    gap: 16px;
+                    padding: 10px 0;
+                    border-bottom: 1px dashed #eef1f5;
+                    font-size: 14px;
+                }
+
+                .detail-row:last-child {
+                    border-bottom: none;
+                }
+
+                .detail-row .label {
+                    color: #64748b;
+                    font-weight: 600;
+                    flex-shrink: 0;
+                    min-width: 140px;
+                }
+
+                .detail-row .value {
+                    color: #1e293b;
+                    text-align: right;
+                    word-break: break-word;
+                }
+
+                .details-footer {
+                    padding: 14px 22px;
+                    border-top: 1px solid #edf0f5;
+                    display: flex;
+                    justify-content: flex-end;
+                    background: #fbfcfe;
+                }
+
+                .btn-close-modal {
+                    padding: 9px 20px;
+                    border-radius: 9px;
+                    border: none;
+                    background: linear-gradient(135deg, #4154f1, #6573f5);
+                    color: #fff;
+                    font-weight: 600;
+                    font-size: 13px;
+                    cursor: pointer;
+                    transition: .2s ease;
+                }
+
+                .btn-close-modal:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(65,84,241,.3);
+                }
+
+                @media (max-width: 576px) {
+                    .detail-row {
+                        flex-direction: column;
+                        gap: 4px;
+                    }
+                    .detail-row .label {
+                        min-width: 0;
+                    }
+                    .detail-row .value {
+                        text-align: left;
+                    }
+                }
+
+                /* =============================================
+   PAYMENT RECEIPT
+============================================= */
+.payment-receipt {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ===== TOP (Amount + Status) ===== */
+.receipt-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 22px 24px;
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+    border-radius: 14px;
+    border: 1px solid #e0e7ff;
+    flex-wrap: wrap;
+}
+
+.receipt-amount-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.receipt-amount-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.receipt-amount {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1.1;
+    letter-spacing: -.5px;
+}
+
+.receipt-amount-words {
+    font-size: 12px;
+    color: #7c86a2;
+    font-style: italic;
+}
+
+.receipt-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.receipt-status i {
+    font-size: 16px;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.status-paid {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.status-failed {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+/* ===== DIVIDER ===== */
+.receipt-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #cbd5e1;
+}
+
+.receipt-divider span {
+    flex: 1;
+    height: 1px;
+    background: repeating-linear-gradient(
+        to right,
+        #cbd5e1 0,
+        #cbd5e1 6px,
+        transparent 6px,
+        transparent 12px
+    );
+}
+
+.receipt-divider i {
+    font-size: 16px;
+    color: #94a3b8;
+    transform: rotate(-90deg);
+}
+
+/* ===== SECTIONS ===== */
+.receipt-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.receipt-section-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+.receipt-section-title i {
+    color: #6366f1;
+    font-size: 15px;
+}
+
+/* ===== GRID ===== */
+.receipt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.receipt-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #eef1f5;
+    transition: .18s ease;
+}
+
+.receipt-item:hover {
+    background: #f1f5ff;
+    border-color: #dbe4ff;
+}
+
+.receipt-item.full {
+    grid-column: 1 / -1;
+}
+
+.receipt-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+}
+
+.receipt-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    word-break: break-word;
+}
+
+.receipt-value.mono {
+    font-family: "Courier New", monospace;
+    font-size: 13px;
+    letter-spacing: .3px;
+    color: #4154f1;
+}
+
+/* ===== NOTE ===== */
+.receipt-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #0369a1;
+}
+
+.receipt-note i {
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 576px) {
+    .receipt-top {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 18px;
+    }
+
+    .receipt-amount {
+        font-size: 26px;
+    }
+
+    .receipt-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .receipt-item.full {
+        grid-column: auto;
+    }
+}
             `}</style>
 
             <div className="student-page">
@@ -745,10 +1226,6 @@ function SendToConfirmStudent() {
                                     </div>
                                 </div>
 
-                                {/* =================================================
-                                    TOOLBAR
-                                ================================================= */}
-
                                 <div className="student-toolbar">
 
                                     <div className="student-search">
@@ -786,10 +1263,6 @@ function SendToConfirmStudent() {
 
                                 </div>
 
-                                {/* =================================================
-                                    TABLE
-                                ================================================= */}
-
                                 <div className="student-table-wrap">
 
                                     <table className="student-table">
@@ -815,7 +1288,7 @@ function SendToConfirmStudent() {
                                                 <th>Mobile No</th>
                                                 <th>Franchise Name</th>
                                                 <th>Course Name</th>
-                                                 
+
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -885,33 +1358,46 @@ function SendToConfirmStudent() {
                                                         <td>{item.mobileNo || "-"}</td>
                                                         <td>{item.instituteName || "-"}</td>
                                                         <td>{item.courseName || "-"}</td>
-                                                         
 
                                                         <td>
-                                                             <button
-                                  type="button"
-                                  className="student-action view"
-                                  onClick={() => handleformprint(item.id)}
-                                  title="View Student"
-                                >
-                                 Print
-                                </button>
-                                <button
-                                  type="button"
-                                  className="student-action view"
-                                  onClick={() => handleView(item.id)}
-                                  title="View Student"
-                                >
-                                  <i className="bi bi-eye-fill"></i>
-                                </button>
-                                                            <button
-                                                                type="button"
-                                                                className="student-action-icon"
-                                                                title="Edit"
-                                                                onClick={() => handleEdit(item.id)}
-                                                            >
-                                                                <i className="bi bi-pencil-square"></i>
-                                                            </button>
+                                                            <div className="student-action-group">
+                                                                <button
+                                                                    type="button"
+                                                                    className="student-action print"
+                                                                    onClick={() => handlePrint(item.id)}
+                                                                    title="Print Form"
+                                                                >
+                                                                    <i className="bi bi-printer-fill"></i>
+                                                                    <span>Print</span>
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    className="student-action view"
+                                                                    onClick={() => handleView(item.id)}
+                                                                    title="View Student"
+                                                                >
+                                                                    <i className="bi bi-eye-fill"></i>
+                                                                    <span>View</span>
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    className="student-action edit"
+                                                                    onClick={() => handleEdit(item.id)}
+                                                                    title="Edit Student"
+                                                                >
+                                                                    <i className="bi bi-pencil-square"></i>
+                                                                    <span>Edit</span>
+                                                                </button>
+
+                                                                <button
+                                                                    className="list-btn"
+                                                                    onClick={() => handleFeeClick(item)}
+                                                                >
+                                                                    Fee
+                                                                </button>
+                                                            </div>
                                                         </td>
 
                                                     </tr>
@@ -922,10 +1408,6 @@ function SendToConfirmStudent() {
                                     </table>
 
                                 </div>
-
-                                {/* =================================================
-                                    PAGINATION
-                                ================================================= */}
 
                                 {totalRecords > 0 && (
                                     <div className="student-pagination">
@@ -993,7 +1475,207 @@ function SendToConfirmStudent() {
             </div>
 
             {/* =========================================================
-                DELETE MODAL (agar future me use karo)
+                FEE DETAILS MODAL
+            ========================================================= */}
+
+            {selectedItem && (
+                <div className="details-overlay" onClick={closeFeeModal}>
+                    <div
+                        className="details-card"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="details-header">
+                            <h2>📄 Payment Details</h2>
+                            <button
+                                className="close-btn"
+                                onClick={closeFeeModal}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="details-body">
+
+                            {feeLoading && (
+                                <div className="text-center py-4">
+                                    <div className="spinner-border text-primary"></div>
+                                    <div className="mt-2">Loading fee details...</div>
+                                </div>
+                            )}
+
+                            {feeError && !feeLoading && (
+                                <div className="alert alert-danger">{feeError}</div>
+                            )}
+
+                          {feeDetails && !feeLoading && (
+    <div className="payment-receipt">
+
+        {/* ===== HEADER (Amount + Status) ===== */}
+        <div className="receipt-top">
+            <div className="receipt-amount-box">
+                <span className="receipt-amount-label">Amount Paid</span>
+                <h1 className="receipt-amount">
+                    {formatAmount(feeDetails.amount)}
+                </h1>
+                <span className="receipt-amount-words">
+                    {feeDetails.amountW || ""}
+                </span>
+            </div>
+
+            <div
+                className={`receipt-status ${
+                    feeDetails.payStatus?.toLowerCase() === "pending"
+                        ? "status-pending"
+                        : feeDetails.payStatus?.toLowerCase() === "paid" ||
+                          feeDetails.payStatus?.toLowerCase() === "success"
+                        ? "status-paid"
+                        : "status-failed"
+                }`}
+            >
+                <i
+                    className={`bi ${
+                        feeDetails.payStatus?.toLowerCase() === "pending"
+                            ? "bi-clock-history"
+                            : feeDetails.payStatus?.toLowerCase() === "paid" ||
+                              feeDetails.payStatus?.toLowerCase() === "success"
+                            ? "bi-check-circle-fill"
+                            : "bi-x-circle-fill"
+                    }`}
+                ></i>
+                {feeDetails.payStatus || "Unknown"}
+            </div>
+        </div>
+
+        {/* ===== DIVIDER ===== */}
+        <div className="receipt-divider">
+            <span></span>
+            <i className="bi bi-scissors"></i>
+            <span></span>
+        </div>
+
+        {/* ===== STUDENT INFO ===== */}
+        <div className="receipt-section">
+            <h6 className="receipt-section-title">
+                <i className="bi bi-person-badge-fill"></i>
+                Student Information
+            </h6>
+
+            <div className="receipt-grid">
+                <div className="receipt-item">
+                    <span className="receipt-label">Full Name</span>
+                    <span className="receipt-value">
+                        {feeDetails.name?.trim() || "N/A"}
+                    </span>
+                </div>
+
+                <div className="receipt-item">
+                    <span className="receipt-label">Mobile No</span>
+                    <span className="receipt-value">
+                        {feeDetails.mobileNo || "N/A"}
+                    </span>
+                </div>
+
+                <div className="receipt-item full">
+                    <span className="receipt-label">Email Address</span>
+                    <span className="receipt-value">
+                        {feeDetails.emailId || "N/A"}
+                    </span>
+                </div>
+
+                <div className="receipt-item full">
+                    <span className="receipt-label">Address</span>
+                    <span className="receipt-value">
+                        {feeDetails.address || "N/A"}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {/* ===== COURSE INFO ===== */}
+        <div className="receipt-section">
+            <h6 className="receipt-section-title">
+                <i className="bi bi-mortarboard-fill"></i>
+                Course Details
+            </h6>
+
+            <div className="receipt-grid">
+                <div className="receipt-item full">
+                    <span className="receipt-label">Course Name</span>
+                    <span className="receipt-value">
+                        {feeDetails.feeName || "N/A"}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {/* ===== TRANSACTION INFO ===== */}
+        <div className="receipt-section">
+            <h6 className="receipt-section-title">
+                <i className="bi bi-receipt-cutoff"></i>
+                Transaction Details
+            </h6>
+
+            <div className="receipt-grid">
+                <div className="receipt-item">
+                    <span className="receipt-label">Order ID</span>
+                    <span className="receipt-value mono">
+                        {feeDetails.orderId || "N/A"}
+                    </span>
+                </div>
+
+                <div className="receipt-item">
+                    <span className="receipt-label">Reference ID</span>
+                    <span className="receipt-value mono">
+                        {feeDetails.referenceId || "-"}
+                    </span>
+                </div>
+
+                <div className="receipt-item">
+                    <span className="receipt-label">Order Date</span>
+                    <span className="receipt-value">
+                        {feeDetails.oDate || "N/A"}
+                    </span>
+                </div>
+
+                <div className="receipt-item">
+                    <span className="receipt-label">Pay Date</span>
+                    <span className="receipt-value">
+                        {feeDetails.printPayDate &&
+                        feeDetails.printPayDate !== "01 Jan 1900"
+                            ? feeDetails.printPayDate
+                            : "-"}
+                    </span>
+                </div>
+
+                <div className="receipt-item full">
+                    <span className="receipt-label">Gateway</span>
+                    <span className="receipt-value">
+                        {feeDetails.getwayPrm || "Not Specified"}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {/* ===== FOOTER NOTE ===== */}
+        <div className="receipt-note">
+            <i className="bi bi-info-circle"></i>
+            This is a computer-generated receipt. Please keep it for your records.
+        </div>
+    </div>
+)}
+                        </div>
+
+                        <div className="details-footer">
+                            <button className="btn-close-modal" onClick={closeFeeModal}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* =========================================================
+                DELETE MODAL
             ========================================================= */}
 
             {showDeleteModal && (

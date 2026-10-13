@@ -1,4 +1,4 @@
- import React, { useEffect, useState, useMemo } from "react";
+ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { getOfflinePayments } from "../../AllServicesFiles/PaymentService";
 
 function OfflinePaymentList() {
@@ -13,34 +13,48 @@ function OfflinePaymentList() {
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
 
+    // ✅ ADD FORM STATE
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [addFormData, setAddFormData] = useState({
+        studentName: "",
+        studentId: "",
+        orderId: "",
+        amount: "",
+        paymentDate: new Date().toISOString().split("T")[0],
+        remarks: "",
+    });
+    const [addErrors, setAddErrors] = useState({});
+    const [addSubmitting, setAddSubmitting] = useState(false);
+
+    // ✅ Fetch function (useCallback for reuse)
+    const fetchData = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            setList([]);
+            setSelectedItem(null);
+            setSearch("");
+            setCurrentPage(1);
+
+            const result = await getOfflinePayments(activeTab);
+
+            if (result?.success && result?.data) {
+                setList(result.data);
+            } else {
+                setList([]);
+            }
+        } catch (err) {
+            console.error(err);
+            setError("Data load nahi ho paaya!");
+        } finally {
+            setLoading(false);
+        }
+    }, [activeTab]);
+
     // ✅ Fetch on tab change
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                setList([]);
-                setSelectedItem(null);
-                setSearch("");
-                setCurrentPage(1);
-
-                const result = await getOfflinePayments(activeTab);
-
-                if (result?.success && result?.data) {
-                    setList(result.data);
-                } else {
-                    setList([]);
-                }
-            } catch (err) {
-                console.error(err);
-                setError("Data load nahi ho paaya!");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchData();
-    }, [activeTab]);
+    }, [fetchData]);
 
     // ✅ Filtered List (Search)
     const filteredList = useMemo(() => {
@@ -110,6 +124,72 @@ function OfflinePaymentList() {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         })}`;
+    };
+
+    // ============================================================
+    // ✅ ADD FORM HANDLERS
+    // ============================================================
+
+    const handleAdd = (item) => {
+        setSelectedItem(null);
+        setAddErrors({});
+        setAddFormData({
+            studentName: item.name?.trim() || "",
+            studentId: item.eId || item.studentId || "",
+            orderId: item.orderId || "",
+            amount: "",
+            paymentDate: new Date().toISOString().split("T")[0],
+            remarks: "",
+        });
+        setShowAddForm(true);
+    };
+
+    const handleAddChange = (e) => {
+        const { name, value } = e.target;
+        setAddFormData((prev) => ({ ...prev, [name]: value }));
+        if (addErrors[name]) {
+            setAddErrors((prev) => ({ ...prev, [name]: "" }));
+        }
+    };
+
+    const validateAddForm = () => {
+        const err = {};
+        if (!addFormData.amount || Number(addFormData.amount) <= 0) {
+            err.amount = "Valid amount required";
+        }
+        if (!addFormData.paymentDate) {
+            err.paymentDate = "Payment date required";
+        }
+        setAddErrors(err);
+        return Object.keys(err).length === 0;
+    };
+
+    const handleAddSubmit = async (e) => {
+        e.preventDefault();
+        if (!validateAddForm()) return;
+
+        setAddSubmitting(true);
+        try {
+            // 👇 YAHAN APNI API CALL LAGAO
+            // const res = await saveOfflinePayment({
+            //     studentId: addFormData.studentId,
+            //     orderId: addFormData.orderId,
+            //     amount: Number(addFormData.amount),
+            //     paymentDate: addFormData.paymentDate,
+            //     remarks: addFormData.remarks,
+            // });
+
+            console.log("Submitting:", addFormData);
+            alert("Payment added successfully!");
+
+            setShowAddForm(false);
+            fetchData();   // list refresh
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save payment");
+        } finally {
+            setAddSubmitting(false);
+        }
     };
 
     return (
@@ -203,7 +283,7 @@ function OfflinePaymentList() {
                     min-height: 400px;
                 }
 
-                /* ============ TOOLBAR (Search + Page Size) ============ */
+                /* ============ TOOLBAR ============ */
                 .off-toolbar {
                     display: flex;
                     justify-content: space-between;
@@ -392,6 +472,14 @@ function OfflinePaymentList() {
                 .list-btn:hover {
                     transform: translateY(-2px);
                     box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+                }
+
+                .list-btn.add-btn {
+                    background: linear-gradient(135deg, #10b981, #059669);
+                }
+
+                .list-btn.add-btn:hover {
+                    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
                 }
 
                 /* ============ PAGINATION ============ */
@@ -610,6 +698,125 @@ function OfflinePaymentList() {
 
                 .btn-close-modal:hover { background: #e2e8f0; color: #475569; }
 
+                /* ============ ADD FORM ============ */
+                .add-form-card {
+                    width: 480px;
+                }
+
+                .form-group {
+                    margin-bottom: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                }
+
+                .form-label {
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: #475569;
+                }
+
+                .form-label .req {
+                    color: #ef4444;
+                    margin-left: 2px;
+                }
+
+                .form-input {
+                    width: 100%;
+                    padding: 10px 14px;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 10px;
+                    font-size: 14px;
+                    font-family: inherit;
+                    color: #1e293b;
+                    background: #f8fafc;
+                    outline: none;
+                    transition: all 0.2s ease;
+                }
+
+                .form-input:focus {
+                    border-color: #6366f1;
+                    background: #fff;
+                    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+                }
+
+                .form-input.readonly {
+                    background: #f1f5f9;
+                    color: #64748b;
+                    cursor: not-allowed;
+                }
+
+                .form-input.has-error {
+                    border-color: #ef4444;
+                    background: #fef2f2;
+                }
+
+                .form-input.has-error:focus {
+                    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+                }
+
+                .form-textarea {
+                    resize: vertical;
+                    min-height: 70px;
+                }
+
+                .error-text {
+                    font-size: 12px;
+                    color: #ef4444;
+                    font-weight: 500;
+                }
+
+                .form-actions {
+                    display: flex;
+                    gap: 10px;
+                    width: 100%;
+                }
+
+                .btn-cancel-modal {
+                    flex: 1;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 12px;
+                    background: #f1f5f9;
+                    color: #64748b;
+                    font-weight: 600;
+                    font-size: 14px;
+                    cursor: pointer;
+                    font-family: inherit;
+                    transition: all 0.2s ease;
+                }
+
+                .btn-cancel-modal:hover:not(:disabled) {
+                    background: #e2e8f0;
+                    color: #475569;
+                }
+
+                .btn-submit-modal {
+                    flex: 1;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 12px;
+                    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                    color: #fff;
+                    font-weight: 600;
+                    font-size: 14px;
+                    cursor: pointer;
+                    font-family: inherit;
+                    transition: all 0.2s ease;
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+                }
+
+                .btn-submit-modal:hover:not(:disabled) {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
+                }
+
+                .btn-submit-modal:disabled,
+                .btn-cancel-modal:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+
                 /* ============ RESPONSIVE ============ */
                 @media (max-width: 768px) {
                     .off-page { padding: 20px 12px; }
@@ -663,7 +870,7 @@ function OfflinePaymentList() {
 
                     {/* BODY */}
                     <div className="off-body">
-                        {/* ✅ TOOLBAR — Search + Page Size */}
+                        {/* ✅ TOOLBAR */}
                         <div className="off-toolbar">
                             <div className="search-box">
                                 <span className="search-icon">🔍</span>
@@ -762,6 +969,15 @@ function OfflinePaymentList() {
                                             >
                                                 👁️ View
                                             </button>
+
+                                            {item.payStatus === "Pending" && (
+                                                <button
+                                                    className="list-btn add-btn"
+                                                    onClick={() => handleAdd(item)}
+                                                >
+                                                    ➕ Add
+                                                </button>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -844,6 +1060,11 @@ function OfflinePaymentList() {
                         </div>
 
                         <div className="details-body">
+
+                            <div className="detail-row">
+                                <span className="label">✅ Status</span>
+                                <span className="value">{selectedItem.payStatus || "N/A"}</span>
+                            </div>
                             <div className="detail-row">
                                 <span className="label">👤 Name</span>
                                 <span className="value">{selectedItem.name?.trim() || "N/A"}</span>
@@ -890,10 +1111,7 @@ function OfflinePaymentList() {
                                 <span className="label">🏠 Address</span>
                                 <span className="value">{selectedItem.address || "N/A"}</span>
                             </div>
-                            <div className="detail-row">
-                                <span className="label">✅ Status</span>
-                                <span className="value">{selectedItem.payStatus || "N/A"}</span>
-                            </div>
+
                             <div className="detail-row">
                                 <span className="label">💳 Gateway</span>
                                 <span className="value">{selectedItem.getwayPrm || "N/A"}</span>
@@ -905,6 +1123,134 @@ function OfflinePaymentList() {
                                 Close
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ============ ADD PAYMENT MODAL ============ */}
+            {showAddForm && (
+                <div className="details-overlay" onClick={() => setShowAddForm(false)}>
+                    <div
+                        className="details-card add-form-card"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="details-header">
+                            <h2>➕ Add Payment</h2>
+                            <button
+                                className="close-btn"
+                                onClick={() => setShowAddForm(false)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleAddSubmit}>
+                            <div className="details-body">
+
+                                {/* Student Name */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        👤 Student Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-input readonly"
+                                        value={addFormData.studentName}
+                                        readOnly
+                                    />
+                                </div>
+
+                                {/* Student ID */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        🆔 Student ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-input readonly"
+                                        value={addFormData.studentId}
+                                        readOnly
+                                    />
+                                </div>
+
+                                {/* Amount */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        💰 Amount <span className="req">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="amount"
+                                        className={`form-input ${addErrors.amount ? "has-error" : ""}`}
+                                        placeholder="Enter amount"
+                                        value={addFormData.amount}
+                                        onChange={handleAddChange}
+                                        min="0"
+                                        step="0.01"
+                                        autoFocus
+                                    />
+                                    {addErrors.amount && (
+                                        <small className="error-text">
+                                            {addErrors.amount}
+                                        </small>
+                                    )}
+                                </div>
+
+                                {/* Payment Date */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        📅 Payment Date <span className="req">*</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        name="paymentDate"
+                                        className={`form-input ${addErrors.paymentDate ? "has-error" : ""}`}
+                                        value={addFormData.paymentDate}
+                                        onChange={handleAddChange}
+                                    />
+                                    {addErrors.paymentDate && (
+                                        <small className="error-text">
+                                            {addErrors.paymentDate}
+                                        </small>
+                                    )}
+                                </div>
+
+                                {/* Remarks */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        📝 Remarks
+                                    </label>
+                                    <textarea
+                                        name="remarks"
+                                        className="form-input form-textarea"
+                                        placeholder="Write remarks (optional)"
+                                        value={addFormData.remarks}
+                                        onChange={handleAddChange}
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="details-footer">
+                                <div className="form-actions">
+                                    <button
+                                        type="button"
+                                        className="btn-cancel-modal"
+                                        onClick={() => setShowAddForm(false)}
+                                        disabled={addSubmitting}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn-submit-modal"
+                                        disabled={addSubmitting}
+                                    >
+                                        {addSubmitting ? "Saving..." : "Save Payment"}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

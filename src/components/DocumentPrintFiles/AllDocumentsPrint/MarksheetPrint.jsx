@@ -9,7 +9,7 @@ const MarksheetPrint = () => {
 
     const printedId = useRef(null);
 
-    // ✅ BADA size — A3 (297 x 420 mm)
+    // ✅ A3 size (297 x 420 mm)
     const PAGE_WIDTH = 297;
     const PAGE_HEIGHT = 420;
 
@@ -29,18 +29,22 @@ const MarksheetPrint = () => {
     const MIN_FONT_SIZE = 7;
 
     // =========================================================
-    // ✅ SUBJECT ROW SETTINGS
+    // ✅ SUBJECT ROW SETTINGS — FIXED ROW, SAME FONT (13)
     // =========================================================
-    const SUBJECT_START_Y = 57.5;
-    const SUBJECT_ROW_HEIGHT = 2.4;           // normal row height
-    const SUBJECT_LINE_HEIGHT = 1.2;          // ⬅️ 1.8 → 1.2 (lines paas aa gayi)
-    const SUBJECT_FONT_SIZE = 12;
-    const SUBJECT_MAX_WIDTH = 150;
-    const SUBJECT_MAX_CHARS_PER_LINE = 55;    // ⬅️ 55 (aapne bola)
-    const SUBJECT_MAX_LINES = 2;
+    // Row height NEVER changes.
+    // Font size NEVER changes.
+    // 2-line subject ke liye sirf line gap adjust karte hain.
 
-    // ✅ Line 1 ko thoda upar shift karo (taaki row ke andar center rahe)
-    const SUBJECT_LINE1_OFFSET = -0.6;        // ⬅️ line 1 ko upar shift
+    const SUBJECT_START_Y = 56.4;              // Pehli row ki y position
+    const SUBJECT_ROW_HEIGHT = 2.4;            // 🔒 FIXED row height
+    const SUBJECT_FONT_SIZE = 13;              // 🔒 Same font for all
+
+    const SUBJECT_LINE_HEIGHT_1LINE = 0;       // 1-line mein koi gap nahi
+    const SUBJECT_LINE_HEIGHT_2LINE = 1.0;     // 2-line ke beech gap (~4.1mm)
+
+    const SUBJECT_MAX_WIDTH = 150;
+    const SUBJECT_MAX_CHARS_PER_LINE = 55;
+    const SUBJECT_MAX_LINES = 2;
 
     // =========================================================
     // ✅ GO BACK TO PREVIOUS PAGE
@@ -209,15 +213,22 @@ const MarksheetPrint = () => {
             }
         }
 
+        // ✅ Subject ke liye chhota vertical padding (row mein fit hone ke liye)
         const horizontalPadding = 8 * scale;
-        const verticalPadding = 5 * scale;
+        const verticalPadding = field.tightVertical
+            ? 1 * scale
+            : 5 * scale;
 
         const finalWidth = Math.min(
             textWidth + horizontalPadding,
             maxWidthPx + horizontalPadding
         );
 
-        const finalHeight = currentFontSize * 1.8 + verticalPadding;
+        // ✅ Multiplier bhi chhota agar tightVertical
+        const heightMultiplier = field.tightVertical ? 1.3 : 1.8;
+
+        const finalHeight =
+            currentFontSize * heightMultiplier + verticalPadding;
 
         canvas.width = Math.ceil(finalWidth);
         canvas.height = Math.ceil(finalHeight);
@@ -283,20 +294,9 @@ const MarksheetPrint = () => {
     };
 
     // =========================================================
-    // ✅ DRAW WRAPPED TEXT (character-based)
+    // ✅ WRAP TEXT — Lines nikalo
     // =========================================================
-    const drawWrappedText = (pdf, field, options = {}) => {
-        if (!field?.text) return 0;
-
-        const text = String(field.text).trim();
-        if (!text) return 0;
-
-        const {
-            maxCharsPerLine = SUBJECT_MAX_CHARS_PER_LINE,
-            lineHeightPercent = SUBJECT_LINE_HEIGHT,
-            maxLines = SUBJECT_MAX_LINES,
-        } = options;
-
+    const wrapTextLines = (text, maxCharsPerLine, maxLines) => {
         const words = text.split(/\s+/).filter(Boolean);
 
         const lines = [];
@@ -326,35 +326,70 @@ const MarksheetPrint = () => {
             lines.push(currentLine);
         }
 
-        const finalLines = lines.slice(0, maxLines);
-
-        // ✅ Har line draw karo — 2 lines ho toh row ke andar center karo
-        const totalLines = finalLines.length;
-
-        finalLines.forEach((lineText, index) => {
-            // ✅ Line 1 thoda upar, Line 2 thoda neeche (same row me fit)
-            // 2 lines ke liye: line1 = y + offset, line2 = y + offset + lineHeight
-            let lineY = field.y + index * lineHeightPercent;
-
-            // Agar 2 lines hain toh dono ko thoda upar shift karo
-            // taaki row ke andar center rahen
-            if (totalLines === 2) {
-                lineY += SUBJECT_LINE1_OFFSET;
-            }
-
-            drawText(pdf, {
-                ...field,
-                text: lineText,
-                y: lineY,
-                noShrink: true,
-            });
-        });
-
-        return finalLines.length;
+        return lines.slice(0, maxLines);
     };
 
     // =========================================================
-    // ✅ DRAW SUBJECTS
+    // ✅ DRAW WRAPPED TEXT — FIXED ROW, SAME FONT 13
+    // =========================================================
+    // Row height FIXED rehti hai, font FIXED 13 rehta hai.
+    // 2-line mein sirf line gap chhota hota hai, dono lines
+    // row ke andar vertically center ho jati hain.
+    // =========================================================
+    const drawWrappedText = (pdf, field) => {
+        if (!field?.text) return;
+
+        const text = String(field.text).trim();
+        if (!text) return;
+
+        // Lines nikalo
+        const lines = wrapTextLines(
+            text,
+            SUBJECT_MAX_CHARS_PER_LINE,
+            SUBJECT_MAX_LINES
+        );
+
+        const totalLines = lines.length;
+        const rowCenterY = field.y;
+
+        if (totalLines === 1) {
+            // ✅ 1 Line — center pe, font 13, tight vertical padding
+            drawText(pdf, {
+                ...field,
+                text: lines[0],
+                y: rowCenterY,
+                fontSize: SUBJECT_FONT_SIZE,
+                noShrink: true,
+                tightVertical: true,
+            });
+        } else {
+            // ✅ 2 Lines — row ke andar center, font 13 same
+            // Line 1 : rowCenterY - gap/2
+            // Line 2 : rowCenterY + gap/2
+            const gap = SUBJECT_LINE_HEIGHT_2LINE;
+
+            drawText(pdf, {
+                ...field,
+                text: lines[0],
+                y: rowCenterY - gap / 2,
+                fontSize: SUBJECT_FONT_SIZE,
+                noShrink: true,
+                tightVertical: true,
+            });
+
+            drawText(pdf, {
+                ...field,
+                text: lines[1],
+                y: rowCenterY + gap / 2,
+                fontSize: SUBJECT_FONT_SIZE,
+                noShrink: true,
+                tightVertical: true,
+            });
+        }
+    };
+
+    // =========================================================
+    // ✅ DRAW SUBJECTS — FIXED ROW HEIGHT
     // =========================================================
     const drawSubjects = (pdf, subjects) => {
         if (!Array.isArray(subjects)) return;
@@ -365,49 +400,42 @@ const MarksheetPrint = () => {
 
         let cumulativeY = SUBJECT_START_Y;
 
-        validSubjects.forEach((subject, index) => {
-            const y = cumulativeY;
+        validSubjects.forEach((subject) => {
+            // ✅ Row ka center
+            const rowCenterY =
+                cumulativeY + SUBJECT_ROW_HEIGHT / 2;
 
-            // ✅ Subject Name — WRAPPED
-            const linesUsed = drawWrappedText(
-                pdf,
-                {
-                    text: subject.name,
-                    x: 15,
-                    y,
-                    fontSize: SUBJECT_FONT_SIZE,
-                    fontFamily: "Arial",
-                    fontWeight: "normal",
-                    fontStyle: FONT_STYLE,
-                    color: FONT_COLOR,
-                    align: "left",
-                    maxWidth: SUBJECT_MAX_WIDTH,
-                },
-                {
-                    maxCharsPerLine: SUBJECT_MAX_CHARS_PER_LINE,
-                    lineHeightPercent: SUBJECT_LINE_HEIGHT,
-                    maxLines: SUBJECT_MAX_LINES,
-                }
-            );
+            // ✅ Subject Name — WRAPPED (2 lines ho to bhi font 13)
+            drawWrappedText(pdf, {
+                text: subject.name,
+                x: 15,
+                y: rowCenterY,
+                fontFamily: "Arial",
+                fontWeight: "normal",
+                fontStyle: FONT_STYLE,
+                color: FONT_COLOR,
+                align: "left",
+                maxWidth: SUBJECT_MAX_WIDTH,
+            });
 
-            // ✅ Baaki columns — sab `y` pe hi rahenge (line 1 ke saath)
+            // ✅ Baaki columns — sab rowCenterY pe hi rahenge
             drawText(pdf, {
                 text: subject.code,
                 x: 11,
-                y,
+                y: rowCenterY,
                 fontSize: 12,
                 fontFamily: "Arial",
                 fontWeight: "normal",
                 fontStyle: FONT_STYLE,
                 color: FONT_COLOR,
                 align: "center",
-                maxWidth: 30,
+                maxWidth: 40,
             });
 
             drawText(pdf, {
                 text: subject.maxMarks || "",
                 x: 49,
-                y,
+                y: rowCenterY,
                 fontSize: 12,
                 fontFamily: "Arial",
                 fontWeight: "normal",
@@ -420,7 +448,7 @@ const MarksheetPrint = () => {
             drawText(pdf, {
                 text: subject.theoryMarks || "",
                 x: 56,
-                y,
+                y: rowCenterY,
                 fontSize: 12,
                 fontFamily: "Arial",
                 fontWeight: "normal",
@@ -433,7 +461,7 @@ const MarksheetPrint = () => {
             drawText(pdf, {
                 text: subject.practicalMarks || "",
                 x: 63,
-                y,
+                y: rowCenterY,
                 fontSize: 12,
                 fontFamily: "Arial",
                 fontWeight: "normal",
@@ -446,7 +474,7 @@ const MarksheetPrint = () => {
             drawText(pdf, {
                 text: subject.assignmentMarks || "",
                 x: 71,
-                y,
+                y: rowCenterY,
                 fontSize: 12,
                 fontFamily: "Arial",
                 fontWeight: "normal",
@@ -459,7 +487,7 @@ const MarksheetPrint = () => {
             drawText(pdf, {
                 text: subject.totalMarks || "",
                 x: 78,
-                y,
+                y: rowCenterY,
                 fontSize: 12,
                 fontFamily: "Arial",
                 fontWeight: "normal",
@@ -472,7 +500,7 @@ const MarksheetPrint = () => {
             drawText(pdf, {
                 text: subject.grade?.trim() || "",
                 x: 87,
-                y,
+                y: rowCenterY,
                 fontSize: 12,
                 fontFamily: "Arial",
                 fontWeight: "normal",
@@ -482,15 +510,8 @@ const MarksheetPrint = () => {
                 maxWidth: 40,
             });
 
-            // ✅ Agli row ke liye y calculate karo (dynamic)
-            const extraLines = linesUsed - 1;
-            const rowHeight =
-                extraLines > 0
-                    ? SUBJECT_ROW_HEIGHT +
-                      extraLines * SUBJECT_LINE_HEIGHT
-                    : SUBJECT_ROW_HEIGHT;
-
-            cumulativeY += rowHeight;
+            // ✅ FIXED advance — har row 2.4% aage
+            cumulativeY += SUBJECT_ROW_HEIGHT;
         });
     };
 

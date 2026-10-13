@@ -2,10 +2,11 @@
 import { useParams } from "react-router-dom";
 
 import {
-    deleteProductAmount,
+    
     getDuration,
     createCourseMaterial,
     getCoursematerial,
+    deleteCourseMetrial,
 } from "../../AllServicesFiles/CourseService";
 
 function CourseMaterial() {
@@ -392,7 +393,7 @@ function CourseMaterial() {
         try {
             setDeleteLoading(true);
 
-            await deleteProductAmount(
+            await deleteCourseMetrial(
                 deleteId
             );
 

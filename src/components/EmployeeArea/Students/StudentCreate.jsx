@@ -222,15 +222,15 @@ const StudentCreate = () => {
         }
     };
 
-    const loadCourse = async (courseCategoryId) => {
-        try {
-            const result = await getCourse(courseCategoryId);
-            setCourses(result?.data || []);
-        } catch (error) {
-            console.error("Course Error:", error);
-            setCourses([]);
-        }
-    };
+   const loadCourse = async (courseCategoryId,courseTypeId) => {
+          try {
+              const result = await getCourse(courseCategoryId,courseTypeId);
+              setCourses(result?.data || []);
+          } catch (error) {
+              console.error("Course Error:", error);
+              setCourses([]);
+          }
+      };
 
     // =========================
     // Generic Change
@@ -569,25 +569,24 @@ const StudentCreate = () => {
     // Course Category Change
     // =========================
 
-    const handleCourseCategoryChange = (
-        selectedOption
-    ) => {
-        const id = selectedOption
-            ? Number(selectedOption.value)
-            : 0;
+    const handleCourseCategoryChange = (selectedOption) => {
+    const id = selectedOption ? Number(selectedOption.value) : 0;
 
-        setFormData((prev) => ({
+    setFormData((prev) => {
+        const updated = {
             ...prev,
             courseCategoryId: id,
-            courseId: 0
-        }));
+            courseId: 0,
+        };
 
-        setCourses([]);
+        // Yahan prev.courseTypeId available hai
+        if (id) loadCourse(id, prev.courseTypeId);
 
-        if (id) {
-            loadCourse(id);
-        }
-    };
+        return updated;
+    });
+
+    setCourses([]);
+};
 
     // =========================
     // State Change

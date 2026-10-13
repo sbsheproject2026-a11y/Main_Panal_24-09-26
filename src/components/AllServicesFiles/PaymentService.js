@@ -39,3 +39,12 @@ export const getOfflinePayments = async (status) => {
     const response = await api.get(`/Payment/get-payment-detail?status=${status}`);
     return response.data;
 };
+
+ 
+
+export const getStudentFeeDetails = async (id) => {
+    const res = await api.get("/Payment/student-payment-detail", {
+        params: { Id: id },  
+    });
+    return res.data;
+};

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import {
   getCourseById,
   getCourseCategory,
@@ -14,8 +14,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
-
-
 function CourseUpdate() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -29,8 +27,6 @@ function CourseUpdate() {
   const [courseTypes, setCourseTypes] = useState([]);
   const [courseCategories, setCourseCategories] = useState([]);
   const [parentCourses, setParentCourses] = useState([]);
-  const [amountTypes, setAmountTypes] = useState([]);
-  const [materialTypes, setMaterialTypes] = useState([]);
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -55,23 +51,14 @@ function CourseUpdate() {
     studyModeId: 0,
     classNo: 0,
     isActive: 1,
-    isHighlight: 0,   // ✅ NEW
+    isHighlight: 0,
   });
 
-  // ✅ NEW: Amounts
-  const [amounts, setAmounts] = useState([
-    { amountTypeId: 0, name: "", amount: "" },
-  ]);
-
-  // ✅ NEW: Study Materials
-  const [studyMaterials, setStudyMaterials] = useState([
-    { materialTypeId: 0, name: "", file: null, altTag: "" },
-  ]);
+  // ❌ Amounts & Study Materials states removed
 
   // ==============================
   // CKEDITOR CONFIG
   // ==============================
-
   const editorConfig = {
     toolbar: [
       "heading",
@@ -91,7 +78,6 @@ function CourseUpdate() {
   // ==============================
   // CKEDITOR CHANGE
   // ==============================
-
   const handleMaterialChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
@@ -103,7 +89,6 @@ function CourseUpdate() {
   // ==============================
   // LOAD ALL DATA
   // ==============================
-
   useEffect(() => {
     loadAllData();
   }, [id]);
@@ -119,9 +104,8 @@ function CourseUpdate() {
         loadDuration(),
         loadDurationType(),
         loadParentCourses(),
-        loadAmountTypes(),
-        loadMaterialTypes(),
-
+        // ❌ loadAmountTypes() removed
+        // ❌ loadMaterialTypes() removed
       ]);
 
       if (id) {
@@ -141,11 +125,11 @@ function CourseUpdate() {
     try {
       const result = await getDuration(23);
       setStudyMode(result?.data || []);
-    
     } catch (error) {
       console.log(error);
     }
   };
+
   const loadCourseType = async () => {
     try {
       const result = await getCourseType(13);
@@ -191,28 +175,12 @@ function CourseUpdate() {
     }
   };
 
-  const loadAmountTypes = async () => {
-    try {
-      const result = await getCourseType(31);
-      setAmountTypes(result?.data || []);
-    } catch (error) {
-      console.error("Amount type loading error:", error);
-    }
-  };
-
-  const loadMaterialTypes = async () => {
-    try {
-      const result = await getCourseType(34);
-      setMaterialTypes(result?.data || []);
-    } catch (error) {
-      console.error("Material type loading error:", error);
-    }
-  };
+  // ❌ loadAmountTypes removed
+  // ❌ loadMaterialTypes removed
 
   // ==============================
   // GET COURSE BY ID
   // ==============================
-
   const handleEdit = async (courseId) => {
     try {
       const result = await getCourseById(courseId);
@@ -236,8 +204,8 @@ function CourseUpdate() {
         durationTypeId: Number(result.durationTypeId ?? 0),
         parentId:
           result.parentId === null ||
-            result.parentId === undefined ||
-            result.parentId === 0
+          result.parentId === undefined ||
+          result.parentId === 0
             ? null
             : Number(result.parentId),
         categoryId: Number(result.categoryId ?? 0),
@@ -251,43 +219,8 @@ function CourseUpdate() {
           result.isHighlight === 1 || result.isHighlight === true ? 1 : 0,
       });
 
-      // ✅ Load existing amounts
-      if (
-        Array.isArray(result.productAmounts) &&
-        result.productAmounts.length > 0
-      ) {
-        setAmounts(
-          result.productAmounts.map((a) => ({
-            id: a.id ?? null,
-            amountTypeId: Number(a.amountTypeId ?? 0),
-            name: a.name ?? "",
-            amount: a.amount ?? "",
-          }))
-        );
-      } else {
-        setAmounts([{ amountTypeId: 0, name: "", amount: "" }]);
-      }
-
-      // ✅ Load existing study materials
-      if (
-        Array.isArray(result.productCategoryDocuments) &&
-        result.productCategoryDocuments.length > 0
-      ) {
-        setStudyMaterials(
-          result.productCategoryDocuments.map((m) => ({
-            id: m.id ?? null,
-            materialTypeId: Number(m.materialTypeId ?? 0),
-            name: m.name ?? "",
-            file: null,
-            filePath: m.fileupload ?? "",
-            altTag: m.altTag ?? "",
-          }))
-        );
-      } else {
-        setStudyMaterials([
-          { materialTypeId: 0, name: "", file: null, altTag: "" },
-        ]);
-      }
+      // ❌ Amount loading removed
+      // ❌ Study Material loading removed
     } catch (error) {
       console.error("Get course error:", error);
       alert("Unable to load course details.");
@@ -297,7 +230,6 @@ function CourseUpdate() {
   // ==============================
   // NORMAL INPUT CHANGE
   // ==============================
-
   const handleChange = async (e) => {
     const { name, value } = e.target;
 
@@ -337,7 +269,6 @@ function CourseUpdate() {
   // ==============================
   // SELECT CHANGE
   // ==============================
-
   const handleSelectChange = (e) => {
     const { name, value } = e.target;
 
@@ -351,7 +282,6 @@ function CourseUpdate() {
   // ==============================
   // PARENT COURSE CHANGE
   // ==============================
-
   const handleParentChange = (e) => {
     const value = e.target.value;
 
@@ -366,64 +296,12 @@ function CourseUpdate() {
     }
   };
 
-  // ==============================
-  // ✅ AMOUNT HANDLERS
-  // ==============================
-
-  const addAmount = () => {
-    setAmounts((prev) => [
-      ...prev,
-      { amountTypeId: 0, name: "", amount: "" },
-    ]);
-  };
-
-  const removeAmount = (index) => {
-    setAmounts((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleAmountChange = (index, field, value) => {
-    setAmounts((prev) =>
-      prev.map((item, i) =>
-        i === index
-          ? {
-            ...item,
-            [field]:
-              field === "amountTypeId" ? Number(value) : value,
-          }
-          : item
-      )
-    );
-  };
-
-  // ==============================
-  // ✅ STUDY MATERIAL HANDLERS
-  // ==============================
-
-  const addStudyMaterial = () => {
-    setStudyMaterials((prev) => [
-      ...prev,
-      { materialTypeId: 0, name: "", file: null, altTag: "" },
-    ]);
-  };
-
-  const removeStudyMaterial = (index) => {
-    setStudyMaterials((prev) =>
-      prev.filter((_, i) => i !== index)
-    );
-  };
-
-  const handleStudyMaterialChange = (index, field, value) => {
-    setStudyMaterials((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      )
-    );
-  };
+  // ❌ Amount handlers removed
+  // ❌ Study Material handlers removed
 
   // ==============================
   // VALIDATION
   // ==============================
-
   const validateForm = () => {
     const newErrors = {};
 
@@ -442,7 +320,6 @@ function CourseUpdate() {
     if (!formData.studyModeId || formData.studyModeId === 0)
       newErrors.studyModeId = "Study Mode is required";
 
-
     if (!formData.durationTypeId || formData.durationTypeId === 0)
       newErrors.durationTypeId = "Duration Type is required";
 
@@ -453,7 +330,6 @@ function CourseUpdate() {
   // ==============================
   // SUBMIT
   // ==============================
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -469,12 +345,10 @@ function CourseUpdate() {
         ...formData,
         parentId:
           formData.parentId === 0 ||
-            formData.parentId === "0" ||
-            formData.parentId === ""
+          formData.parentId === "0" ||
+          formData.parentId === ""
             ? null
             : formData.parentId,
-        productAmounts: amounts,
-        productCategoryDocuments: studyMaterials,
       };
 
       const result = await updateCourse(payload);
@@ -497,7 +371,6 @@ function CourseUpdate() {
   // ==============================
   // PAGE LOADING
   // ==============================
-
   if (pageLoading) {
     return (
       <div className="course-loading-page">
@@ -514,7 +387,6 @@ function CourseUpdate() {
   // ==============================
   // JSX
   // ==============================
-
   return (
     <div className="course-page">
       <div className="course-container">
@@ -540,7 +412,7 @@ function CourseUpdate() {
 
               <div className="course-grid">
 
-                {/* Course Type */}
+                {/* Study Mode */}
                 <div className="course-field">
                   <label className="course-label">
                     Study Mode<span>*</span>
@@ -549,8 +421,9 @@ function CourseUpdate() {
                     name="studyModeId"
                     value={formData.studyModeId}
                     onChange={handleSelectChange}
-                    className={`course-select ${errors.studyModeId ? "course-select-error" : ""
-                      }`}
+                    className={`course-select ${
+                      errors.studyModeId ? "course-select-error" : ""
+                    }`}
                   >
                     <option value={0}>Select Study Mode</option>
                     {studyMode.map((item) => (
@@ -563,6 +436,7 @@ function CourseUpdate() {
                     <div className="course-error">{errors.studyModeId}</div>
                   )}
                 </div>
+
                 {/* Course Type */}
                 <div className="course-field">
                   <label className="course-label">
@@ -572,8 +446,9 @@ function CourseUpdate() {
                     name="departmentId"
                     value={formData.departmentId}
                     onChange={handleSelectChange}
-                    className={`course-select ${errors.departmentId ? "course-select-error" : ""
-                      }`}
+                    className={`course-select ${
+                      errors.departmentId ? "course-select-error" : ""
+                    }`}
                   >
                     <option value={0}>Select Course Type</option>
                     {courseTypes.map((item) => (
@@ -596,8 +471,9 @@ function CourseUpdate() {
                     name="categoryId"
                     value={formData.categoryId}
                     onChange={handleSelectChange}
-                    className={`course-select ${errors.categoryId ? "course-select-error" : ""
-                      }`}
+                    className={`course-select ${
+                      errors.categoryId ? "course-select-error" : ""
+                    }`}
                   >
                     <option value={0}>Select Course Category</option>
                     {courseCategories.map((item) => (
@@ -653,8 +529,9 @@ function CourseUpdate() {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Enter course name"
-                    className={`course-input ${errors.name ? "course-input-error" : ""
-                      }`}
+                    className={`course-input ${
+                      errors.name ? "course-input-error" : ""
+                    }`}
                   />
                   {errors.name && (
                     <div className="course-error">{errors.name}</div>
@@ -700,8 +577,9 @@ function CourseUpdate() {
                     name="duration"
                     value={formData.duration}
                     onChange={handleSelectChange}
-                    className={`course-select ${errors.duration ? "course-select-error" : ""
-                      }`}
+                    className={`course-select ${
+                      errors.duration ? "course-select-error" : ""
+                    }`}
                   >
                     <option value={0}>Select Duration</option>
                     {durations.map((item) => (
@@ -724,8 +602,9 @@ function CourseUpdate() {
                     name="durationTypeId"
                     value={formData.durationTypeId}
                     onChange={handleSelectChange}
-                    className={`course-select ${errors.durationTypeId ? "course-select-error" : ""
-                      }`}
+                    className={`course-select ${
+                      errors.durationTypeId ? "course-select-error" : ""
+                    }`}
                   >
                     <option value={0}>Select Duration Type</option>
                     {durationTypes.map((item) => (
@@ -825,213 +704,13 @@ function CourseUpdate() {
               </div>
             </div>
 
-            {/* ===== 04 COURSE AMOUNT ===== */}
-            <div className="course-section">
-              <div className="course-section-title course-section-with-action">
-                <div>
-                  <h3>Course Amount</h3>
-                  <p>Add different amounts for this course</p>
-                </div>
-                <button
-                  type="button"
-                  className="course-add-more-btn"
-                  onClick={addAmount}
-                >
-                  <span>+</span>
-                  Add More
-                </button>
-              </div>
+            {/* ❌ Section 04 - Course Amount REMOVED */}
+            {/* ❌ Section 05 - Study Material REMOVED */}
 
-              <div className="course-repeat-box">
-                {amounts.map((item, index) => (
-                  <div className="course-repeat-row" key={index}>
-                    <div className="course-row-number">{index + 1}</div>
-
-                    <div className="course-repeat-field">
-                      <label className="course-label">Amount Type</label>
-                      <select
-                        className="course-select"
-                        value={item.amountTypeId}
-                        onChange={(e) =>
-                          handleAmountChange(
-                            index,
-                            "amountTypeId",
-                            e.target.value
-                          )
-                        }
-                      >
-                        <option value={0}>Select Amount Type</option>
-                        {amountTypes.map((type) => (
-                          <option key={type.id} value={type.id}>
-                            {type.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="course-repeat-field">
-                      <label className="course-label">Name</label>
-                      <input
-                        type="text"
-                        className="course-input"
-                        placeholder="Enter amount name"
-                        value={item.name}
-                        onChange={(e) =>
-                          handleAmountChange(index, "name", e.target.value)
-                        }
-                      />
-                    </div>
-
-                    <div className="course-repeat-field">
-                      <label className="course-label">Amount</label>
-                      <input
-                        type="number"
-                        className="course-input"
-                        placeholder="Enter amount"
-                        value={item.amount}
-                        onChange={(e) =>
-                          handleAmountChange(index, "amount", e.target.value)
-                        }
-                      />
-                    </div>
-
-                    {amounts.length > 1 && (
-                      <button
-                        type="button"
-                        className="course-delete-btn"
-                        onClick={() => removeAmount(index)}
-                        title="Remove"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ===== 05 STUDY MATERIAL ===== */}
-            <div className="course-section">
-              <div className="course-section-title course-section-with-action">
-                <div>
-                  <h3>Study Material</h3>
-                  <p>Add course study materials and files</p>
-                </div>
-                <button
-                  type="button"
-                  className="course-add-more-btn"
-                  onClick={addStudyMaterial}
-                >
-                  <span>+</span>
-                  Add More
-                </button>
-              </div>
-
-              <div className="course-repeat-box">
-                {studyMaterials.map((item, index) => (
-                  <div className="course-repeat-row" key={index}>
-                    <div className="course-row-number">{index + 1}</div>
-
-                    <div className="course-repeat-field">
-                      <label className="course-label">Material Type</label>
-                      <select
-                        className="course-select"
-                        value={item.materialTypeId}
-                        onChange={(e) =>
-                          handleStudyMaterialChange(
-                            index,
-                            "materialTypeId",
-                            Number(e.target.value)
-                          )
-                        }
-                      >
-                        <option value={0}>Select Material Type</option>
-                        {materialTypes.map((type) => (
-                          <option key={type.id} value={type.id}>
-                            {type.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="course-repeat-field">
-                      <label className="course-label">Name</label>
-                      <input
-                        type="text"
-                        className="course-input"
-                        placeholder="Enter material name"
-                        value={item.name}
-                        onChange={(e) =>
-                          handleStudyMaterialChange(
-                            index,
-                            "name",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
-
-                    <div className="course-repeat-field">
-                      <label className="course-label">File</label>
-                      <input
-                        type="file"
-                        className="course-file-input"
-                        onChange={(e) =>
-                          handleStudyMaterialChange(
-                            index,
-                            "file",
-                            e.target.files?.[0] || null
-                          )
-                        }
-                      />
-                      {item.file && (
-                        <small className="selected-file">
-                          {item.file.name}
-                        </small>
-                      )}
-                      {!item.file && item.filePath && (
-                        <small className="selected-file">
-                          Existing: {item.filePath}
-                        </small>
-                      )}
-                    </div>
-
-                    <div className="course-repeat-field">
-                      <label className="course-label">Alt Tag</label>
-                      <input
-                        type="text"
-                        className="course-input"
-                        placeholder="Enter alt tag"
-                        value={item.altTag}
-                        onChange={(e) =>
-                          handleStudyMaterialChange(
-                            index,
-                            "altTag",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
-
-                    {studyMaterials.length > 1 && (
-                      <button
-                        type="button"
-                        className="course-delete-btn"
-                        onClick={() => removeStudyMaterial(index)}
-                        title="Remove"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ===== 06 STATUS ===== */}
+            {/* ===== 04 STATUS (was 06) ===== */}
             <div className="course-section">
               <div className="course-section-title">
-                <div className="course-section-number">06</div>
+                <div className="course-section-number">04</div>
                 <h3>Course Status</h3>
               </div>
 
@@ -1055,7 +734,7 @@ function CourseUpdate() {
                 </label>
               </div>
 
-              {/* ✅ Highlight toggle */}
+              {/* Highlight toggle */}
               <div
                 className="course-status-box"
                 style={{ marginTop: "12px" }}
@@ -1320,174 +999,6 @@ function CourseUpdate() {
 }
 
 /* =========================================================
-   ✅ ADD MORE / REPEAT ROW
-========================================================= */
-
-.course-section-with-action {
-  justify-content: space-between;
-  align-items: center;
-}
-
-.course-section-with-action > div:first-child {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.course-section-with-action p {
-  margin: 0;
-  color: #94a3b8;
-  font-size: 11px;
-  font-weight: 400;
-}
-
-.course-add-more-btn {
-  height: 38px;
-  padding: 0 16px;
-  border: none;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #ff6600, #f45100);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(255, 102, 0, 0.18);
-  transition: all 0.2s ease;
-}
-
-.course-add-more-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(255, 102, 0, 0.25);
-}
-
-.course-add-more-btn span {
-  width: 19px;
-  height: 19px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  line-height: 1;
-}
-
-.course-repeat-box {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 30px;
-}
-
-.course-repeat-row {
-  position: relative;
-  display: grid;
-  grid-template-columns: 35px 1fr 1fr 1fr 35px;
-  align-items: end;
-  gap: 12px;
-  padding: 18px 45px 16px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #f8fafc;
-  transition: all 0.2s ease;
-}
-
-.course-repeat-row:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
-}
-
-.course-row-number {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #ff6600, #f45100);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 7px;
-}
-
-.course-repeat-field { min-width: 0; }
-
-.course-repeat-field .course-label {
-  margin-bottom: 6px;
-  font-size: 12px;
-}
-
-.course-delete-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
-  border: 1px solid #fecaca;
-  border-radius: 7px;
-  background: #fff1f2;
-  color: #dc2626;
-  font-size: 20px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.course-delete-btn:hover {
-  background: #dc2626;
-  color: #fff;
-  border-color: #dc2626;
-}
-
-.course-file-input {
-  width: 100%;
-  height: 46px;
-  border: 1px solid #dbe2ea;
-  border-radius: 9px;
-  padding: 0 8px;
-  background: #fff;
-  color: #64748b;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.course-file-input:focus {
-  outline: none;
-  border-color: #ff6600;
-  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.10);
-}
-
-.course-file-input::file-selector-button {
-  height: 32px;
-  margin-right: 8px;
-  border: none;
-  border-radius: 6px;
-  padding: 0 10px;
-  background: #fff1e8;
-  color: #ff6600;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.selected-file {
-  display: block;
-  margin-top: 5px;
-  color: #64748b;
-  font-size: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* =========================================================
    STATUS
 ========================================================= */
 
@@ -1668,24 +1179,9 @@ function CourseUpdate() {
    RESPONSIVE
 ========================================================= */
 
-@media (max-width: 1100px) {
-  .course-repeat-row { grid-template-columns: 35px 1fr 1fr; }
-}
-
 @media (max-width: 950px) {
   .course-form { padding: 23px; }
   .course-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 767px) {
-  .course-repeat-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 18px 40px 15px 15px;
-  }
-
-  .course-row-number { margin-bottom: 0; }
-  .course-repeat-field .course-label { font-size: 11px; }
 }
 
 @media (max-width: 650px) {

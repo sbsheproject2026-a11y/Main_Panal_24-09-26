@@ -243,6 +243,14 @@ export const deleteProductAmount = async (id) => {
 };
 
 
+export const deleteCourseMetrial = async (id) => {
+    const response = await api.delete(
+        `/Course/course-material-delete/${id}`
+    );
+
+    return response.data;
+};
+
 //Course Material
  
  

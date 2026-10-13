@@ -342,6 +342,14 @@ export const getMasterSession = async () => {
 
     return response.data;
 };
+export const getOnlineSession = async () => {
+    const response = await api.get(
+        "/DropDownEmployee/dropdown-emp-online-session"
+    );
+
+    return response.data;
+};
+
 export const getState = async () => {
     const response = await api.get(
         "/DropDownEmployee/dropdown-emp-getstate"
@@ -382,9 +390,9 @@ export const getCourseCategory = async (id) => {
 
     return response.data;
 };
-export const getCourse = async (id) => {
+export const getCourse = async (id,courseTypeId) => {
     const response = await api.get(
-        `/DropDownEmployee/dropdown-emp-getCourse/${id}`
+        `/DropDownEmployee/dropdown-emp-getCourse/${id}?courseTypeId=${courseTypeId}`
     );
 
     return response.data;
@@ -415,5 +423,13 @@ export const getAmountDetail = async (userId, oId) => {
             headers: { "Content-Type": "application/json" }
         }
     );
+    return response.data;
+};
+
+
+
+// ✅ Sahi
+export const getStudentProfile = async (id) => {
+    const response = await api.get(`/Home/student-prifile/${id}`);
     return response.data;
 };

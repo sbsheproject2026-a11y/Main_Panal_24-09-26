@@ -21,7 +21,20 @@ import {
 import { FILE_URL } from "../../api";
 
 /* ============================================================
-   ✅ Field Component (OUTSIDE main component)
+   ✅ URL Helper — Double slash fix
+============================================================ */
+const getFileUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+
+    const base = (FILE_URL || "").replace(/\/+$/, "");
+    const cleanPath = path.replace(/^\/+/, "");
+
+    return `${base}/${cleanPath}`;
+};
+
+/* ============================================================
+   ✅ Field Component
 ============================================================ */
 const Field = ({
     label,
@@ -63,7 +76,7 @@ const Field = ({
 );
 
 /* ============================================================
-   ✅ FileUpload Component (OUTSIDE main component)
+   ✅ FileUpload Component
 ============================================================ */
 const FileUpload = ({
     name,
@@ -153,17 +166,26 @@ const FileUpload = ({
 };
 
 /* ============================================================
-   ✅ ExistingFile Component (OUTSIDE main component)
+   ✅ ExistingFile Component — FIXED
 ============================================================ */
 const ExistingFile = ({ file, label, type = "image" }) => {
     if (!file) return null;
 
-    const fileUrl = `${FILE_URL}${file}`;
+    const fileUrl = getFileUrl(file);
+
+    if (!fileUrl) return null;
 
     return (
         <div className="acc-existing-file">
             {type === "image" ? (
-                <img src={fileUrl} alt={label} />
+                <img
+                    src={fileUrl}
+                    alt={label}
+                    onError={(e) => {
+                        console.error("❌ Image failed:", fileUrl);
+                        e.target.style.display = "none";
+                    }}
+                />
             ) : (
                 <div className="acc-existing-pdf">
                     <FaFileInvoice />
@@ -186,6 +208,23 @@ const ExistingFile = ({ file, label, type = "image" }) => {
         </div>
     );
 };
+
+/* ============================================================
+   ✅ DocumentCard — FileUpload + ExistingFile wrapper
+   (Yeh naya hai — taaki dono ek hi card mein rahein)
+============================================================ */
+const DocumentCard = ({ uploadProps, existingFile, existingType = "image", existingLabel }) => (
+    <div className="acc-document-card-wrapper">
+        <FileUpload {...uploadProps} />
+        {existingFile && (
+            <ExistingFile
+                file={existingFile}
+                label={existingLabel}
+                type={existingType}
+            />
+        )}
+    </div>
+);
 
 /* ============================================================
    ✅ Main Component
@@ -255,7 +294,6 @@ const AccUpdate = () => {
     const handleEdit = async (editId) => {
         try {
             const result = await getaccById(editId);
-
             if (!result) return;
 
             setFormData({
@@ -335,14 +373,10 @@ const AccUpdate = () => {
         }
     };
 
-    /* ✅ useCallback so reference stable rahe */
     const handleChange = useCallback((e) => {
         const { name, value } = e.target;
 
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
 
         setErrors((prev) => {
             if (!prev[name]) return prev;
@@ -395,10 +429,7 @@ const AccUpdate = () => {
     const handleCityChange = (selectedOption) => {
         const locationId = selectedOption ? Number(selectedOption.value) : 0;
 
-        setFormData((prev) => ({
-            ...prev,
-            locationId
-        }));
+        setFormData((prev) => ({ ...prev, locationId }));
 
         if (errors.locationId) {
             setErrors((prev) => ({ ...prev, locationId: "" }));
@@ -410,10 +441,7 @@ const AccUpdate = () => {
 
         if (!file) return;
 
-        setFormData((prev) => ({
-            ...prev,
-            [name]: file
-        }));
+        setFormData((prev) => ({ ...prev, [name]: file }));
 
         if (file.type.startsWith("image/")) {
             const previewUrl = URL.createObjectURL(file);
@@ -429,31 +457,16 @@ const AccUpdate = () => {
     }, []);
 
     const removeFile = useCallback((name) => {
-        setFormData((prev) => ({
-            ...prev,
-            [name]: null
-        }));
-
-        setPreviews((prev) => ({
-            ...prev,
-            [name]: ""
-        }));
+        setFormData((prev) => ({ ...prev, [name]: null }));
+        setPreviews((prev) => ({ ...prev, [name]: "" }));
     }, []);
 
     const validateForm = () => {
         const newErrors = {};
 
-        if (!formData.instituteName?.trim()) {
-            newErrors.instituteName = "Institute name is required";
-        }
-
-        if (!formData.name?.trim()) {
-            newErrors.name = "Name is required";
-        }
-
-        if (!formData.fatherName?.trim()) {
-            newErrors.fatherName = "Father's name is required";
-        }
+        if (!formData.instituteName?.trim()) newErrors.instituteName = "Institute name is required";
+        if (!formData.name?.trim()) newErrors.name = "Name is required";
+        if (!formData.fatherName?.trim()) newErrors.fatherName = "Father's name is required";
 
         if (!formData.mobileNo?.trim()) {
             newErrors.mobileNo = "Mobile number is required";
@@ -461,25 +474,11 @@ const AccUpdate = () => {
             newErrors.mobileNo = "Enter valid 10 digit mobile number";
         }
 
-        if (!formData.email?.trim()) {
-            newErrors.email = "Email is required";
-        }
-
-        if (!formData.stateId || Number(formData.stateId) === 0) {
-            newErrors.stateId = "State is required";
-        }
-
-        if (!formData.districtId || Number(formData.districtId) === 0) {
-            newErrors.districtId = "District is required";
-        }
-
-        if (!formData.locationId || Number(formData.locationId) === 0) {
-            newErrors.locationId = "City is required";
-        }
-
-        if (!formData.address?.trim()) {
-            newErrors.address = "Address is required";
-        }
+        if (!formData.email?.trim()) newErrors.email = "Email is required";
+        if (!formData.stateId || Number(formData.stateId) === 0) newErrors.stateId = "State is required";
+        if (!formData.districtId || Number(formData.districtId) === 0) newErrors.districtId = "District is required";
+        if (!formData.locationId || Number(formData.locationId) === 0) newErrors.locationId = "City is required";
+        if (!formData.address?.trim()) newErrors.address = "Address is required";
 
         if (!formData.pincode?.trim()) {
             newErrors.pincode = "Pin code is required";
@@ -488,7 +487,6 @@ const AccUpdate = () => {
         }
 
         setErrors(newErrors);
-
         return Object.keys(newErrors).length === 0;
     };
 
@@ -496,10 +494,7 @@ const AccUpdate = () => {
         e.preventDefault();
 
         if (!validateForm()) {
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
+            window.scrollTo({ top: 0, behavior: "smooth" });
             return;
         }
 
@@ -517,45 +512,19 @@ const AccUpdate = () => {
             alert(result?.message || "Update failed");
         } catch (error) {
             console.log("Update Error:", error);
-
-            alert(
-                error?.response?.data?.message ||
-                "Something went wrong"
-            );
+            alert(error?.response?.data?.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
     };
 
-    const stateOptions = states.map((item) => ({
-        value: item.id,
-        label: item.name
-    }));
+    const stateOptions = states.map((item) => ({ value: item.id, label: item.name }));
+    const districtOptions = districts.map((item) => ({ value: item.id, label: item.name }));
+    const cityOptions = citys.map((item) => ({ value: item.id, label: item.name }));
 
-    const districtOptions = districts.map((item) => ({
-        value: item.id,
-        label: item.name
-    }));
-
-    const cityOptions = citys.map((item) => ({
-        value: item.id,
-        label: item.name
-    }));
-
-    const selectedState =
-        stateOptions.find(
-            (item) => Number(item.value) === Number(formData.stateId)
-        ) || null;
-
-    const selectedDistrict =
-        districtOptions.find(
-            (item) => Number(item.value) === Number(formData.districtId)
-        ) || null;
-
-    const selectedCity =
-        cityOptions.find(
-            (item) => Number(item.value) === Number(formData.locationId)
-        ) || null;
+    const selectedState = stateOptions.find((i) => Number(i.value) === Number(formData.stateId)) || null;
+    const selectedDistrict = districtOptions.find((i) => Number(i.value) === Number(formData.districtId)) || null;
+    const selectedCity = cityOptions.find((i) => Number(i.value) === Number(formData.locationId)) || null;
 
     const selectStyles = {
         control: (base, state) => ({
@@ -563,37 +532,15 @@ const AccUpdate = () => {
             minHeight: "52px",
             borderRadius: "12px",
             borderColor: state.isFocused ? "#ff6b00" : "#e4e8ee",
-            boxShadow: state.isFocused
-                ? "0 0 0 4px rgba(255,107,0,.08)"
-                : "none",
+            boxShadow: state.isFocused ? "0 0 0 4px rgba(255,107,0,.08)" : "none",
             backgroundColor: "#fff"
         }),
-        valueContainer: (base) => ({
-            ...base,
-            padding: "4px 14px"
-        }),
-        placeholder: (base) => ({
-            ...base,
-            color: "#a2aab5",
-            fontSize: "13px"
-        }),
-        singleValue: (base) => ({
-            ...base,
-            color: "#1f2937",
-            fontSize: "13px",
-            fontWeight: "500"
-        }),
-        input: (base) => ({
-            ...base,
-            fontSize: "13px"
-        }),
-        indicatorSeparator: () => ({
-            display: "none"
-        }),
-        dropdownIndicator: (base) => ({
-            ...base,
-            color: "#8d96a3"
-        }),
+        valueContainer: (base) => ({ ...base, padding: "4px 14px" }),
+        placeholder: (base) => ({ ...base, color: "#a2aab5", fontSize: "13px" }),
+        singleValue: (base) => ({ ...base, color: "#1f2937", fontSize: "13px", fontWeight: "500" }),
+        input: (base) => ({ ...base, fontSize: "13px" }),
+        indicatorSeparator: () => ({ display: "none" }),
+        dropdownIndicator: (base) => ({ ...base, color: "#8d96a3" }),
         menu: (base) => ({
             ...base,
             zIndex: 9999,
@@ -605,11 +552,7 @@ const AccUpdate = () => {
             ...base,
             padding: "11px 14px",
             fontSize: "13px",
-            backgroundColor: state.isSelected
-                ? "#ff6b00"
-                : state.isFocused
-                    ? "#fff4eb"
-                    : "#fff",
+            backgroundColor: state.isSelected ? "#ff6b00" : state.isFocused ? "#fff4eb" : "#fff",
             color: state.isSelected ? "#fff" : "#263342"
         })
     };
@@ -638,66 +581,6 @@ const AccUpdate = () => {
             width: 100%;
             max-width: 1450px;
             margin: 0 auto;
-        }
-
-        .acc-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 25px;
-            margin-bottom: 22px;
-        }
-
-        .acc-breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            color: #8a94a3;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .acc-breadcrumb i {
-            font-size: 9px;
-            color: #b2bac5;
-        }
-
-        .acc-topbar h1 {
-            margin: 0;
-            color: #172333;
-            font-size: 27px;
-            line-height: 1.2;
-            font-weight: 800;
-            letter-spacing: -.4px;
-        }
-
-        .acc-topbar p {
-            margin: 7px 0 0;
-            color: #87919e;
-            font-size: 12px;
-        }
-
-        .acc-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 14px;
-            border: 1px solid #dcefe3;
-            border-radius: 30px;
-            background: #f5fff8;
-            color: #249653;
-            font-size: 11px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .acc-status span {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #2fbd6a;
-            box-shadow: 0 0 0 4px rgba(47,189,106,.10);
         }
 
         .acc-content {
@@ -753,9 +636,10 @@ const AccUpdate = () => {
             font-size: 11px;
         }
 
-        .acc-field {
-            width: 100%;
-        }
+        /* ============================================================
+           ✅ FIELD STYLES
+        ============================================================ */
+        .acc-field { width: 100%; }
 
         .acc-label {
             display: block;
@@ -794,9 +678,7 @@ const AccUpdate = () => {
             transform: translateY(-50%);
         }
 
-        .acc-textarea-wrap > i {
-            top: 16px;
-        }
+        .acc-textarea-wrap > i { top: 16px; }
 
         .acc-input {
             width: 100%;
@@ -812,9 +694,7 @@ const AccUpdate = () => {
             transition: all .2s ease;
         }
 
-        .acc-input:hover {
-            border-color: #ccd4de;
-        }
+        .acc-input:hover { border-color: #ccd4de; }
 
         .acc-input:focus {
             border-color: #ff6b00;
@@ -847,14 +727,6 @@ const AccUpdate = () => {
             box-shadow: 0 0 0 4px rgba(255,107,0,.08);
         }
 
-        .acc-select-wrap > i {
-            left: 15px;
-        }
-
-        .acc-select-wrap > div {
-            width: 100%;
-        }
-
         .acc-error {
             display: flex;
             align-items: center;
@@ -865,9 +737,9 @@ const AccUpdate = () => {
             font-weight: 600;
         }
 
-        .acc-error i {
-            font-size: 10px;
-        }
+        /* ============================================================
+           ✅ DOCUMENT SECTION — FIX
+        ============================================================ */
 
         .acc-document-notice {
             display: flex;
@@ -907,8 +779,15 @@ const AccUpdate = () => {
             font-size: 10px;
         }
 
-        .acc-document-card {
+        /* ✅ Wrapper — FileUpload + ExistingFile ek saath */
+        .acc-document-card-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
             height: 100%;
+        }
+
+        .acc-document-card {
             padding: 18px;
             border: 1px solid #e6eaf0;
             border-radius: 14px;
@@ -1062,9 +941,7 @@ const AccUpdate = () => {
             font-size: 10px;
         }
 
-        .acc-remove-file:hover {
-            background: #ffd4d4;
-        }
+        .acc-remove-file:hover { background: #ffd4d4; }
 
         .acc-new-preview {
             display: flex;
@@ -1090,12 +967,12 @@ const AccUpdate = () => {
             font-weight: 700;
         }
 
+        /* ✅ Existing File — ab apne card ke andar */
         .acc-existing-file {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-top: 10px;
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #e8ecf1;
             border-radius: 10px;
             background: #fafbfc;
@@ -1165,6 +1042,9 @@ const AccUpdate = () => {
             color: #fff;
         }
 
+        /* ============================================================
+           ✅ FOOTER
+        ============================================================ */
         .acc-footer {
             display: flex;
             align-items: center;
@@ -1253,17 +1133,6 @@ const AccUpdate = () => {
             box-shadow: 0 11px 25px rgba(255,107,0,.28);
         }
 
-        .acc-submit:active {
-            transform: translateY(0);
-        }
-
-        .acc-cancel:disabled,
-        .acc-submit:disabled {
-            opacity: .65;
-            cursor: not-allowed;
-            transform: none;
-        }
-
         .acc-spinner {
             width: 15px;
             height: 15px;
@@ -1306,65 +1175,23 @@ const AccUpdate = () => {
         }
 
         @keyframes accSpin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
 
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
         @media (max-width: 991px) {
-            .acc-page {
-                padding: 20px 14px 35px;
-            }
-
-            .acc-topbar h1 {
-                font-size: 23px;
-            }
-
-            .acc-section {
-                padding: 26px 25px 29px;
-            }
-
-            .acc-footer {
-                padding: 20px 25px;
-            }
+            .acc-page { padding: 20px 14px 35px; }
+            .acc-section { padding: 26px 25px 29px; }
+            .acc-footer { padding: 20px 25px; }
         }
 
         @media (max-width: 767px) {
-            .acc-page {
-                padding: 12px 8px 25px;
-            }
-
-            .acc-topbar {
-                align-items: flex-start;
-                flex-direction: column;
-                margin-bottom: 16px;
-            }
-
-            .acc-topbar h1 {
-                font-size: 20px;
-            }
-
-            .acc-topbar p {
-                font-size: 10px;
-                line-height: 1.5;
-            }
-
-            .acc-status {
-                display: none;
-            }
-
-            .acc-content {
-                border-radius: 14px;
-            }
-
-            .acc-section {
-                padding: 22px 16px 25px;
-            }
-
-            .acc-section-head {
-                margin-bottom: 20px;
-            }
-
+            .acc-page { padding: 12px 8px 25px; }
+            .acc-content { border-radius: 14px; }
+            .acc-section { padding: 22px 16px 25px; }
+            .acc-section-head { margin-bottom: 20px; }
             .acc-section-number {
                 width: 35px;
                 height: 35px;
@@ -1372,69 +1199,36 @@ const AccUpdate = () => {
                 border-radius: 9px;
                 font-size: 9px;
             }
-
-            .acc-section-head h2 {
-                font-size: 14px;
-            }
-
-            .acc-section-head p {
-                font-size: 9px;
-            }
-
+            .acc-section-head h2 { font-size: 14px; }
+            .acc-section-head p { font-size: 9px; }
             .acc-footer {
                 align-items: stretch;
                 flex-direction: column;
                 padding: 18px 16px;
             }
-
             .acc-actions {
                 width: 100%;
                 flex-direction: column-reverse;
             }
-
             .acc-cancel,
-            .acc-submit {
-                width: 100%;
-            }
-
-            .acc-document-card {
-                padding: 14px;
-            }
+            .acc-submit { width: 100%; }
+            .acc-document-card { padding: 14px; }
         }
 
         @media (max-width: 420px) {
-            .acc-page {
-                padding: 8px 5px 20px;
-            }
-
-            .acc-topbar h1 {
-                font-size: 18px;
-            }
-
-            .acc-section {
-                padding: 19px 12px 22px;
-            }
-
-            .acc-input {
-                height: 48px;
-            }
-
-            .acc-document-header h4 {
-                font-size: 11px;
-            }
-
-            .acc-upload-box {
-                min-height: 66px;
-            }
+            .acc-page { padding: 8px 5px 20px; }
+            .acc-section { padding: 19px 12px 22px; }
+            .acc-input { height: 48px; }
+            .acc-upload-box { min-height: 66px; }
         }
         `}</style>
 
             <div className="acc-page">
                 <div className="acc-container">
-                    
- 
                     <form onSubmit={handleSubmit}>
                         <div className="acc-content">
+
+                            {/* SECTION 01 */}
                             <div className="acc-section">
                                 <div className="acc-section-head">
                                     <div className="acc-section-number">01</div>
@@ -1446,59 +1240,21 @@ const AccUpdate = () => {
 
                                 <div className="row g-4">
                                     <div className="col-lg-6">
-                                        <Field
-                                            label="Institute Name"
-                                            name="instituteName"
-                                            icon="bi-building"
-                                            placeholder="Enter institute name"
-                                            required
-                                            formData={formData}
-                                            handleChange={handleChange}
-                                            errors={errors}
-                                        />
+                                        <Field label="Institute Name" name="instituteName" icon="bi-building" placeholder="Enter institute name" required formData={formData} handleChange={handleChange} errors={errors} />
                                     </div>
-
                                     <div className="col-lg-6">
-                                        <Field
-                                            label="Full Name"
-                                            name="name"
-                                            icon="bi-person"
-                                            placeholder="Enter full name"
-                                            required
-                                            formData={formData}
-                                            handleChange={handleChange}
-                                            errors={errors}
-                                        />
+                                        <Field label="Full Name" name="name" icon="bi-person" placeholder="Enter full name" required formData={formData} handleChange={handleChange} errors={errors} />
                                     </div>
-
                                     <div className="col-lg-6">
-                                        <Field
-                                            label="Father's Name"
-                                            name="fatherName"
-                                            icon="bi-person-vcard"
-                                            placeholder="Enter father's name"
-                                            required
-                                            formData={formData}
-                                            handleChange={handleChange}
-                                            errors={errors}
-                                        />
+                                        <Field label="Father's Name" name="fatherName" icon="bi-person-vcard" placeholder="Enter father's name" required formData={formData} handleChange={handleChange} errors={errors} />
                                     </div>
-
                                     <div className="col-lg-6">
-                                        <Field
-                                            label="Date of Birth"
-                                            name="dob"
-                                            icon="bi-calendar3"
-                                            type="date"
-                                            placeholder="Select date of birth"
-                                            formData={formData}
-                                            handleChange={handleChange}
-                                            errors={errors}
-                                        />
+                                        <Field label="Date of Birth" name="dob" icon="bi-calendar3" type="date" placeholder="Select date of birth" formData={formData} handleChange={handleChange} errors={errors} />
                                     </div>
                                 </div>
                             </div>
 
+                            {/* SECTION 02 */}
                             <div className="acc-section">
                                 <div className="acc-section-head">
                                     <div className="acc-section-number">02</div>
@@ -1511,13 +1267,9 @@ const AccUpdate = () => {
                                 <div className="row g-4">
                                     <div className="col-lg-4">
                                         <div className="acc-field">
-                                            <label className="acc-label">
-                                                Mobile Number <span>*</span>
-                                            </label>
-
+                                            <label className="acc-label">Mobile Number <span>*</span></label>
                                             <div className="acc-input-wrap">
                                                 <i className="bi bi-phone"></i>
-
                                                 <input
                                                     type="tel"
                                                     name="mobileNo"
@@ -1526,27 +1278,14 @@ const AccUpdate = () => {
                                                     maxLength="10"
                                                     value={formData.mobileNo}
                                                     onChange={(e) => {
-                                                        const value =
-                                                            e.target.value.replace(
-                                                                /\D/g,
-                                                                ""
-                                                            );
-
-                                                        setFormData((prev) => ({
-                                                            ...prev,
-                                                            mobileNo: value
-                                                        }));
-
+                                                        const value = e.target.value.replace(/\D/g, "");
+                                                        setFormData((prev) => ({ ...prev, mobileNo: value }));
                                                         if (errors.mobileNo) {
-                                                            setErrors((prev) => ({
-                                                                ...prev,
-                                                                mobileNo: ""
-                                                            }));
+                                                            setErrors((prev) => ({ ...prev, mobileNo: "" }));
                                                         }
                                                     }}
                                                 />
                                             </div>
-
                                             {errors.mobileNo && (
                                                 <div className="acc-error">
                                                     <i className="bi bi-exclamation-circle"></i>
@@ -1558,13 +1297,9 @@ const AccUpdate = () => {
 
                                     <div className="col-lg-4">
                                         <div className="acc-field">
-                                            <label className="acc-label">
-                                                WhatsApp Number
-                                            </label>
-
+                                            <label className="acc-label">WhatsApp Number</label>
                                             <div className="acc-input-wrap">
                                                 <i className="bi bi-whatsapp"></i>
-
                                                 <input
                                                     type="tel"
                                                     name="whatsAppNo"
@@ -1573,16 +1308,8 @@ const AccUpdate = () => {
                                                     maxLength="10"
                                                     value={formData.whatsAppNo}
                                                     onChange={(e) => {
-                                                        const value =
-                                                            e.target.value.replace(
-                                                                /\D/g,
-                                                                ""
-                                                            );
-
-                                                        setFormData((prev) => ({
-                                                            ...prev,
-                                                            whatsAppNo: value
-                                                        }));
+                                                        const value = e.target.value.replace(/\D/g, "");
+                                                        setFormData((prev) => ({ ...prev, whatsAppNo: value }));
                                                     }}
                                                 />
                                             </div>
@@ -1590,21 +1317,12 @@ const AccUpdate = () => {
                                     </div>
 
                                     <div className="col-lg-4">
-                                        <Field
-                                            label="Email Address"
-                                            name="email"
-                                            icon="bi-envelope"
-                                            type="email"
-                                            placeholder="Enter email address"
-                                            required
-                                            formData={formData}
-                                            handleChange={handleChange}
-                                            errors={errors}
-                                        />
+                                        <Field label="Email Address" name="email" icon="bi-envelope" type="email" placeholder="Enter email address" required formData={formData} handleChange={handleChange} errors={errors} />
                                     </div>
                                 </div>
                             </div>
 
+                            {/* SECTION 03 */}
                             <div className="acc-section">
                                 <div className="acc-section-head">
                                     <div className="acc-section-number">03</div>
@@ -1616,44 +1334,18 @@ const AccUpdate = () => {
 
                                 <div className="row g-4">
                                     <div className="col-lg-4">
-                                        <Field
-                                            label="Experience"
-                                            name="experience"
-                                            icon="bi-clock-history"
-                                            placeholder="e.g. 3 Years"
-                                            formData={formData}
-                                            handleChange={handleChange}
-                                            errors={errors}
-                                        />
+                                        <Field label="Experience" name="experience" icon="bi-clock-history" placeholder="e.g. 3 Years" formData={formData} handleChange={handleChange} errors={errors} />
                                     </div>
-
                                     <div className="col-lg-4">
-                                        <Field
-                                            label="Occupation"
-                                            name="occupation"
-                                            icon="bi-person-badge"
-                                            placeholder="Enter occupation"
-                                            formData={formData}
-                                            handleChange={handleChange}
-                                            errors={errors}
-                                        />
+                                        <Field label="Occupation" name="occupation" icon="bi-person-badge" placeholder="Enter occupation" formData={formData} handleChange={handleChange} errors={errors} />
                                     </div>
-
                                     <div className="col-lg-4">
-                                        <Field
-                                            label="Expected Admissions"
-                                            name="expectedAdmissions"
-                                            icon="bi-people"
-                                            type="number"
-                                            placeholder="Expected admissions"
-                                            formData={formData}
-                                            handleChange={handleChange}
-                                            errors={errors}
-                                        />
+                                        <Field label="Expected Admissions" name="expectedAdmissions" icon="bi-people" type="number" placeholder="Expected admissions" formData={formData} handleChange={handleChange} errors={errors} />
                                     </div>
                                 </div>
                             </div>
 
+                            {/* SECTION 04 */}
                             <div className="acc-section">
                                 <div className="acc-section-head">
                                     <div className="acc-section-number">04</div>
@@ -1666,13 +1358,9 @@ const AccUpdate = () => {
                                 <div className="row g-4">
                                     <div className="col-12">
                                         <div className="acc-field">
-                                            <label className="acc-label">
-                                                Full Address <span>*</span>
-                                            </label>
-
+                                            <label className="acc-label">Full Address <span>*</span></label>
                                             <div className="acc-textarea-wrap">
                                                 <i className="bi bi-house"></i>
-
                                                 <textarea
                                                     name="address"
                                                     className="acc-textarea"
@@ -1682,7 +1370,6 @@ const AccUpdate = () => {
                                                     onChange={handleChange}
                                                 />
                                             </div>
-
                                             {errors.address && (
                                                 <div className="acc-error">
                                                     <i className="bi bi-exclamation-circle"></i>
@@ -1694,13 +1381,8 @@ const AccUpdate = () => {
 
                                     <div className="col-lg-4">
                                         <div className="acc-field">
-                                            <label className="acc-label">
-                                                State <span>*</span>
-                                            </label>
-
+                                            <label className="acc-label">State <span>*</span></label>
                                             <div className="acc-select-wrap">
-                                               
-
                                                 <Select
                                                     options={stateOptions}
                                                     value={selectedState}
@@ -1708,13 +1390,10 @@ const AccUpdate = () => {
                                                     placeholder="Search state..."
                                                     isSearchable
                                                     isClearable
-                                                    noOptionsMessage={() =>
-                                                        "State not found"
-                                                    }
+                                                    noOptionsMessage={() => "State not found"}
                                                     styles={selectStyles}
                                                 />
                                             </div>
-
                                             {errors.stateId && (
                                                 <div className="acc-error">
                                                     <i className="bi bi-exclamation-circle"></i>
@@ -1726,32 +1405,20 @@ const AccUpdate = () => {
 
                                     <div className="col-lg-4">
                                         <div className="acc-field">
-                                            <label className="acc-label">
-                                                District <span>*</span>
-                                            </label>
-
+                                            <label className="acc-label">District <span>*</span></label>
                                             <div className="acc-select-wrap">
-                                                
-
                                                 <Select
                                                     options={districtOptions}
                                                     value={selectedDistrict}
                                                     onChange={handleDistrictChange}
-                                                    placeholder={
-                                                        formData.stateId
-                                                            ? "Search district..."
-                                                            : "Select state first"
-                                                    }
+                                                    placeholder={formData.stateId ? "Search district..." : "Select state first"}
                                                     isSearchable
                                                     isClearable
                                                     isDisabled={!formData.stateId}
-                                                    noOptionsMessage={() =>
-                                                        "District not found"
-                                                    }
+                                                    noOptionsMessage={() => "District not found"}
                                                     styles={selectStyles}
                                                 />
                                             </div>
-
                                             {errors.districtId && (
                                                 <div className="acc-error">
                                                     <i className="bi bi-exclamation-circle"></i>
@@ -1763,32 +1430,20 @@ const AccUpdate = () => {
 
                                     <div className="col-lg-4">
                                         <div className="acc-field">
-                                            <label className="acc-label">
-                                                City <span>*</span>
-                                            </label>
-
+                                            <label className="acc-label">City <span>*</span></label>
                                             <div className="acc-select-wrap">
-                                                
-
                                                 <Select
                                                     options={cityOptions}
                                                     value={selectedCity}
                                                     onChange={handleCityChange}
-                                                    placeholder={
-                                                        formData.districtId
-                                                            ? "Search city..."
-                                                            : "Select district first"
-                                                    }
+                                                    placeholder={formData.districtId ? "Search city..." : "Select district first"}
                                                     isSearchable
                                                     isClearable
                                                     isDisabled={!formData.districtId}
-                                                    noOptionsMessage={() =>
-                                                        "City not found"
-                                                    }
+                                                    noOptionsMessage={() => "City not found"}
                                                     styles={selectStyles}
                                                 />
                                             </div>
-
                                             {errors.locationId && (
                                                 <div className="acc-error">
                                                     <i className="bi bi-exclamation-circle"></i>
@@ -1799,32 +1454,16 @@ const AccUpdate = () => {
                                     </div>
 
                                     <div className="col-lg-4">
-                                        <Field
-                                            label="Pin Code"
-                                            name="pincode"
-                                            icon="bi-mailbox"
-                                            placeholder="6 digit pin code"
-                                            type="text"
-                                            formData={formData}
-                                            handleChange={handleChange}
-                                            errors={errors}
-                                        />
+                                        <Field label="Pin Code" name="pincode" icon="bi-mailbox" placeholder="6 digit pin code" type="text" formData={formData} handleChange={handleChange} errors={errors} />
                                     </div>
 
                                     <div className="col-lg-8">
-                                        <Field
-                                            label="Remark"
-                                            name="remark"
-                                            icon="bi-chat-left-text"
-                                            placeholder="Enter any additional remark"
-                                            formData={formData}
-                                            handleChange={handleChange}
-                                            errors={errors}
-                                        />
+                                        <Field label="Remark" name="remark" icon="bi-chat-left-text" placeholder="Enter any additional remark" formData={formData} handleChange={handleChange} errors={errors} />
                                     </div>
                                 </div>
                             </div>
 
+                            {/* SECTION 05 — DOCUMENTS */}
                             <div className="acc-section acc-doc-section">
                                 <div className="acc-section-head">
                                     <div className="acc-section-number">05</div>
@@ -1838,7 +1477,6 @@ const AccUpdate = () => {
                                     <div className="acc-notice-icon">
                                         <i className="bi bi-shield-check"></i>
                                     </div>
-
                                     <div>
                                         <strong>Document verification</strong>
                                         <span>
@@ -1849,143 +1487,154 @@ const AccUpdate = () => {
                                 </div>
 
                                 <div className="row g-4">
+                                    {/* 1. Passport Photo */}
                                     <div className="col-lg-6">
-                                        <FileUpload
-                                            name="passportPhoto"
-                                            label="Passport Photo"
-                                            icon={<FaCamera />}
-                                            accept="image/*"
-                                            description="JPG or PNG • Recommended passport size"
-                                            formData={formData}
-                                            previews={previews}
-                                            handleFileChange={handleFileChange}
-                                            removeFile={removeFile}
-                                        />
-                                        <ExistingFile
-                                            file={formData.passportPhoto1}
-                                            label="Passport Photo"
+                                        <DocumentCard
+                                            uploadProps={{
+                                                name: "passportPhoto",
+                                                label: "Passport Photo",
+                                                icon: <FaCamera />,
+                                                accept: "image/*",
+                                                description: "JPG or PNG • Recommended passport size",
+                                                formData,
+                                                previews,
+                                                handleFileChange,
+                                                removeFile
+                                            }}
+                                            existingFile={formData.passportPhoto1}
+                                            existingLabel="Passport Photo"
+                                            existingType="image"
                                         />
                                     </div>
 
+                                    {/* 2. Authorized Signature */}
                                     <div className="col-lg-6">
-                                        <FileUpload
-                                            name="authorizedSignature"
-                                            label="Authorized Signature"
-                                            icon={<FaSignature />}
-                                            accept="image/*"
-                                            description="JPG or PNG • Clear signature"
-                                            formData={formData}
-                                            previews={previews}
-                                            handleFileChange={handleFileChange}
-                                            removeFile={removeFile}
-                                        />
-                                        <ExistingFile
-                                            file={formData.authorizedSignature1}
-                                            label="Authorized Signature"
+                                        <DocumentCard
+                                            uploadProps={{
+                                                name: "authorizedSignature",
+                                                label: "Authorized Signature",
+                                                icon: <FaSignature />,
+                                                accept: "image/*",
+                                                description: "JPG or PNG • Clear signature",
+                                                formData,
+                                                previews,
+                                                handleFileChange,
+                                                removeFile
+                                            }}
+                                            existingFile={formData.authorizedSignature1}
+                                            existingLabel="Authorized Signature"
+                                            existingType="image"
                                         />
                                     </div>
 
+                                    {/* 3. Institute Certificate */}
                                     <div className="col-lg-6">
-                                        <FileUpload
-                                            name="instituteCertificate"
-                                            label="Institute Certificate"
-                                            icon={<FaIdCard />}
-                                            accept="image/*,.pdf"
-                                            description="JPG, PNG or PDF"
-                                            formData={formData}
-                                            previews={previews}
-                                            handleFileChange={handleFileChange}
-                                            removeFile={removeFile}
-                                        />
-                                        <ExistingFile
-                                            file={formData.instituteCertificate1}
-                                            label="Institute Certificate"
-                                            type="pdf"
+                                        <DocumentCard
+                                            uploadProps={{
+                                                name: "instituteCertificate",
+                                                label: "Institute Certificate",
+                                                icon: <FaIdCard />,
+                                                accept: "image/*,.pdf",
+                                                description: "JPG, PNG or PDF",
+                                                formData,
+                                                previews,
+                                                handleFileChange,
+                                                removeFile
+                                            }}
+                                            existingFile={formData.instituteCertificate1}
+                                            existingLabel="Institute Certificate"
+                                            existingType="pdf"
                                         />
                                     </div>
 
+                                    {/* 4. Aadhaar Card */}
                                     <div className="col-lg-6">
-                                        <FileUpload
-                                            name="aadhaarCard"
-                                            label="Aadhaar Card"
-                                            icon={<FaIdCard />}
-                                            accept="image/*,.pdf"
-                                            description="JPG, PNG or PDF"
-                                            formData={formData}
-                                            previews={previews}
-                                            handleFileChange={handleFileChange}
-                                            removeFile={removeFile}
-                                        />
-                                        <ExistingFile
-                                            file={formData.aadhaarCard1}
-                                            label="Aadhaar Card"
-                                            type="pdf"
+                                        <DocumentCard
+                                            uploadProps={{
+                                                name: "aadhaarCard",
+                                                label: "Aadhaar Card",
+                                                icon: <FaIdCard />,
+                                                accept: "image/*,.pdf",
+                                                description: "JPG, PNG or PDF",
+                                                formData,
+                                                previews,
+                                                handleFileChange,
+                                                removeFile
+                                            }}
+                                            existingFile={formData.aadhaarCard1}
+                                            existingLabel="Aadhaar Card"
+                                            existingType="pdf"
                                         />
                                     </div>
 
+                                    {/* 5. PAN Card */}
                                     <div className="col-lg-6">
-                                        <FileUpload
-                                            name="panCard"
-                                            label="PAN Card"
-                                            icon={<FaFileInvoice />}
-                                            accept="image/*,.pdf"
-                                            description="JPG, PNG or PDF"
-                                            formData={formData}
-                                            previews={previews}
-                                            handleFileChange={handleFileChange}
-                                            removeFile={removeFile}
-                                        />
-                                        <ExistingFile
-                                            file={formData.panCard1}
-                                            label="PAN Card"
-                                            type="pdf"
+                                        <DocumentCard
+                                            uploadProps={{
+                                                name: "panCard",
+                                                label: "PAN Card",
+                                                icon: <FaFileInvoice />,
+                                                accept: "image/*,.pdf",
+                                                description: "JPG, PNG or PDF",
+                                                formData,
+                                                previews,
+                                                handleFileChange,
+                                                removeFile
+                                            }}
+                                            existingFile={formData.panCard1}
+                                            existingLabel="PAN Card"
+                                            existingType="pdf"
                                         />
                                     </div>
 
+                                    {/* 6. Building Photo 1 */}
                                     <div className="col-lg-6">
-                                        <FileUpload
-                                            name="buildingPhoto1"
-                                            label="Building Photo 1"
-                                            icon={<FaBuilding />}
-                                            accept="image/*"
-                                            description="JPG or PNG"
-                                            formData={formData}
-                                            previews={previews}
-                                            handleFileChange={handleFileChange}
-                                            removeFile={removeFile}
-                                        />
-                                        <ExistingFile
-                                            file={formData.buildingPhoto11}
-                                            label="Building Photo 1"
+                                        <DocumentCard
+                                            uploadProps={{
+                                                name: "buildingPhoto1",
+                                                label: "Building Photo 1",
+                                                icon: <FaBuilding />,
+                                                accept: "image/*",
+                                                description: "JPG or PNG",
+                                                formData,
+                                                previews,
+                                                handleFileChange,
+                                                removeFile
+                                            }}
+                                            existingFile={formData.buildingPhoto11}
+                                            existingLabel="Building Photo 1"
+                                            existingType="image"
                                         />
                                     </div>
 
+                                    {/* 7. Building Photo 2 */}
                                     <div className="col-lg-6">
-                                        <FileUpload
-                                            name="buildingPhoto2"
-                                            label="Building Photo 2"
-                                            icon={<FaBuilding />}
-                                            accept="image/*"
-                                            description="JPG or PNG"
-                                            formData={formData}
-                                            previews={previews}
-                                            handleFileChange={handleFileChange}
-                                            removeFile={removeFile}
-                                        />
-                                        <ExistingFile
-                                            file={formData.buildingPhoto21}
-                                            label="Building Photo 2"
+                                        <DocumentCard
+                                            uploadProps={{
+                                                name: "buildingPhoto2",
+                                                label: "Building Photo 2",
+                                                icon: <FaBuilding />,
+                                                accept: "image/*",
+                                                description: "JPG or PNG",
+                                                formData,
+                                                previews,
+                                                handleFileChange,
+                                                removeFile
+                                            }}
+                                            existingFile={formData.buildingPhoto21}
+                                            existingLabel="Building Photo 2"
+                                            existingType="image"
                                         />
                                     </div>
                                 </div>
                             </div>
 
+                            {/* FOOTER */}
                             <div className="acc-footer">
                                 <div className="acc-secure">
                                     <div className="acc-secure-icon">
                                         <i className="bi bi-shield-lock"></i>
                                     </div>
-
                                     <div>
                                         <strong>Secure information</strong>
                                         <span>Your consultant data is protected.</span>

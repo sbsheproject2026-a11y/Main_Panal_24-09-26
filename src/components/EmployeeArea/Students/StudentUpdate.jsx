@@ -171,14 +171,15 @@ function StudentUpdate() {
     }
   };
 
-  const loadCourse = async (courseCategoryId) => {
-    try {
-      const result = await getCourse(courseCategoryId);
-      setCourse(result.data || []);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const loadCourse = async (courseCategoryId,courseTypeId) => {
+          try {
+              const result = await getCourse(courseCategoryId,courseTypeId);
+              setCourse(result?.data || []);
+          } catch (error) {
+              console.error("Course Error:", error);
+              setCourse([]);
+          }
+      };
 
   const loadAcademicDetails = async (studentId) => {
     try {
@@ -330,7 +331,7 @@ function StudentUpdate() {
       }
 
       if (result.courseCategoryId > 0) {
-        await loadCourse(result.courseCategoryId);
+        await loadCourse(result.courseCategoryId,result.courseTypeId);
       }
     } catch (error) {
       console.log(error);
@@ -1242,17 +1243,7 @@ function StudentUpdate() {
                       </div>
                     </div>
 
-                    <div className="col-lg-4 col-md-6">
-                      <div className="student-field">
-                        <label>Student Code</label>
-                        <input
-                          type="text"
-                          className="student-input"
-                          value={formData.code ?? ""}
-                          readOnly
-                        />
-                      </div>
-                    </div>
+               
                   </div>
                 </div>
               </div>

@@ -95,12 +95,12 @@ function UpdatePassword() {
 
               {/* ID */}
 
-              <div className="col-md-6 mb-3">
+              <div className="col-md-6 mb-3" hidden>
                 <label className="form-label">
                   ID
                 </label>
 
-                <input hidden
+                <input 
                   readOnly
                   type="text"
                   name="id"

@@ -74,7 +74,7 @@ function ViewDetails() {
       }
 
       if (data.courseCategoryId > 0) {
-        await loadCourses(data.courseCategoryId);
+        await loadCourse(data.courseCategoryId,data.courseTypeId);
       }
     } catch (error) {
       console.log("Student Details Error:", error);
@@ -155,14 +155,17 @@ function ViewDetails() {
     }
   };
 
-  const loadCourses = async (courseCategoryId) => {
-    try {
-      const result = await getCourse(courseCategoryId);
-      setCourses(result.data || []);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  
+
+   const loadCourse = async (courseCategoryId,courseTypeId) => {
+            try {
+                const result = await getCourse(courseCategoryId,courseTypeId);
+                setCourses(result?.data || []);
+            } catch (error) {
+                console.error("Course Error:", error);
+                setCourses([]);
+            }
+        };
 
   const getName = (list, id) => {
     const item = list.find(
@@ -526,10 +529,7 @@ function ViewDetails() {
                 )}
               />
 
-              <DetailItem
-                label="Student Code"
-                value={student.code}
-              />
+              
 
             </div>
 

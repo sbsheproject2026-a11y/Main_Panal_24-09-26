@@ -21,14 +21,17 @@ import MarksheetPrint from './components/DocumentPrintFiles/AllDocumentsPrint/Ma
 import AdmitCardPrint from './components/DocumentPrintFiles/AllDocumentsPrint/AdmitCardPrint'
 import IdCard from './components/DocumentPrintFiles/AllDocumentsPrint/IdCard'
 import AuthorityLetterPrint from './components/DocumentPrintFiles/AllDocumentsPrint/AuthorityLetterPrint'
- 
+
 import AdmissionFormPrint from './components/WebsiteForms/AdmissionFormPrint'
 import FranchiseIdCard from './components/DocumentPrintFiles/AllDocumentsPrint/FranchiseIdCard'
 import AuthorityLetterPrintNew from './components/DocumentPrintFiles/AllDocumentsPrint/AuthorityLetterPrintNew'
 import FeeCard from './components/WebsiteForms/FeeCard'
- 
+
 import PaymentSuccess from './components/WebsiteForms/PaymentSuccess'
- 
+import StudentLayout from './components/StudentArea/StudentLayout/StudentLayout'
+import UpdatePassword from './components/EmployeeArea/EmployeePage/UpdatePassword'
+import NewStudentRegistration from './components/WebsiteForms/NewStudentRegistration'
+
 
 
 function App() {
@@ -41,15 +44,17 @@ function App() {
                 <Route path="/" element={<Login />} />
                 <Route path="/acc-apply" element={<AdmissionConsultantRegistration />} />
                 <Route path="/student-apply" element={<StudentRegistration />} />
+                <Route path="/new-student-apply" element={<NewStudentRegistration />} />
                 <Route path="/study-centre-apply" element={<StudyCenterRegistration />} />
-              <Route path="/fee" element={<FeeCard />} />
-            
-                 <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/admission-form-print/:id" element={<AdmissionFormPrint />} />
-           
-            
+                <Route path="/fee" element={<FeeCard />} />
+
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/admission-form-print/:id" element={<AdmissionFormPrint />} />
+             
+
+
                 <Route path="/success" element={<Success />} />
- 
+
 
                 {/* ================= Admin (Role 5 only) ================= */}
                 <Route element={<ProtectedRoute allowedRole={["5"]} />}>
@@ -71,7 +76,7 @@ function App() {
 
                 {/* ================= Common — Admin (5) + Franchise (33) ================= */}
                 {/* 👇 Print pages — full screen, bina layout */}
-                <Route element={<ProtectedRoute allowedRole={["5", "33","6", "90"]} />}>
+                <Route element={<ProtectedRoute allowedRole={["5", "33", "6", "90","7"]} />}>
                     <Route path="/diploma-print/:id" element={<DiplomaPrint />} />
                     <Route path="/migration-certificate/:id" element={<MigrationCertificate />} />
                     <Route path="/marksheet-print/:id" element={<MarksheetPrint />} />
@@ -79,6 +84,7 @@ function App() {
                     <Route path="/id-card-print/:id" element={<FranchiseIdCard />} />
                     <Route path="/admit-card-print/:id" element={<AdmitCardPrint />} />
                     <Route path="/id-card/:id" element={<IdCard />} />
+                   
                 </Route>
 
 
@@ -102,13 +108,16 @@ function App() {
 
                 {/* ================= Student (Role 7) ================= */}
                 <Route element={<ProtectedRoute allowedRole="7" />}>
-                    {studentRoute.map((route) => (
-                        <Route
-                            key={route.path}
-                            path={route.path}
-                            element={route.element}
-                        />
-                    ))}
+     
+                    <Route element={<StudentLayout />}>
+                        {studentRoute.map((route) => (
+                            <Route
+                                key={route.path}
+                                path={route.path}
+                                element={route.element}
+                            />
+                        ))}
+                    </Route>
                 </Route>
 
 
