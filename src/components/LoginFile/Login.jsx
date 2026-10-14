@@ -384,7 +384,7 @@ const Login = () => {
         <button
           type="button"
           className="apply-card"
-          onClick={() => navigate("/student-apply")}
+          onClick={() => navigate("/registration-mode")}
         >
           <div className="apply-card-icon student-icon">🎓</div>
 
@@ -455,7 +455,7 @@ const Login = () => {
 
             <button
               type="button"
-              onClick={() => navigate("/student-apply")}
+              onClick={() => navigate("/registration-mode")}
             >
               Student Registration
             </button>

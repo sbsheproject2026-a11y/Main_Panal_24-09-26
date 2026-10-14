@@ -24,7 +24,8 @@ function CourseCreate() {
   const [amountTypes, setAmountTypes] = useState([]);
   const [materialTypes, setMaterialTypes] = useState([]);
   const [errors, setErrors] = useState({});
-
+const [documentExtensionTypes, setDocumentExtensionTypes] = useState([]);
+ const [documentExtensionLoading, setDocumentExtensionLoading] = useState(false);
   const [formData, setFormData] = useState({
     code: "",
     shortName: "",
@@ -55,6 +56,7 @@ function CourseCreate() {
   const [studyMaterials, setStudyMaterials] = useState([
     {
       materialTypeId: 0,
+      docExtensionId: 0,
       name: "",
       file: null,
       altTag: "",
@@ -70,6 +72,7 @@ function CourseCreate() {
     loadParentCourses();
     loadAmountTypes();
     loadMaterialTypes();
+     loadDocumentExtensionTypes();
   }, []);
 
   const loadStudyMode = async () => {
@@ -142,7 +145,22 @@ function CourseCreate() {
       console.log(error);
     }
   };
+const loadDocumentExtensionTypes = async () => {
+        try {
+            setDocumentExtensionLoading(true);
 
+            const result = await getDuration(38);
+
+            setDocumentExtensionTypes(
+                Array.isArray(result?.data) ? result.data : []
+            );
+        } catch (error) {
+            console.error("Document Extension Type Error:", error);
+            setDocumentExtensionTypes([]);
+        } finally {
+            setDocumentExtensionLoading(false);
+        }
+    };
   const handleChange = async (e) => {
     const { name, value } = e.target;
 
@@ -349,6 +367,127 @@ function CourseCreate() {
   return (
     <>
       <style>{`
+
+      /* Row container — Sr.No. + fields + delete button */
+.course-repeat-row.material-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    position: relative;
+}
+
+/* Sr. No. circle */
+.course-row-number {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+/* ✅ 3-column grid — magic yahin hai */
+.course-fields-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  /* 3 columns */
+    gap: 14px 16px;
+    min-width: 0;  /* ellipsis / overflow prevent */
+}
+
+/* Each field */
+.course-repeat-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.course-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.course-select,
+.course-input,
+.course-file-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.course-select:focus,
+.course-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+/* Delete button — top-right corner */
+.course-delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.course-delete-btn:hover {
+    background: #fecaca;
+}
+
+/* Selected file display */
+.selected-file {
+    color: #16a34a;
+    font-size: 12px;
+    display: block;
+    margin-top: 2px;
+}
+
+/* ============================================
+   RESPONSIVE
+============================================ */
+@media (max-width: 992px) {
+    .course-fields-grid {
+        grid-template-columns: repeat(2, 1fr);  /* 2 columns tablet */
+    }
+}
+
+@media (max-width: 576px) {
+    .course-fields-grid {
+        grid-template-columns: 1fr;  /* 1 column mobile */
+    }
+
+    .course-repeat-row.material-row {
+        padding: 14px;
+    }
+}
         .course-page-header {
           margin-bottom: 25px;
         }
@@ -1387,126 +1526,124 @@ function CourseCreate() {
                     </button>
                   </div>
 
-                  <div className="course-repeat-box">
-                    {studyMaterials.map((item, index) => (
-                      <div
-                        className="course-repeat-row material-row"
-                        key={index}
-                      >
-                        <div className="course-row-number">
-                          {index + 1}
-                        </div>
+                <div className="course-repeat-box">
+  {studyMaterials.map((item, index) => (
+    <div className="course-repeat-row material-row" key={index}>
+      
+      {/* Sr. No. — left side */}
+      <div className="course-row-number">{index + 1}</div>
 
-                        <div className="course-repeat-field">
-                          <label className="course-label">
-                            Material Type
-                          </label>
+      {/* ✅ 3 fields ek row me */}
+      <div className="course-fields-grid">
 
-                          <select
-                            className="course-select"
-                            value={item.materialTypeId}
-                            onChange={(e) =>
-                              handleStudyMaterialChange(
-                                index,
-                                "materialTypeId",
-                                Number(e.target.value)
-                              )
-                            }
-                          >
-                            <option value={0}>
-                              Select Material Type
-                            </option>
+        {/* Field 1: Material Type */}
+        <div className="course-repeat-field">
+          <label className="course-label">Material Type</label>
+          <select
+            className="course-select"
+            value={item.materialTypeId}
+            onChange={(e) =>
+              handleStudyMaterialChange(
+                index,
+                "materialTypeId",
+                Number(e.target.value)
+              )
+            }
+          >
+            <option value={0}>Select Material Type</option>
+            {materialTypes.map((type) => (
+              <option key={type.id} value={type.id}>
+                {type.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-                            {materialTypes.map((type) => (
-                              <option
-                                key={type.id}
-                                value={type.id}
-                              >
-                                {type.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+        {/* Field 2: Document Extension Type */}
+        <div className="course-repeat-field">
+          <label className="course-label">Document Extension Type</label>
+          <select
+            className="course-select"
+            value={item.documentExtensionId}
+            onChange={(e) =>
+              handleStudyMaterialChange(
+                index,
+                "documentExtensionId",
+                Number(e.target.value)
+              )
+            }
+          >
+            <option value={0}>Select</option>
+            {documentExtensionTypes.map((type) => (
+              <option key={type.id} value={type.id}>
+                {type.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-                        <div className="course-repeat-field">
-                          <label className="course-label">
-                            Name
-                          </label>
+        {/* Field 3: Name */}
+        <div className="course-repeat-field">
+          <label className="course-label">Name</label>
+          <input
+            type="text"
+            className="course-input"
+            placeholder="Enter material name"
+            value={item.name}
+            onChange={(e) =>
+              handleStudyMaterialChange(index, "name", e.target.value)
+            }
+          />
+        </div>
 
-                          <input
-                            type="text"
-                            className="course-input"
-                            placeholder="Enter material name"
-                            value={item.name}
-                            onChange={(e) =>
-                              handleStudyMaterialChange(
-                                index,
-                                "name",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
+        {/* ✅ Next row — Field 4: File */}
+        <div className="course-repeat-field">
+          <label className="course-label">File</label>
+          <input
+            type="file"
+            className="course-file-input"
+            onChange={(e) =>
+              handleStudyMaterialChange(
+                index,
+                "file",
+                e.target.files?.[0] || null
+              )
+            }
+          />
+          {item.file && (
+            <small className="selected-file">{item.file.name}</small>
+          )}
+        </div>
 
-                        <div className="course-repeat-field">
-                          <label className="course-label">
-                            File
-                          </label>
+        {/* Field 5: Alt Tag */}
+        <div className="course-repeat-field">
+          <label className="course-label">Alt Tag</label>
+          <input
+            type="text"
+            className="course-input"
+            placeholder="Enter alt tag"
+            value={item.altTag}
+            onChange={(e) =>
+              handleStudyMaterialChange(index, "altTag", e.target.value)
+            }
+          />
+        </div>
 
-                          <input
-                            type="file"
-                            className="course-file-input"
-                            onChange={(e) =>
-                              handleStudyMaterialChange(
-                                index,
-                                "file",
-                                e.target.files?.[0] || null
-                              )
-                            }
-                          />
+      </div>
 
-                          {item.file && (
-                            <small className="selected-file">
-                              {item.file.name}
-                            </small>
-                          )}
-                        </div>
-
-                        <div className="course-repeat-field">
-                          <label className="course-label">
-                            Alt Tag
-                          </label>
-
-                          <input
-                            type="text"
-                            className="course-input"
-                            placeholder="Enter alt tag"
-                            value={item.altTag}
-                            onChange={(e) =>
-                              handleStudyMaterialChange(
-                                index,
-                                "altTag",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
-
-                        {studyMaterials.length > 1 && (
-                          <button
-                            type="button"
-                            className="course-delete-btn"
-                            onClick={() =>
-                              removeStudyMaterial(index)
-                            }
-                            title="Remove"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+      {studyMaterials.length > 1 && (
+        <button
+          type="button"
+          className="course-delete-btn"
+          onClick={() => removeStudyMaterial(index)}
+          title="Remove"
+        >
+          ×
+        </button>
+      )}
+    </div>
+  ))}
+</div>
 
                   <div className="course-section-title">
                     <h6>Course Status</h6>

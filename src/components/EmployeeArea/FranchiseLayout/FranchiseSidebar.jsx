@@ -76,6 +76,11 @@ function FranchiseSidebar({ sidebarOpen }) {
             <ul id="charts-nav-wallet" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 
               <li>
+                <Link to="/online-wallet-recharge">
+                  <i className="bi bi-circle"></i><span>Online Wallet Recharge</span>
+                </Link>
+              </li>
+              <li>
                 <Link to="/wallet-recharge">
                   <i className="bi bi-circle"></i><span>Wallet Recharge</span>
                 </Link>

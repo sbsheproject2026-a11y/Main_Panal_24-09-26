@@ -1,4 +1,4 @@
- /* =========================================================
+/* =========================================================
    STUDENT REGISTRATION PAGE
 ========================================================= */
 
@@ -97,11 +97,9 @@
     border-radius: 16px;
     border: 1px solid #e9edf3;
     box-shadow: 0 10px 35px rgba(31, 41, 55, 0.06);
-    /* ✅ overflow visible — warna dropdown clip hoga */
     overflow: visible;
 }
 
-/* Header ke andar rounded corners maintain rahein */
 .registration-top {
     display: flex;
     align-items: center;
@@ -188,8 +186,6 @@
     padding: 32px 28px 36px;
 }
 
-/* ===== Mode Cards (side by side) ===== */
-
 .mode-cards {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -257,8 +253,6 @@
     color: #8b95a7;
     font-size: 12px;
 }
-
-/* ===== Detail Block ===== */
 
 .mode-detail-block {
     animation: fadeInBlock 0.25s ease;
@@ -346,7 +340,6 @@
     overflow: visible;
 }
 
-/* ✅ State + Franchise side-by-side */
 .mode-field-row {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -426,8 +419,6 @@
     background: #c9d1cd;
     cursor: not-allowed;
 }
-
-/* ===== Selected Reference Box ===== */
 
 .selected-ref-box {
     display: flex;
@@ -689,8 +680,6 @@ textarea.form-control {
     color: #303846 !important;
 }
 
-/* ===== Menu (dropdown list) — bigger options ===== */
-
 .student-select__menu {
     z-index: 9999 !important;
     border-radius: 9px !important;
@@ -724,7 +713,6 @@ textarea.form-control {
     color: #fff !important;
 }
 
-/* ✅ Portal menu container (body pe render hota hai) */
 .student-select__menu-portal {
     z-index: 9999 !important;
 }
@@ -863,29 +851,131 @@ textarea.form-control {
     box-sizing: border-box;
 }
 
-.academic-table .file-table-input {
+/* =========================================================
+   ✅ ACADEMIC FILE UPLOAD — NEW DESIGN
+========================================================= */
+
+/* Wrapper */
+.document-action-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
     width: 100%;
-    height: 38px;
-    box-sizing: border-box;
-    border: 1px solid #dce2e9;
+}
+
+.document-input-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Hide default file input */
+.academic-table .file-table-input {
+    display: none !important;
+}
+
+/* Custom "Choose File" button */
+.file-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #f0f9ff;
+    color: #01507c;
+    border: 1px solid #bae6fd;
     border-radius: 6px;
-    padding: 7px;
-    font-size: 10px;
-    color: #657080;
-    background: #fff;
-}
-
-.academic-table .file-table-input::file-selector-button {
-    border: none;
-    background: #198754;
-    color: #fff;
-    padding: 5px 8px;
-    border-radius: 5px;
-    margin-right: 5px;
+    font-size: 11px;
+    font-weight: 700;
     cursor: pointer;
-    font-size: 9px;
+    transition: all 0.2s ease;
+    user-select: none;
+    white-space: nowrap;
+    font-family: inherit;
+    margin: 0;
 }
 
+.file-upload-btn:hover {
+    background: #01507c;
+    color: #fff;
+    border-color: #01507c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(1, 80, 124, 0.15);
+}
+
+.file-upload-btn i {
+    font-size: 13px;
+}
+
+/* Selected file box */
+.file-selected-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    font-size: 11px;
+    animation: fileFadeIn 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@keyframes fileFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.file-selected-box > i:first-child {
+    font-size: 16px;
+    color: #059669;
+    flex-shrink: 0;
+}
+
+.file-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.file-label {
+    color: #065f46;
+    font-weight: 600;
+    font-size: 10px;
+}
+
+.file-name-text {
+    color: #047857;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    font-size: 10.5px;
+}
+
+.file-size {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 10px;
+}
+
+.check-icon {
+    color: #059669;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+/* Old file-name (kept for backward compat) */
 .academic-table .file-name {
     display: block;
     margin-top: 4px;
@@ -901,22 +991,7 @@ textarea.form-control {
     margin-right: 3px;
 }
 
-.document-action-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-}
-
-.document-input-wrapper {
-    flex: 1;
-    min-width: 0;
-}
-
-.document-input-wrapper .file-table-input {
-    width: 100%;
-}
-
+/* Delete row button */
 .academic-table .delete-row-btn {
     width: 38px;
     height: 38px;
@@ -954,7 +1029,7 @@ textarea.form-control {
 }
 
 /* =========================================================
-   DOCUMENT UPLOAD
+   DOCUMENT UPLOAD (top-level — student photo etc.)
 ========================================================= */
 
 .document-upload {
@@ -1436,8 +1511,13 @@ textarea.form-control {
         font-size: 10px;
     }
 
-    .academic-table .file-table-input {
-        font-size: 9px;
+    .file-upload-btn {
+        font-size: 10px;
+        padding: 7px 11px;
+    }
+
+    .file-name-text {
+        max-width: 110px;
     }
 }
 
@@ -1505,12 +1585,10 @@ textarea.form-control {
         font-size: 9px;
     }
 
-    /* Mode step mobile — stack cards */
     .mode-cards {
         grid-template-columns: 1fr;
     }
 
-    /* ✅ State + Franchise stack on mobile */
     .mode-field-row {
         grid-template-columns: 1fr;
     }
@@ -1619,14 +1697,26 @@ textarea.form-control {
         height: 41px;
     }
 
-    .academic-table .file-table-input {
-        width: 100%;
-        height: 41px;
+    .document-action-wrapper {
+        align-items: flex-start;
+        gap: 8px;
     }
 
-    .document-action-wrapper {
-        align-items: center;
-        gap: 8px;
+    .file-upload-btn {
+        padding: 9px 13px;
+        font-size: 10.5px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .file-selected-box {
+        padding: 8px 10px;
+        font-size: 10px;
+    }
+
+    .file-name-text {
+        max-width: 140px;
+        font-size: 10px;
     }
 
     .academic-table .delete-row-btn {
@@ -1639,12 +1729,6 @@ textarea.form-control {
         border-bottom: none;
     }
 
-    .academic-table .file-name {
-        max-width: calc(100% - 50px);
-        font-size: 9px;
-    }
-
-    /* Other mobile sections */
     .declaration-card {
         padding: 15px;
     }
@@ -1775,3 +1859,4 @@ textarea.form-control {
         height: auto;
     }
 }
+

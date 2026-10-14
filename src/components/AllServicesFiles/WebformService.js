@@ -43,6 +43,7 @@ export const createStudentfordata = async (formData) => {
     data.append("email", formData.email);
     data.append("idNumber", formData.idNumber);
     data.append("studyModeId", formData.studyModeId);
+    data.append("courseMetrialID", formData.courseMetrialID);
     data.append("referenceId", formData.referenceId);
 
     // =========================================================

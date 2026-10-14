@@ -111,6 +111,10 @@ export const getParentCourse = async () => {
                 `ProductCategoryDocuments[${index}].DocumentTypeId`,
                 item.materialTypeId || 0
             );
+            formData.append(
+                `ProductCategoryDocuments[${index}].DocExtensionId`,
+                item.docExtensionId || 0
+            );
 
             formData.append(
                 `ProductCategoryDocuments[${index}].Name`,
@@ -271,6 +275,7 @@ export const createCourseMaterial = async (formData) => {
   data.append("name", formData.name);
   data.append("productId", formData.productId);
   data.append("documentTypeId", formData.documentTypeId);
+  data.append("docExtensionId", formData.docExtensionId);
   data.append("srNo", formData.srNo);
   
 

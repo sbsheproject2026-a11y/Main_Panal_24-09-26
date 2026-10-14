@@ -397,6 +397,13 @@ export const getCourse = async (id,courseTypeId) => {
 
     return response.data;
 };
+export const getonlineCourse = async (id,courseTypeId) => {
+    const response = await api.get(
+        `/DropDownEmployee/dropdown-emp-onlinecourse/${id}?courseTypeId=${courseTypeId}`
+    );
+
+    return response.data;
+};
 
 export const translateToHindi = async (text) => {
     const res = await fetch(

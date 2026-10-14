@@ -31,6 +31,7 @@ import PaymentSuccess from './components/WebsiteForms/PaymentSuccess'
 import StudentLayout from './components/StudentArea/StudentLayout/StudentLayout'
 import UpdatePassword from './components/EmployeeArea/EmployeePage/UpdatePassword'
 import NewStudentRegistration from './components/WebsiteForms/NewStudentRegistration'
+import RegistrationModeSelect from './components/WebsiteForms/RegistrationModeSelect'
 
 
 
@@ -43,6 +44,7 @@ function App() {
                 {/* ================= Public Routes ================= */}
                 <Route path="/" element={<Login />} />
                 <Route path="/acc-apply" element={<AdmissionConsultantRegistration />} />
+                <Route path="/registration-mode" element={<RegistrationModeSelect />} />
                 <Route path="/student-apply" element={<StudentRegistration />} />
                 <Route path="/new-student-apply" element={<NewStudentRegistration />} />
                 <Route path="/study-centre-apply" element={<StudyCenterRegistration />} />

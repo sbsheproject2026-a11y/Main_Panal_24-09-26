@@ -15,6 +15,7 @@ import AddressPrint from "./EmpFranchise/AddressPrint";
 import SetMarksStudent from "./Students/SetMarksStudent";
 import ConfirmStudent from "./Students/ConfirmStudent";
 import ViewDetails from "./Students/ViewDetails";
+import WalletRechargeOnline from "./WalletWorking/WalletRechargeOnline";
  
  
 
@@ -29,6 +30,7 @@ const employeeRoutes = [
     { path: "/help", element: <NeedHelp />, role: ["6", "90", "33"] },
     { path: "/update-password", element: <UpdatePassword />, role: ["6", "90", "33"] },
     { path: "/wallet-recharge", element: <WalletRecharge1 />, role: ["6", "90", "33"] },
+    { path: "/online-wallet-recharge", element: <WalletRechargeOnline />, role: ["6", "90", "33"] },
     { path: "/wallet-history", element: <WalletList />, role: ["6", "90", "33"] },
     { path: "/student-update/:id", element: <StudentUpdate />, role: ["6", "90", "33"] },
     { path: "/academic-update/:id", element: <AcademicDetailsupdate />, role: ["6", "90", "33"] },

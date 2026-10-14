@@ -48,3 +48,21 @@ export const getStudentFeeDetails = async (id) => {
     });
     return res.data;
 };
+
+export const createOfflinePayment = async (formData) => {
+    const data = new FormData();
+
+    data.append("UserId", formData.userId);
+    data.append("Amount", formData.amount);
+    data.append("remark", formData.remark || "");
+    data.append("PaidDate", formData.paidDate);
+    data.append("courseid", formData.courseid);
+
+    const response = await api.post("/Payment/student-payment-add", data, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return response.data;
+};

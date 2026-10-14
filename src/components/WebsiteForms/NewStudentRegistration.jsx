@@ -9,6 +9,7 @@ import {
     getCourse,
     getCourseCategory,
     getDistrict,
+    getonlineCourse,
     getOnlineSession,
     getState,
     getStudentData,
@@ -44,6 +45,9 @@ const NewStudentRegistration = () => {
     const [isDeclarationAccepted, setIsDeclarationAccepted] = useState(false);
     const [showDeclarationModal, setShowDeclarationModal] = useState(false);
 
+    // ✅ Course lock
+    const [isCourseLocked, setIsCourseLocked] = useState(false);
+
     // =========================
     // Form Data
     // =========================
@@ -65,6 +69,7 @@ const NewStudentRegistration = () => {
         courseTypeId: 0,
         courseCategoryId: 0,
         courseId: 0,
+        courseMetrialID: 142,   // Hard Copy default
         examSessionId: 0,
         genderId: 0,
         stateId: 0,
@@ -111,7 +116,10 @@ const NewStudentRegistration = () => {
             params.get("courseId") ||
             params.get("courseid");
 
-        // studyModeId set karo
+        if (urlStudyModeId || urlCourseId) {
+            navigate("/new-student-apply", { replace: true });
+        }
+
         if (urlStudyModeId) {
             setFormData((prev) => ({
                 ...prev,
@@ -119,18 +127,24 @@ const NewStudentRegistration = () => {
             }));
         }
 
-        // Course preselect karo
         if (urlCourseId) {
-            await preselectCourse(Number(urlCourseId));
+            const numericCourseId = Number(urlCourseId);
+
+            setFormData((prev) => ({
+                ...prev,
+                courseId: numericCourseId,
+            }));
+
+            await preselectCourse(numericCourseId);
+            setIsCourseLocked(true);
         }
     };
 
     // =========================
-    // ✅ PRESELECT COURSE (type → category → course)
+    // ✅ PRESELECT COURSE
     // =========================
     const preselectCourse = async (courseId) => {
         try {
-            // Course Type list lo
             const typeRes = await getStudentData(13);
             const types = typeRes?.data || [];
 
@@ -147,7 +161,6 @@ const NewStudentRegistration = () => {
                     );
 
                     if (found) {
-                        // Sab set karo — categories, courses, formData
                         setCourseCategories(cats);
                         setCourses(list);
 
@@ -231,14 +244,22 @@ const NewStudentRegistration = () => {
         }
     };
 
-    const loadCourseType = async () => {
-        try {
-            const result = await getStudentData(13);
-            setCourseTypes(result?.data || []);
-        } catch (error) {
-            console.error("Course Type Error:", error);
-        }
-    };
+ const loadCourseType = async () => {
+    try {
+        const result = await getStudentData(13);
+        const allData = result?.data || [];
+
+        // ✅ Only keep IDs: 79, 74, 72
+        const allowedIds = [79, 74, 72];
+        const filtered = allData.filter((item) =>
+            allowedIds.includes(Number(item.id))
+        );
+
+        setCourseTypes(filtered);
+    } catch (error) {
+        console.error("Course Type Error:", error);
+    }
+};
 
     const loadEducationlevels = async () => {
         try {
@@ -252,7 +273,16 @@ const NewStudentRegistration = () => {
     const loadMasterSession = async () => {
         try {
             const result = await getOnlineSession();
-            setMasterSessions(result?.data || []);
+            const sessions = result?.data || [];
+
+            setMasterSessions(sessions);
+
+            if (sessions.length > 0) {
+                setFormData((prev) => ({
+                    ...prev,
+                    examSessionId: sessions[0].id,
+                }));
+            }
         } catch (error) {
             console.error("Session Error:", error);
         }
@@ -290,7 +320,7 @@ const NewStudentRegistration = () => {
 
     const loadCourse = async (courseCategoryId, courseTypeId) => {
         try {
-            const result = await getCourse(courseCategoryId, courseTypeId);
+            const result = await getonlineCourse(courseCategoryId, courseTypeId);
             setCourses(result?.data || []);
         } catch (error) {
             console.error("Course Error:", error);
@@ -307,10 +337,6 @@ const NewStudentRegistration = () => {
         const newValue = type === "file" ? files?.[0] || null : value;
 
         setFormData((prev) => ({ ...prev, [name]: newValue }));
-
-        if (type === "file") {
-            e.target.value = "";
-        }
 
         if (errors[name]) {
             setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -352,6 +378,7 @@ const NewStudentRegistration = () => {
             label: item.name,
         }));
 
+    // ✅ File input — e.target.value reset NAHI karna
     const handleAcademicChange = (index, e) => {
         const { name, value, files, type } = e.target;
 
@@ -363,10 +390,6 @@ const NewStudentRegistration = () => {
             };
             return { ...prev, academicDetails };
         });
-
-        if (type === "file") {
-            e.target.value = "";
-        }
     };
 
     const addAcademicRow = () => {
@@ -448,6 +471,13 @@ const NewStudentRegistration = () => {
         setCourses([]);
     };
 
+    const handleMaterialChange = (value) => {
+        setFormData((prev) => ({ ...prev, courseMetrialID: value }));
+        if (errors.courseMetrialID) {
+            setErrors((prev) => ({ ...prev, courseMetrialID: "" }));
+        }
+    };
+
     const handleStateChange = (selectedOption) => {
         const id = selectedOption ? Number(selectedOption.value) : 0;
         setFormData((prev) => ({
@@ -508,6 +538,9 @@ const NewStudentRegistration = () => {
             newErrors.courseCategoryId = "Course category is required";
         if (!formData.courseId)
             newErrors.courseId = "Course is required";
+
+        if (!formData.courseMetrialID)
+            newErrors.courseMetrialID = "Study Material Type is required";
 
         const invalidAcademic = formData.academicDetails.some(
             (a) => !a.levelTypeId
@@ -607,6 +640,13 @@ const NewStudentRegistration = () => {
                                         <h5>Course Details</h5>
                                         <p>Select programme, mode, category and course</p>
                                     </div>
+
+                                    {isCourseLocked && (
+                                        <span className="locked-badge">
+                                            <i className="bi bi-lock-fill"></i>{" "}
+                                            Pre-selected
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="row">
@@ -624,6 +664,7 @@ const NewStudentRegistration = () => {
                                             placeholder="Select programme"
                                             isSearchable
                                             isClearable
+                                            isDisabled={isCourseLocked}
                                             classNamePrefix="student-select"
                                         />
                                         {errors.courseTypeId && (
@@ -649,7 +690,10 @@ const NewStudentRegistration = () => {
                                             }
                                             isSearchable
                                             isClearable
-                                            isDisabled={!formData.courseTypeId}
+                                            isDisabled={
+                                                !formData.courseTypeId ||
+                                                isCourseLocked
+                                            }
                                             classNamePrefix="student-select"
                                         />
                                         {errors.courseCategoryId && (
@@ -679,13 +723,65 @@ const NewStudentRegistration = () => {
                                             }
                                             isSearchable
                                             isClearable
-                                            isDisabled={!formData.courseCategoryId}
+                                            isDisabled={
+                                                !formData.courseCategoryId ||
+                                                isCourseLocked
+                                            }
                                             classNamePrefix="student-select"
                                         />
                                         {errors.courseId && (
                                             <ErrorText text={errors.courseId} />
                                         )}
                                     </div>
+                                </div>
+
+                                {/* ✅ STUDY MATERIAL TYPE RADIO BUTTONS */}
+                                <div className="row">
+                                    <div className="col-12 mb-2">
+                                        <label>
+                                            Study Material Type <span>*</span>
+                                        </label>
+                                    </div>
+
+                                    <div className="col-md-6 mb-3">
+                                        <label className="material-radio">
+                                            <input
+                                                type="radio"
+                                                name="courseMetrialID"
+                                                value={142}
+                                                checked={
+                                                    formData.courseMetrialID === 142
+                                                }
+                                                onChange={() =>
+                                                    handleMaterialChange(142)
+                                                }
+                                            />
+                                            <span>Hard Copy (Book's)</span>
+                                        </label>
+                                    </div>
+
+                                    <div className="col-md-6 mb-3">
+                                        <label className="material-radio">
+                                            <input
+                                                type="radio"
+                                                name="courseMetrialID"
+                                                value={143}
+                                                checked={
+                                                    formData.courseMetrialID === 143
+                                                }
+                                                onChange={() =>
+                                                    handleMaterialChange(143)
+                                                }
+                                            />
+                                            <span>Soft Copy (PDF)</span>
+                                        </label>
+                                    </div>
+
+                                    {errors.courseMetrialID && (
+                                        <div className="col-12">
+                                            <ErrorText text={errors.courseMetrialID} />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -1042,6 +1138,7 @@ const NewStudentRegistration = () => {
                                                                             <input
                                                                                 type="file"
                                                                                 name="file"
+                                                                                id={`academic-file-${index}`}
                                                                                 className="file-table-input"
                                                                                 accept=".jpg,.jpeg,.png,.pdf"
                                                                                 onChange={(e) =>
@@ -1051,11 +1148,31 @@ const NewStudentRegistration = () => {
                                                                                     )
                                                                                 }
                                                                             />
+
+                                                                            <label
+                                                                                htmlFor={`academic-file-${index}`}
+                                                                                className="file-upload-btn"
+                                                                            >
+                                                                                <i className="bi bi-cloud-arrow-up"></i>
+                                                                                Choose File
+                                                                            </label>
+
                                                                             {academic.file && (
-                                                                                <small className="file-name">
-                                                                                    <i className="bi bi-check-circle-fill"></i>{" "}
-                                                                                    {academic.file.name}
-                                                                                </small>
+                                                                                <div className="file-selected-box">
+                                                                                    <i className="bi bi-file-earmark-check-fill"></i>
+                                                                                    <div className="file-info">
+                                                                                        <span className="file-label">
+                                                                                            Selected:
+                                                                                        </span>
+                                                                                        <span className="file-name-text">
+                                                                                            {academic.file.name}
+                                                                                        </span>
+                                                                                        <span className="file-size">
+                                                                                            ({(academic.file.size / 1024).toFixed(1)} KB)
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <i className="bi bi-check-circle-fill check-icon"></i>
+                                                                                </div>
                                                                             )}
                                                                         </div>
                                                                         <button

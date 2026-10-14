@@ -1,5 +1,5 @@
  import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Select from "react-select";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,28 +10,21 @@ import {
     getCourseCategory,
     getDistrict,
     getMasterSession,
+    getOnlineSession,
     getState,
     getStudentData,
     translateToHindi,
 } from "../AllServicesFiles/StudentService";
-import { createStudentfordata, getFrenchises } from "../AllServicesFiles/WebformService";
+import { createStudentfordata } from "../AllServicesFiles/WebformService";
 
 import "./StudentRegistration.css";
 
 const StudentRegistration = () => {
     const navigate = useNavigate();
+    const location = useLocation();
 
-    // =========================
-    // STEP CONTROL
-    // =========================
-    const [registrationMode, setRegistrationMode] = useState(null); // "Online" | "Offline"
-    const [showFullForm, setShowFullForm] = useState(false);
-
-    // Offline flow
-    const [selectedState, setSelectedState] = useState(null);
-    const [stateFranchises, setStateFranchises] = useState([]);
-    const [selectedFranchise, setSelectedFranchise] = useState(null);
-    const [loadingFranchises, setLoadingFranchises] = useState(false);
+    // ✅ Data from RegistrationModeSelect page
+    const [registrationMode, setRegistrationMode] = useState(null);
 
     // =========================
     // Dropdown States
@@ -76,6 +69,7 @@ const StudentRegistration = () => {
         courseTypeId: 0,
         courseCategoryId: 0,
         courseId: 0,
+        courseMetrialID: 142,
         examSessionId: 0,
         genderId: 0,
         stateId: 0,
@@ -83,7 +77,7 @@ const StudentRegistration = () => {
         locationId: 0,
         studyModeId: 0,
         referenceId: 0,
-        franchiseName: "",   // ✅ FRANCHISE NAME
+        franchiseName: "",
         address: "",
         pincode: "",
         academicDetails: [
@@ -100,13 +94,43 @@ const StudentRegistration = () => {
     });
 
     // =========================
+    // ✅ Read state from previous page + redirect guard
+    // =========================
+    useEffect(() => {
+        const navState = location.state;
+
+        if (!navState || !navState.registrationMode) {
+            toast.error("Please select registration mode first");
+            navigate("/registration-mode", { replace: true });
+            return;
+        }
+
+        setRegistrationMode(navState.registrationMode);
+
+        setFormData((prev) => ({
+            ...prev,
+            referenceId: navState.referenceId ?? prev.referenceId,
+            studyModeId: navState.studyModeId ?? prev.studyModeId,
+            franchiseName: navState.franchiseName ?? "",
+            stateId: navState.stateId ?? 0,
+            districtId: 0,
+            locationId: 0,
+        }));
+
+        // Agar Offline me state aayi hai to districts load karo
+        if (navState.stateId) {
+            loadDistrict(navState.stateId);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // =========================
     // Initial API Calls
     // =========================
     useEffect(() => {
         loadInitialData();
     }, []);
 
-    // Modal scroll lock + Escape close
     useEffect(() => {
         if (showDeclarationModal) {
             document.body.style.overflow = "hidden";
@@ -127,6 +151,23 @@ const StudentRegistration = () => {
         }
         return () => document.removeEventListener("keydown", handleEsc);
     }, [showDeclarationModal]);
+
+    // ✅ Debug log — verify selections
+    useEffect(() => {
+        console.log("🎯 Registration Mode:", registrationMode);
+        console.log("📋 Selected Values:", {
+            studyModeId: formData.studyModeId,
+            referenceId: formData.referenceId,
+            franchiseName: formData.franchiseName,
+            stateId: formData.stateId,
+        });
+    }, [
+        registrationMode,
+        formData.studyModeId,
+        formData.referenceId,
+        formData.franchiseName,
+        formData.stateId,
+    ]);
 
     const loadInitialData = async () => {
         await Promise.all([
@@ -187,14 +228,24 @@ const StudentRegistration = () => {
         }
     };
 
-    const loadMasterSession = async () => {
-        try {
-            const result = await getMasterSession();
-            setMasterSessions(result?.data || []);
-        } catch (error) {
-            console.error("Session Error:", error);
+  const loadMasterSession = async () => {
+    try {
+        const result = await getOnlineSession();
+        const sessions = result?.data || [];
+
+        setMasterSessions(sessions);
+
+        // ✅ First (only) session ko default selected set karo
+        if (sessions.length > 0) {
+            setFormData((prev) => ({
+                ...prev,
+                examSessionId: sessions[0].id,
+            }));
         }
-    };
+    } catch (error) {
+        console.error("Session Error:", error);
+    }
+};
 
     const loadDistrict = async (stateId) => {
         try {
@@ -226,9 +277,9 @@ const StudentRegistration = () => {
         }
     };
 
-    const loadCourse = async (courseCategoryId,courseTypeId) => {
+    const loadCourse = async (courseCategoryId, courseTypeId) => {
         try {
-            const result = await getCourse(courseCategoryId,courseTypeId);
+            const result = await getCourse(courseCategoryId, courseTypeId);
             setCourses(result?.data || []);
         } catch (error) {
             console.error("Course Error:", error);
@@ -236,104 +287,9 @@ const StudentRegistration = () => {
         }
     };
 
-    // =========================
-    // ✅ ONLINE — direct form open
-    // =========================
-    const handleOnlineClick = () => {
-        setRegistrationMode("Online");
-
-        setFormData((prev) => ({
-            ...prev,
-            referenceId: 3,
-            studyModeId: 88,
-            franchiseName: "",
-        }));
-
-        setShowFullForm(true);
-    };
-
-    // =========================
-    // ✅ OFFLINE — state/franchise select
-    // =========================
-    const handleOfflineClick = () => {
-        setRegistrationMode("Offline");
-        setSelectedState(null);
-        setSelectedFranchise(null);
-        setStateFranchises([]);
-    };
-
-    const handleOfflineStateChange = async (option) => {
-        setSelectedState(option);
-        setSelectedFranchise(null);
-        setStateFranchises([]);
-
-        if (!option) return;
-
-        try {
-            setLoadingFranchises(true);
-            const result = await getFrenchises(option.value);
-            setStateFranchises(result?.data || []);
-        } catch (error) {
-            console.error("Franchise Error:", error);
-            setStateFranchises([]);
-            toast.error("Unable to load franchises for this state");
-        } finally {
-            setLoadingFranchises(false);
-        }
-    };
-
-    const handleFranchiseChange = (option) => {
-        setSelectedFranchise(option);
-    };
-
-    const handleOfflineNext = () => {
-        if (!selectedState) {
-            toast.error("Please select State");
-            return;
-        }
-        if (!selectedFranchise) {
-            toast.error("Please select Franchise");
-            return;
-        }
-
-        const stateId = Number(selectedState.value);
-
-        setFormData((prev) => ({
-            ...prev,
-            referenceId: Number(selectedFranchise.value),
-            franchiseName: selectedFranchise.label,   // ✅ FRANCHISE NAME SAVE
-            stateId: stateId,
-            districtId: 0,
-            locationId: 0,
-            studyModeId: 89,
-        }));
-
-        // ✅ State ke districts turant load karo
-        loadDistrict(stateId);
-
-        setShowFullForm(true);
-    };
-
-    // =========================
-    // Back to mode selection
-    // =========================
+    // ✅ Change Mode → wapas mode selection page
     const handleBackToMode = () => {
-        setRegistrationMode(null);
-        setSelectedState(null);
-        setSelectedFranchise(null);
-        setStateFranchises([]);
-        setShowFullForm(false);
-        setDistricts([]);
-        setCities([]);
-        setFormData((prev) => ({
-            ...prev,
-            referenceId: 0,
-            studyModeId: 0,
-            stateId: 0,
-            districtId: 0,
-            locationId: 0,
-            franchiseName: "",   // ✅ CLEAR
-        }));
+        navigate("/registration-mode", { replace: true });
     };
 
     // =========================
@@ -354,18 +310,18 @@ const StudentRegistration = () => {
             setErrors((prev) => ({ ...prev, [name]: "" }));
         }
 
- if (name === "name" && value.trim()) {
-    const currentValue = value;
-    try {
-        const hindi = await translateToHindi(currentValue);
-        setFormData((prev) => {
-            if (prev.name !== currentValue) return prev;
-            return { ...prev, studentNameHindi: hindi || "" };  // ✅ FIXED
-        });
-    } catch (error) {
-        console.error("Hindi Translation Error:", error);
-    }
-}
+        if (name === "name" && value.trim()) {
+            const currentValue = value;
+            try {
+                const hindi = await translateToHindi(currentValue);
+                setFormData((prev) => {
+                    if (prev.name !== currentValue) return prev;
+                    return { ...prev, studentNameHindi: hindi || "" };
+                });
+            } catch (error) {
+                console.error("Hindi Translation Error:", error);
+            }
+        }
 
         if (name === "fatherName" && value.trim()) {
             const currentValue = value;
@@ -401,10 +357,20 @@ const StudentRegistration = () => {
             };
             return { ...prev, academicDetails };
         });
+    };
 
-        if (type === "file") {
-            e.target.value = "";
-        }
+    const removeAcademicFile = (index) => {
+        setFormData((prev) => {
+            const academicDetails = [...prev.academicDetails];
+            academicDetails[index] = {
+                ...academicDetails[index],
+                file: null,
+            };
+            return { ...prev, academicDetails };
+        });
+
+        const fileInput = document.getElementById(`academic-file-${index}`);
+        if (fileInput) fileInput.value = "";
     };
 
     const addAcademicRow = () => {
@@ -468,24 +434,30 @@ const StudentRegistration = () => {
         if (id) loadCourseCategory(id);
     };
 
-  const handleCourseCategoryChange = (selectedOption) => {
-    const id = selectedOption ? Number(selectedOption.value) : 0;
+    const handleCourseCategoryChange = (selectedOption) => {
+        const id = selectedOption ? Number(selectedOption.value) : 0;
 
-    setFormData((prev) => {
-        const updated = {
-            ...prev,
-            courseCategoryId: id,
-            courseId: 0,
-        };
+        setFormData((prev) => {
+            const updated = {
+                ...prev,
+                courseCategoryId: id,
+                courseId: 0,
+            };
 
-        // Yahan prev.courseTypeId available hai
-        if (id) loadCourse(id, prev.courseTypeId);
+            if (id) loadCourse(id, prev.courseTypeId);
 
-        return updated;
-    });
+            return updated;
+        });
 
-    setCourses([]);
-};
+        setCourses([]);
+    };
+
+    const handleMaterialChange = (value) => {
+        setFormData((prev) => ({ ...prev, courseMetrialID: value }));
+        if (errors.courseMetrialID) {
+            setErrors((prev) => ({ ...prev, courseMetrialID: "" }));
+        }
+    };
 
     const handleStateChange = (selectedOption) => {
         const id = selectedOption ? Number(selectedOption.value) : 0;
@@ -547,6 +519,8 @@ const StudentRegistration = () => {
             newErrors.courseCategoryId = "Course category is required";
         if (!formData.courseId)
             newErrors.courseId = "Course is required";
+        if (!formData.courseMetrialID)
+            newErrors.courseMetrialID = "Study Material Type is required";
 
         const invalidAcademic = formData.academicDetails.some(
             (a) => !a.levelTypeId
@@ -581,15 +555,15 @@ const StudentRegistration = () => {
 
             const result = await createStudentfordata(formData);
 
-       if (result?.message === "Successfully") {
-    navigate("/fee", {
-        state: {
-            userId: result?.userid,
-            oId: result?.paymentid,
-        },
-    });
-    return;
-}
+            if (result?.message === "Successfully") {
+                navigate("/fee", {
+                    state: {
+                        userId: result?.userid,
+                        oId: result?.paymentid,
+                    },
+                });
+                return;
+            }
 
             toast.error(result?.message || "Registration failed");
         } catch (error) {
@@ -618,993 +592,924 @@ const StudentRegistration = () => {
                         </div>
                     </div>
 
-                    {/* =====================================
-                        STEP 1 — MODE SELECTION
-                    ===================================== */}
-                    {!showFullForm && (
-                        <div className="registration-card mode-step-card">
-                            <div className="registration-top">
-                                <div>
-                                    <h4>
-                                        <i className="bi bi-person-vcard"></i>
-                                        Choose Registration Mode
-                                    </h4>
-                                    <p>Please select Online or Offline to continue</p>
-                                </div>
+                    <div className="registration-card">
+                       
+                    
+
+                        {/* ================================
+                            FORM HEADER
+                        ================================= */}
+                        <div className="registration-top">
+                            <div>
+                                <h4>
+                                    <i className="bi bi-person-vcard"></i>
+                                    Student Registration Form
+                                </h4>
+                                <p>{registrationMode} Registration</p>
                             </div>
 
-                            <div className="mode-step-body">
-                                {!registrationMode && (
-                                    <div className="mode-cards">
-                                        <button
-                                            type="button"
-                                            className="mode-card"
-                                            onClick={handleOnlineClick}
-                                        >
-                                            <div className="mode-card-icon online">
-                                                <i className="bi bi-globe2"></i>
-                                            </div>
-                                            <div className="mode-card-text">
-                                                <h5>Online</h5>
-                                                <p>Direct registration</p>
-                                            </div>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            className="mode-card"
-                                            onClick={handleOfflineClick}
-                                        >
-                                            <div className="mode-card-icon offline">
-                                                <i className="bi bi-geo-alt-fill"></i>
-                                            </div>
-                                            <div className="mode-card-text">
-                                                <h5>Offline</h5>
-                                                <p>Select State & Franchise</p>
-                                            </div>
-                                        </button>
-                                    </div>
-                                )}
-
-                                {registrationMode === "Offline" && (
-                                    <div className="mode-detail-block">
-                                        <button
-                                            type="button"
-                                            className="back-mode-btn"
-                                            onClick={handleBackToMode}
-                                        >
-                                            <i className="bi bi-arrow-left"></i>
-                                            Back to modes
-                                        </button>
-
-                                        <div className="mode-detail-form">
-                                            <div className="mode-field-row">
-                                                <div className="mode-field">
-                                                    <label>
-                                                        State <span>*</span>
-                                                    </label>
-                                                    <Select
-                                                        options={makeOptions(states)}
-                                                        value={selectedState}
-                                                        onChange={handleOfflineStateChange}
-                                                        placeholder="Search or select state"
-                                                        isSearchable
-                                                        isClearable
-                                                        classNamePrefix="student-select"
-                                                        menuPortalTarget={document.body}
-                                                        menuPosition="fixed"
-                                                        styles={{
-                                                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                                            menu: (base) => ({ ...base, zIndex: 9999 }),
-                                                        }}
-                                                    />
-                                                </div>
-
-                                                <div className="mode-field">
-                                                    <label>
-                                                        Franchise <span>*</span>
-                                                    </label>
-                                                    <Select
-                                                        options={stateFranchises.map(
-                                                            (f) => ({
-                                                                value: f.id,
-                                                                label: f.name,
-                                                            })
-                                                        )}
-                                                        value={selectedFranchise}
-                                                        onChange={handleFranchiseChange}
-                                                        placeholder={
-                                                            !selectedState
-                                                                ? "Select state first"
-                                                                : loadingFranchises
-                                                                    ? "Loading franchises..."
-                                                                    : stateFranchises.length === 0
-                                                                        ? "No franchise found in this state"
-                                                                        : "Search or select franchise"
-                                                        }
-                                                        isSearchable
-                                                        isClearable
-                                                        isDisabled={
-                                                            !selectedState ||
-                                                            loadingFranchises
-                                                        }
-                                                        isLoading={loadingFranchises}
-                                                        classNamePrefix="student-select"
-                                                        menuPortalTarget={document.body}
-                                                        menuPosition="fixed"
-                                                        styles={{
-                                                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                                            menu: (base) => ({ ...base, zIndex: 9999 }),
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                className="next-step-btn"
-                                                onClick={handleOfflineNext}
-                                                disabled={!selectedFranchise}
-                                            >
-                                                Continue
-                                                <i className="bi bi-arrow-right"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                            <div className="top-right-actions">
+                                <button
+                                    type="button"
+                                    className="mode-change-btn"
+                                    onClick={handleBackToMode}
+                                >
+                                    <i className="bi bi-arrow-left-circle"></i>
+                                    Change Mode
+                                </button>
+                                <div className="required-info">
+                                    <span>*</span> Required Fields
+                                </div>
                             </div>
                         </div>
-                    )}
 
-                    {/* =====================================
-                        STEP 2 — FULL FORM
-                    ===================================== */}
-                    {showFullForm && (
-                        <div className="registration-card">
-                            <div className="registration-top">
-                                <div>
-                                    <h4>
-                                        <i className="bi bi-person-vcard"></i>
-                                        Student Registration Form
-                                    </h4>
-                                    <p>{registrationMode} Registration</p>
-                                </div>
-
-                                <div className="top-right-actions">
-                                    <button
-                                        type="button"
-                                        className="mode-change-btn"
-                                        onClick={handleBackToMode}
-                                    >
-                                        <i className="bi bi-arrow-left-circle"></i>
-                                        Change Mode
-                                    </button>
-                                    <div className="required-info">
-                                        <span>*</span> Required Fields
-                                    </div>
-                                </div>
+                        {/* ✅ FRANCHISE BAR — Offline me hi */}
+                        {registrationMode === "Offline" && formData.franchiseName && (
+                            <div className="franchise-name-bar">
+                                <label>
+                                    <i className="bi bi-shop"></i> Franchise
+                                </label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={formData.franchiseName}
+                                    readOnly
+                                />
                             </div>
+                        )}
 
-                            {/* ✅ FRANCHISE NAME INPUT — sirf Offline me dikhega */}
-                            {registrationMode === "Offline" && formData.franchiseName && (
-                                <div className="franchise-name-bar">
-                                    <label>
-                                        <i className="bi bi-shop"></i> Franchise
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        value={formData.franchiseName}
-                                        readOnly
-                                    />
-                                </div>
-                            )}
-
-                            <form onSubmit={handleSubmit} className="registration-form">
-                                {/* ===== COURSE DETAILS ===== */}
-                                <div className="form-section">
-                                    <div className="section-heading">
-                                        <div className="section-icon blue">
-                                            <i className="bi bi-book-half"></i>
-                                        </div>
-                                        <div>
-                                            <h5>Course Details</h5>
-                                            <p>Select programme, mode, category and course</p>
-                                        </div>
+                        <form onSubmit={handleSubmit} className="registration-form">
+                            {/* ===== COURSE DETAILS ===== */}
+                            <div className="form-section">
+                                <div className="section-heading">
+                                    <div className="section-icon blue">
+                                        <i className="bi bi-book-half"></i>
                                     </div>
-
-                                    <div className="row">
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>
-                                                Programme <span>*</span>
-                                            </label>
-                                            <Select
-                                                options={makeOptions(courseTypes)}
-                                                value={getSelected(
-                                                    courseTypes,
-                                                    formData.courseTypeId
-                                                )}
-                                                onChange={handleCourseTypeChange}
-                                                placeholder="Select programme"
-                                                isSearchable
-                                                isClearable
-                                                classNamePrefix="student-select"
-                                            />
-                                            {errors.courseTypeId && (
-                                                <ErrorText text={errors.courseTypeId} />
-                                            )}
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>
-                                                Course Category <span>*</span>
-                                            </label>
-                                            <Select
-                                                options={makeOptions(courseCategories)}
-                                                value={getSelected(
-                                                    courseCategories,
-                                                    formData.courseCategoryId
-                                                )}
-                                                onChange={handleCourseCategoryChange}
-                                                placeholder={
-                                                    formData.courseTypeId
-                                                        ? "Select category"
-                                                        : "Select programme first"
-                                                }
-                                                isSearchable
-                                                isClearable
-                                                isDisabled={!formData.courseTypeId}
-                                                classNamePrefix="student-select"
-                                            />
-                                            {errors.courseCategoryId && (
-                                                <ErrorText
-                                                    text={errors.courseCategoryId}
-                                                />
-                                            )}
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>
-                                                Course <span>*</span>
-                                            </label>
-                                            <Select
-                                                options={makeOptions(courses)}
-                                                value={getSelected(
-                                                    courses,
-                                                    formData.courseId
-                                                )}
-                                                onChange={(option) =>
-                                                    handleSelectChange("courseId", option)
-                                                }
-                                                placeholder={
-                                                    formData.courseCategoryId
-                                                        ? "Select course"
-                                                        : "Select category first"
-                                                }
-                                                isSearchable
-                                                isClearable
-                                                isDisabled={!formData.courseCategoryId}
-                                                classNamePrefix="student-select"
-                                            />
-                                            {errors.courseId && (
-                                                <ErrorText text={errors.courseId} />
-                                            )}
-                                        </div>
+                                    <div>
+                                        <h5>Course Details</h5>
+                                        <p>Select programme, mode, category and course</p>
                                     </div>
                                 </div>
 
-                                {/* ===== PERSONAL DETAILS ===== */}
-                                <div className="form-section">
-                                    <div className="section-heading">
-                                        <div className="section-icon green">
-                                            <i className="bi bi-person-vcard-fill"></i>
-                                        </div>
-                                        <div>
-                                            <h5>Personal Details</h5>
-                                            <p>Enter student's personal information</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="row">
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>
-                                                Session <span>*</span>
-                                            </label>
-                                            <Select
-                                                options={makeOptions(masterSessions)}
-                                                value={getSelected(
-                                                    masterSessions,
-                                                    formData.examSessionId
-                                                )}
-                                                onChange={(option) =>
-                                                    handleSelectChange(
-                                                        "examSessionId",
-                                                        option
-                                                    )
-                                                }
-                                                placeholder="Select session"
-                                                isSearchable
-                                                isClearable
-                                                classNamePrefix="student-select"
-                                            />
-                                            {errors.examSessionId && (
-                                                <ErrorText text={errors.examSessionId} />
+                                <div className="row">
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>
+                                            Programme <span>*</span>
+                                        </label>
+                                        <Select
+                                            options={makeOptions(courseTypes)}
+                                            value={getSelected(
+                                                courseTypes,
+                                                formData.courseTypeId
                                             )}
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>
-                                                Student Name <span>*</span>
-                                            </label>
-                                            <InputField
-                                                icon="bi-person"
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleChange}
-                                                placeholder="Enter student name"
-                                            />
-                                            {errors.name && (
-                                                <ErrorText text={errors.name} />
-                                            )}
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>Student Name (Hindi)</label>
-                                            <InputField
-                                                icon="bi-translate"
-                                                name="studentNameHindi"
-                                                value={formData.studentNameHindi}
-                                                onChange={handleChange}
-                                                placeholder="हिंदी में नाम"
-                                            />
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>Date of Birth</label>
-                                            <InputField
-                                                type="date"
-                                                icon="bi-calendar3"
-                                                name="dateOfBirth"
-                                                value={formData.dateOfBirth}
-                                                onChange={handleChange}
-                                                max={new Date()
-                                                    .toISOString()
-                                                    .split("T")[0]}
-                                            />
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>
-                                                Father's Name <span>*</span>
-                                            </label>
-                                            <InputField
-                                                icon="bi-person-badge"
-                                                name="fatherName"
-                                                value={formData.fatherName}
-                                                onChange={handleChange}
-                                                placeholder="Enter father's name"
-                                            />
-                                            {errors.fatherName && (
-                                                <ErrorText text={errors.fatherName} />
-                                            )}
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>Father's Name (Hindi)</label>
-                                            <InputField
-                                                icon="bi-translate"
-                                                name="fatherNameHindi"
-                                                value={formData.fatherNameHindi}
-                                                onChange={handleChange}
-                                                placeholder="हिंदी में पिता का नाम"
-                                            />
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>Mother's Name</label>
-                                            <InputField
-                                                icon="bi-person-heart"
-                                                name="motherName"
-                                                value={formData.motherName}
-                                                onChange={handleChange}
-                                                placeholder="Enter mother's name"
-                                            />
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>Aadhaar Number</label>
-                                            <InputField
-                                                icon="bi-credit-card-2-front"
-                                                name="idNumber"
-                                                value={formData.idNumber}
-                                                onChange={(e) =>
-                                                    handleNumberChange("idNumber", 12, e)
-                                                }
-                                                placeholder="Enter 12 digit Aadhaar"
-                                                maxLength={12}
-                                            />
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>Gender</label>
-                                            <Select
-                                                options={makeOptions(genders)}
-                                                value={getSelected(
-                                                    genders,
-                                                    formData.genderId
-                                                )}
-                                                onChange={(option) =>
-                                                    handleSelectChange(
-                                                        "genderId",
-                                                        option
-                                                    )
-                                                }
-                                                placeholder="Select gender"
-                                                isSearchable
-                                                isClearable
-                                                classNamePrefix="student-select"
-                                            />
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>Caste Category</label>
-                                            <Select
-                                                options={makeOptions(
-                                                    casteCategories
-                                                )}
-                                                value={getSelected(
-                                                    casteCategories,
-                                                    formData.casteCategoryId
-                                                )}
-                                                onChange={(option) =>
-                                                    handleSelectChange(
-                                                        "casteCategoryId",
-                                                        option
-                                                    )
-                                                }
-                                                placeholder="Select caste category"
-                                                isSearchable
-                                                isClearable
-                                                classNamePrefix="student-select"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* ===== ACADEMIC DETAILS ===== */}
-                                <div className="form-section">
-                                    <div className="section-heading">
-                                        <div className="section-icon purple">
-                                            <i className="bi bi-mortarboard-fill"></i>
-                                        </div>
-                                        <div>
-                                            <h5>Academic Details</h5>
-                                            <p>Add student's educational qualifications</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="add-academic-btn"
-                                            onClick={addAcademicRow}
-                                        >
-                                            <i className="bi bi-plus-lg"></i>
-                                            Add Qualification
-                                        </button>
-                                    </div>
-
-                                    <div className="academic-wrapper">
-                                        <div className="table-responsive">
-                                            <table className="academic-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Sr. No.</th>
-                                                        <th>Level</th>
-                                                        <th>School / College</th>
-                                                        <th>Roll No</th>
-                                                    </tr>
-                                                </thead>
-
-                                                <tbody>
-                                                    {formData.academicDetails.map(
-                                                        (academic, index) => (
-                                                            <React.Fragment key={index}>
-                                                                <tr className="academic-row">
-                                                                    <td
-                                                                        rowSpan={2}
-                                                                        className="academic-sr-no"
-                                                                    >
-                                                                        {index + 1}
-                                                                    </td>
-
-                                                                    <td>
-                                                                        <label className="academic-mobile-label">
-                                                                            Level
-                                                                        </label>
-                                                                        <Select
-                                                                            options={makeOptions(
-                                                                                educationlevel
-                                                                            )}
-                                                                            value={getSelected(
-                                                                                educationlevel,
-                                                                                academic.levelTypeId
-                                                                            )}
-                                                                            onChange={(selectedOption) =>
-                                                                                handleAcademicChange(
-                                                                                    index,
-                                                                                    {
-                                                                                        target: {
-                                                                                            name: "levelTypeId",
-                                                                                            value: selectedOption
-                                                                                                ? selectedOption.value
-                                                                                                : "",
-                                                                                        },
-                                                                                    }
-                                                                                )
-                                                                            }
-                                                                            placeholder="Select Level"
-                                                                            isSearchable
-                                                                            isClearable
-                                                                            classNamePrefix="student-select"
-                                                                            menuPortalTarget={document.body}
-                                                                            menuPosition="fixed"
-                                                                            styles={{
-                                                                                menuPortal: (base) => ({
-                                                                                    ...base,
-                                                                                    zIndex: 9999,
-                                                                                }),
-                                                                                menu: (base) => ({
-                                                                                    ...base,
-                                                                                    zIndex: 9999,
-                                                                                }),
-                                                                            }}
-                                                                        />
-                                                                    </td>
-
-                                                                    <td>
-                                                                        <label className="academic-mobile-label">
-                                                                            School / College
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            name="schoolCollege"
-                                                                            className="table-input"
-                                                                            placeholder="School / College"
-                                                                            value={academic.schoolCollege}
-                                                                            onChange={(e) =>
-                                                                                handleAcademicChange(
-                                                                                    index,
-                                                                                    e
-                                                                                )
-                                                                            }
-                                                                        />
-                                                                    </td>
-
-                                                                    <td>
-                                                                        <label className="academic-mobile-label">
-                                                                            Roll No
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            name="rollNo"
-                                                                            className="table-input"
-                                                                            placeholder="Roll No"
-                                                                            value={academic.rollNo}
-                                                                            onChange={(e) =>
-                                                                                handleAcademicChange(
-                                                                                    index,
-                                                                                    e
-                                                                                )
-                                                                            }
-                                                                        />
-                                                                    </td>
-                                                                </tr>
-
-                                                                <tr className="academic-row">
-                                                                    <td>
-                                                                        <label className="academic-mobile-label">
-                                                                            Board / University
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            name="boardUniversity"
-                                                                            className="table-input"
-                                                                            placeholder="Board / University"
-                                                                            value={academic.boardUniversity}
-                                                                            onChange={(e) =>
-                                                                                handleAcademicChange(
-                                                                                    index,
-                                                                                    e
-                                                                                )
-                                                                            }
-                                                                        />
-                                                                    </td>
-
-                                                                    <td>
-                                                                        <label className="academic-mobile-label">
-                                                                            Percentage / CGPA
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            name="percentageCgpa"
-                                                                            className="table-input"
-                                                                            placeholder="Percentage / CGPA"
-                                                                            value={academic.percentageCgpa}
-                                                                            onChange={(e) =>
-                                                                                handleAcademicChange(
-                                                                                    index,
-                                                                                    e
-                                                                                )
-                                                                            }
-                                                                        />
-                                                                    </td>
-
-                                                                    <td>
-                                                                        <label className="academic-mobile-label">
-                                                                            Document
-                                                                        </label>
-                                                                        <div className="document-action-wrapper">
-                                                                            <div className="document-input-wrapper">
-                                                                                <input
-                                                                                    type="file"
-                                                                                    name="file"
-                                                                                    className="file-table-input"
-                                                                                    accept=".jpg,.jpeg,.png,.pdf"
-                                                                                    onChange={(e) =>
-                                                                                        handleAcademicChange(
-                                                                                            index,
-                                                                                            e
-                                                                                        )
-                                                                                    }
-                                                                                />
-                                                                                {academic.file && (
-                                                                                    <small className="file-name">
-                                                                                        <i className="bi bi-check-circle-fill"></i>{" "}
-                                                                                        {academic.file.name}
-                                                                                    </small>
-                                                                                )}
-                                                                            </div>
-                                                                            <button
-                                                                                type="button"
-                                                                                className="delete-row-btn"
-                                                                                onClick={() =>
-                                                                                    removeAcademicRow(
-                                                                                        index
-                                                                                    )
-                                                                                }
-                                                                                disabled={
-                                                                                    formData
-                                                                                        .academicDetails
-                                                                                        .length === 1
-                                                                                }
-                                                                            >
-                                                                                <i className="bi bi-trash3"></i>
-                                                                            </button>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            </React.Fragment>
-                                                        )
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* ===== CONTACT & ADDRESS ===== */}
-                                <div className="form-section">
-                                    <div className="section-heading">
-                                        <div className="section-icon orange">
-                                            <i className="bi bi-geo-alt-fill"></i>
-                                        </div>
-                                        <div>
-                                            <h5>Contact & Address Details</h5>
-                                            <p>Enter student's contact and residential details</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="row">
-                                        <div className="col-lg-6 col-md-6 mb-4">
-                                            <label>
-                                                Mobile Number <span>*</span>
-                                            </label>
-                                            <InputField
-                                                type="tel"
-                                                icon="bi-phone"
-                                                name="mobileNo"
-                                                value={formData.mobileNo}
-                                                onChange={(e) =>
-                                                    handleNumberChange("mobileNo", 10, e)
-                                                }
-                                                placeholder="Enter 10 digit mobile number"
-                                                maxLength={10}
-                                            />
-                                            {errors.mobileNo && (
-                                                <ErrorText text={errors.mobileNo} />
-                                            )}
-                                        </div>
-
-                                        <div className="col-lg-6 col-md-6 mb-4">
-                                            <label>
-                                                Email Address <span>*</span>
-                                            </label>
-                                            <InputField
-                                                type="email"
-                                                icon="bi-envelope"
-                                                name="email"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                                placeholder="Enter email address"
-                                            />
-                                            {errors.email && (
-                                                <ErrorText text={errors.email} />
-                                            )}
-                                        </div>
-
-                                        {/* ✅ STATE — editable always */}
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>State</label>
-                                            <Select
-                                                options={makeOptions(states)}
-                                                value={getSelected(states, formData.stateId)}
-                                                onChange={handleStateChange}
-                                                placeholder="Select state"
-                                                isSearchable
-                                                isClearable
-                                                classNamePrefix="student-select"
-                                                menuPortalTarget={document.body}
-                                                menuPosition="fixed"
-                                                styles={{
-                                                    menuPortal: (base) => ({
-                                                        ...base,
-                                                        zIndex: 9999,
-                                                    }),
-                                                    menu: (base) => ({
-                                                        ...base,
-                                                        zIndex: 9999,
-                                                    }),
-                                                }}
-                                            />
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>District</label>
-                                            <Select
-                                                options={makeOptions(districts)}
-                                                value={getSelected(
-                                                    districts,
-                                                    formData.districtId
-                                                )}
-                                                onChange={handleDistrictChange}
-                                                placeholder={
-                                                    formData.stateId
-                                                        ? "Select district"
-                                                        : "Select state first"
-                                                }
-                                                isSearchable
-                                                isClearable
-                                                isDisabled={!formData.stateId}
-                                                classNamePrefix="student-select"
-                                                menuPortalTarget={document.body}
-                                                menuPosition="fixed"
-                                                styles={{
-                                                    menuPortal: (base) => ({
-                                                        ...base,
-                                                        zIndex: 9999,
-                                                    }),
-                                                    menu: (base) => ({
-                                                        ...base,
-                                                        zIndex: 9999,
-                                                    }),
-                                                }}
-                                            />
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-6 mb-4">
-                                            <label>City</label>
-                                            <Select
-                                                options={makeOptions(cities)}
-                                                value={getSelected(
-                                                    cities,
-                                                    formData.locationId
-                                                )}
-                                                onChange={(option) =>
-                                                    handleSelectChange(
-                                                        "locationId",
-                                                        option
-                                                    )
-                                                }
-                                                placeholder={
-                                                    formData.districtId
-                                                        ? "Select city"
-                                                        : "Select district first"
-                                                }
-                                                isSearchable
-                                                isClearable
-                                                isDisabled={!formData.districtId}
-                                                classNamePrefix="student-select"
-                                                menuPortalTarget={document.body}
-                                                menuPosition="fixed"
-                                                styles={{
-                                                    menuPortal: (base) => ({
-                                                        ...base,
-                                                        zIndex: 9999,
-                                                    }),
-                                                    menu: (base) => ({
-                                                        ...base,
-                                                        zIndex: 9999,
-                                                    }),
-                                                }}
-                                            />
-                                        </div>
-
-                                        <div className="col-lg-8 col-md-8 mb-4">
-                                            <label>
-                                                Address <span>*</span>
-                                            </label>
-                                            <div className="input-icon-box textarea-icon">
-                                                <i className="bi bi-house-door"></i>
-                                                <textarea
-                                                    name="address"
-                                                    className="form-control"
-                                                    rows="3"
-                                                    value={formData.address}
-                                                    onChange={handleChange}
-                                                    placeholder="Enter complete residential address"
-                                                ></textarea>
-                                            </div>
-                                            {errors.address && (
-                                                <ErrorText text={errors.address} />
-                                            )}
-                                        </div>
-
-                                        <div className="col-lg-4 col-md-4 mb-4">
-                                            <label>Pin Code</label>
-                                            <InputField
-                                                type="text"
-                                                icon="bi-geo"
-                                                name="pincode"
-                                                value={formData.pincode}
-                                                onChange={(e) =>
-                                                    handleNumberChange("pincode", 6, e)
-                                                }
-                                                placeholder="Enter 6 digit PIN"
-                                                maxLength={6}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* ===== DOCUMENT DETAILS ===== */}
-                                <div className="form-section">
-                                    <div className="section-heading">
-                                        <div className="section-icon red">
-                                            <i className="bi bi-file-earmark-image-fill"></i>
-                                        </div>
-                                        <div>
-                                            <h5>Document Details</h5>
-                                            <p>Upload student's required documents</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="row">
-                                        <DocumentUpload
-                                            label="Student Photo"
-                                            required
-                                            name="selfImage1"
-                                            file={formData.selfImage1}
-                                            error={errors.selfImage1}
-                                            onChange={handleChange}
-                                            icon="bi-person-square"
-                                            accept="image/*"
+                                            onChange={handleCourseTypeChange}
+                                            placeholder="Select programme"
+                                            isSearchable
+                                            isClearable
+                                            classNamePrefix="student-select"
                                         />
-                                        <DocumentUpload
-                                            label="Signature Image"
-                                            name="signatureImage1"
-                                            file={formData.signatureImage1}
-                                            onChange={handleChange}
-                                            icon="bi-pen"
-                                            accept="image/*"
-                                        />
-                                        <DocumentUpload
-                                            label="Aadhaar Front"
-                                            name="aadhaarCardFrant1"
-                                            file={formData.aadhaarCardFrant1}
-                                            onChange={handleChange}
-                                            icon="bi-credit-card"
-                                            accept="image/*"
-                                        />
-                                        <DocumentUpload
-                                            label="Aadhaar Back"
-                                            name="aadhaarCardBack1"
-                                            file={formData.aadhaarCardBack1}
-                                            onChange={handleChange}
-                                            icon="bi-credit-card-2-back"
-                                            accept="image/*"
-                                        />
+                                        {errors.courseTypeId && (
+                                            <ErrorText text={errors.courseTypeId} />
+                                        )}
                                     </div>
-                                </div>
 
-                                {/* ===== DECLARATION ===== */}
-                                <div className="declaration-card">
-                                    <div className="declaration-header">
-                                        <div className="declaration-icon">
-                                            <i className="bi bi-shield-check"></i>
-                                        </div>
-                                        <div>
-                                            <h5>Declaration & Undertaking</h5>
-                                            <p>
-                                                Please read the declaration before
-                                                submitting the form.
-                                            </p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="view-declaration-btn"
-                                            onClick={() =>
-                                                setShowDeclarationModal(true)
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>
+                                            Course Category <span>*</span>
+                                        </label>
+                                        <Select
+                                            options={makeOptions(courseCategories)}
+                                            value={getSelected(
+                                                courseCategories,
+                                                formData.courseCategoryId
+                                            )}
+                                            onChange={handleCourseCategoryChange}
+                                            placeholder={
+                                                formData.courseTypeId
+                                                    ? "Select category"
+                                                    : "Select programme first"
                                             }
-                                        >
-                                            <i className="bi bi-eye"></i>
-                                            Read Declaration
-                                        </button>
+                                            isSearchable
+                                            isClearable
+                                            isDisabled={!formData.courseTypeId}
+                                            classNamePrefix="student-select"
+                                        />
+                                        {errors.courseCategoryId && (
+                                            <ErrorText
+                                                text={errors.courseCategoryId}
+                                            />
+                                        )}
                                     </div>
 
-                                    <div className="declaration-check">
-                                        <input
-                                            type="checkbox"
-                                            id="declarationCheck"
-                                            checked={isDeclarationAccepted}
-                                            onChange={(e) =>
-                                                setIsDeclarationAccepted(
-                                                    e.target.checked
-                                                )
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>
+                                            Course <span>*</span>
+                                        </label>
+                                        <Select
+                                            options={makeOptions(courses)}
+                                            value={getSelected(
+                                                courses,
+                                                formData.courseId
+                                            )}
+                                            onChange={(option) =>
+                                                handleSelectChange("courseId", option)
                                             }
+                                            placeholder={
+                                                formData.courseCategoryId
+                                                    ? "Select course"
+                                                    : "Select category first"
+                                            }
+                                            isSearchable
+                                            isClearable
+                                            isDisabled={!formData.courseCategoryId}
+                                            classNamePrefix="student-select"
                                         />
-                                        <label htmlFor="declarationCheck">
-                                            I hereby declare that I have read,
-                                            understood, and accept all the terms and
-                                            conditions mentioned above. I confirm that
-                                            all the information provided in this
-                                            application is true and correct to the
-                                            best of my knowledge.
+                                        {errors.courseId && (
+                                            <ErrorText text={errors.courseId} />
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* ✅ STUDY MATERIAL TYPE */}
+                                <div className="row">
+                                    <div className="col-12 mb-2">
+                                        <label>
+                                            Study Material Type <span>*</span>
                                         </label>
                                     </div>
+
+                                    <div className="col-md-6 mb-3">
+                                        <label className="material-radio">
+                                            <input
+                                                type="radio"
+                                                name="courseMetrialID"
+                                                value={142}
+                                                checked={
+                                                    formData.courseMetrialID === 142
+                                                }
+                                                onChange={() =>
+                                                    handleMaterialChange(142)
+                                                }
+                                            />
+                                            <span>Hard Copy (Book's)</span>
+                                        </label>
+                                    </div>
+
+                                    <div className="col-md-6 mb-3">
+                                        <label className="material-radio">
+                                            <input
+                                                type="radio"
+                                                name="courseMetrialID"
+                                                value={143}
+                                                checked={
+                                                    formData.courseMetrialID === 143
+                                                }
+                                                onChange={() =>
+                                                    handleMaterialChange(143)
+                                                }
+                                            />
+                                            <span>Soft Copy (PDF)</span>
+                                        </label>
+                                    </div>
+
+                                    {errors.courseMetrialID && (
+                                        <div className="col-12">
+                                            <ErrorText text={errors.courseMetrialID} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* ===== PERSONAL DETAILS ===== */}
+                            <div className="form-section">
+                                <div className="section-heading">
+                                    <div className="section-icon green">
+                                        <i className="bi bi-person-vcard-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h5>Personal Details</h5>
+                                        <p>Enter student's personal information</p>
+                                    </div>
                                 </div>
 
-                                {/* ===== ACTIONS ===== */}
-                                <div className="form-actions">
+                                <div className="row">
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>
+                                            Session <span>*</span>
+                                        </label>
+                                        <Select
+                                            options={makeOptions(masterSessions)}
+                                            value={getSelected(
+                                                masterSessions,
+                                                formData.examSessionId
+                                            )}
+                                            onChange={(option) =>
+                                                handleSelectChange(
+                                                    "examSessionId",
+                                                    option
+                                                )
+                                            }
+                                            placeholder="Select session"
+                                            isSearchable
+                                            isClearable
+                                            classNamePrefix="student-select"
+                                        />
+                                        {errors.examSessionId && (
+                                            <ErrorText text={errors.examSessionId} />
+                                        )}
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>
+                                            Student Name <span>*</span>
+                                        </label>
+                                        <InputField
+                                            icon="bi-person"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            placeholder="Enter student name"
+                                        />
+                                        {errors.name && (
+                                            <ErrorText text={errors.name} />
+                                        )}
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>Student Name (Hindi)</label>
+                                        <InputField
+                                            icon="bi-translate"
+                                            name="studentNameHindi"
+                                            value={formData.studentNameHindi}
+                                            onChange={handleChange}
+                                            placeholder="हिंदी में नाम"
+                                        />
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>Date of Birth</label>
+                                        <InputField
+                                            type="date"
+                                            icon="bi-calendar3"
+                                            name="dateOfBirth"
+                                            value={formData.dateOfBirth}
+                                            onChange={handleChange}
+                                            max={new Date()
+                                                .toISOString()
+                                                .split("T")[0]}
+                                        />
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>
+                                            Father's Name <span>*</span>
+                                        </label>
+                                        <InputField
+                                            icon="bi-person-badge"
+                                            name="fatherName"
+                                            value={formData.fatherName}
+                                            onChange={handleChange}
+                                            placeholder="Enter father's name"
+                                        />
+                                        {errors.fatherName && (
+                                            <ErrorText text={errors.fatherName} />
+                                        )}
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>Father's Name (Hindi)</label>
+                                        <InputField
+                                            icon="bi-translate"
+                                            name="fatherNameHindi"
+                                            value={formData.fatherNameHindi}
+                                            onChange={handleChange}
+                                            placeholder="हिंदी में पिता का नाम"
+                                        />
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>Mother's Name</label>
+                                        <InputField
+                                            icon="bi-person-heart"
+                                            name="motherName"
+                                            value={formData.motherName}
+                                            onChange={handleChange}
+                                            placeholder="Enter mother's name"
+                                        />
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>Aadhaar Number</label>
+                                        <InputField
+                                            icon="bi-credit-card-2-front"
+                                            name="idNumber"
+                                            value={formData.idNumber}
+                                            onChange={(e) =>
+                                                handleNumberChange("idNumber", 12, e)
+                                            }
+                                            placeholder="Enter 12 digit Aadhaar"
+                                            maxLength={12}
+                                        />
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>Gender</label>
+                                        <Select
+                                            options={makeOptions(genders)}
+                                            value={getSelected(
+                                                genders,
+                                                formData.genderId
+                                            )}
+                                            onChange={(option) =>
+                                                handleSelectChange(
+                                                    "genderId",
+                                                    option
+                                                )
+                                            }
+                                            placeholder="Select gender"
+                                            isSearchable
+                                            isClearable
+                                            classNamePrefix="student-select"
+                                        />
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>Caste Category</label>
+                                        <Select
+                                            options={makeOptions(casteCategories)}
+                                            value={getSelected(
+                                                casteCategories,
+                                                formData.casteCategoryId
+                                            )}
+                                            onChange={(option) =>
+                                                handleSelectChange(
+                                                    "casteCategoryId",
+                                                    option
+                                                )
+                                            }
+                                            placeholder="Select caste category"
+                                            isSearchable
+                                            isClearable
+                                            classNamePrefix="student-select"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ===== ACADEMIC DETAILS ===== */}
+                            <div className="form-section">
+                                <div className="section-heading">
+                                    <div className="section-icon purple">
+                                        <i className="bi bi-mortarboard-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h5>Academic Details</h5>
+                                        <p>Add student's educational qualifications</p>
+                                    </div>
                                     <button
                                         type="button"
-                                        className="cancel-btn"
-                                        onClick={() => navigate("/student-list")}
+                                        className="add-academic-btn"
+                                        onClick={addAcademicRow}
                                     >
-                                        <i className="bi bi-x-lg"></i>
-                                        Cancel
-                                    </button>
-
-                                    <button
-                                        type="submit"
-                                        className="submit-btn"
-                                        disabled={
-                                            !isDeclarationAccepted || isSubmitting
-                                        }
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <span className="spinner-border spinner-border-sm"></span>
-                                                Submitting...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <i className="bi bi-check2-circle"></i>
-                                                Submit Registration
-                                            </>
-                                        )}
+                                        <i className="bi bi-plus-lg"></i>
+                                        Add Qualification
                                     </button>
                                 </div>
-                            </form>
-                        </div>
-                    )}
+
+                                <div className="academic-wrapper">
+                                    <div className="table-responsive">
+                                        <table className="academic-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Sr. No.</th>
+                                                    <th>Level</th>
+                                                    <th>School / College</th>
+                                                    <th>Roll No</th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+                                                {formData.academicDetails.map(
+                                                    (academic, index) => (
+                                                        <React.Fragment key={index}>
+                                                            <tr className="academic-row">
+                                                                <td
+                                                                    rowSpan={2}
+                                                                    className="academic-sr-no"
+                                                                >
+                                                                    {index + 1}
+                                                                </td>
+
+                                                                <td>
+                                                                    <label className="academic-mobile-label">
+                                                                        Level
+                                                                    </label>
+                                                                    <Select
+                                                                        options={makeOptions(
+                                                                            educationlevel
+                                                                        )}
+                                                                        value={getSelected(
+                                                                            educationlevel,
+                                                                            academic.levelTypeId
+                                                                        )}
+                                                                        onChange={(selectedOption) =>
+                                                                            handleAcademicChange(
+                                                                                index,
+                                                                                {
+                                                                                    target: {
+                                                                                        name: "levelTypeId",
+                                                                                        value: selectedOption
+                                                                                            ? selectedOption.value
+                                                                                            : "",
+                                                                                    },
+                                                                                }
+                                                                            )
+                                                                        }
+                                                                        placeholder="Select Level"
+                                                                        isSearchable
+                                                                        isClearable
+                                                                        classNamePrefix="student-select"
+                                                                        menuPortalTarget={document.body}
+                                                                        menuPosition="fixed"
+                                                                        styles={{
+                                                                            menuPortal: (base) => ({
+                                                                                ...base,
+                                                                                zIndex: 9999,
+                                                                            }),
+                                                                            menu: (base) => ({
+                                                                                ...base,
+                                                                                zIndex: 9999,
+                                                                            }),
+                                                                        }}
+                                                                    />
+                                                                </td>
+
+                                                                <td>
+                                                                    <label className="academic-mobile-label">
+                                                                        School / College
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        name="schoolCollege"
+                                                                        className="table-input"
+                                                                        placeholder="School / College"
+                                                                        value={academic.schoolCollege}
+                                                                        onChange={(e) =>
+                                                                            handleAcademicChange(
+                                                                                index,
+                                                                                e
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                </td>
+
+                                                                <td>
+                                                                    <label className="academic-mobile-label">
+                                                                        Roll No
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        name="rollNo"
+                                                                        className="table-input"
+                                                                        placeholder="Roll No"
+                                                                        value={academic.rollNo}
+                                                                        onChange={(e) =>
+                                                                            handleAcademicChange(
+                                                                                index,
+                                                                                e
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                </td>
+                                                            </tr>
+
+                                                            <tr className="academic-row">
+                                                                <td>
+                                                                    <label className="academic-mobile-label">
+                                                                        Board / University
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        name="boardUniversity"
+                                                                        className="table-input"
+                                                                        placeholder="Board / University"
+                                                                        value={academic.boardUniversity}
+                                                                        onChange={(e) =>
+                                                                            handleAcademicChange(
+                                                                                index,
+                                                                                e
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                </td>
+
+                                                                <td>
+                                                                    <label className="academic-mobile-label">
+                                                                        Percentage / CGPA
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        name="percentageCgpa"
+                                                                        className="table-input"
+                                                                        placeholder="Percentage / CGPA"
+                                                                        value={academic.percentageCgpa}
+                                                                        onChange={(e) =>
+                                                                            handleAcademicChange(
+                                                                                index,
+                                                                                e
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                </td>
+
+                                                                <td>
+                                                                    <label className="academic-mobile-label">
+                                                                        Document
+                                                                    </label>
+                                                                    <div className="document-action-wrapper">
+                                                                        <div className="document-input-wrapper">
+                                                                            <input
+                                                                                type="file"
+                                                                                name="file"
+                                                                                id={`academic-file-${index}`}
+                                                                                className="file-table-input"
+                                                                                accept=".jpg,.jpeg,.png,.pdf"
+                                                                                onChange={(e) =>
+                                                                                    handleAcademicChange(
+                                                                                        index,
+                                                                                        e
+                                                                                    )
+                                                                                }
+                                                                            />
+
+                                                                            <label
+                                                                                htmlFor={`academic-file-${index}`}
+                                                                                className="file-upload-btn"
+                                                                            >
+                                                                                <i className="bi bi-cloud-arrow-up"></i>
+                                                                                Choose File
+                                                                            </label>
+
+                                                                            {academic.file && (
+                                                                                <div className="file-selected-box">
+                                                                                    <i className="bi bi-file-earmark-check-fill"></i>
+                                                                                    <div className="file-info">
+                                                                                        <span className="file-label">
+                                                                                            Selected:
+                                                                                        </span>
+                                                                                        <span className="file-name-text">
+                                                                                            {academic.file.name}
+                                                                                        </span>
+                                                                                        <span className="file-size">
+                                                                                            ({(academic.file.size / 1024).toFixed(1)} KB)
+                                                                                        </span>
+                                                                                    </div>
+
+                                                                                    <i className="bi bi-check-circle-fill check-icon"></i>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="delete-row-btn"
+                                                                            onClick={() =>
+                                                                                removeAcademicRow(
+                                                                                    index
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                formData
+                                                                                    .academicDetails
+                                                                                    .length === 1
+                                                                            }
+                                                                        >
+                                                                            <i className="bi bi-trash3"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        </React.Fragment>
+                                                    )
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ===== CONTACT & ADDRESS ===== */}
+                            <div className="form-section">
+                                <div className="section-heading">
+                                    <div className="section-icon orange">
+                                        <i className="bi bi-geo-alt-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h5>Contact & Address Details</h5>
+                                        <p>Enter student's contact and residential details</p>
+                                    </div>
+                                </div>
+
+                                <div className="row">
+                                    <div className="col-lg-6 col-md-6 mb-4">
+                                        <label>
+                                            Mobile Number <span>*</span>
+                                        </label>
+                                        <InputField
+                                            type="tel"
+                                            icon="bi-phone"
+                                            name="mobileNo"
+                                            value={formData.mobileNo}
+                                            onChange={(e) =>
+                                                handleNumberChange("mobileNo", 10, e)
+                                            }
+                                            placeholder="Enter 10 digit mobile number"
+                                            maxLength={10}
+                                        />
+                                        {errors.mobileNo && (
+                                            <ErrorText text={errors.mobileNo} />
+                                        )}
+                                    </div>
+
+                                    <div className="col-lg-6 col-md-6 mb-4">
+                                        <label>
+                                            Email Address <span>*</span>
+                                        </label>
+                                        <InputField
+                                            type="email"
+                                            icon="bi-envelope"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            placeholder="Enter email address"
+                                        />
+                                        {errors.email && (
+                                            <ErrorText text={errors.email} />
+                                        )}
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>State</label>
+                                        <Select
+                                            options={makeOptions(states)}
+                                            value={getSelected(states, formData.stateId)}
+                                            onChange={handleStateChange}
+                                            placeholder="Select state"
+                                            isSearchable
+                                            isClearable
+                                            classNamePrefix="student-select"
+                                            menuPortalTarget={document.body}
+                                            menuPosition="fixed"
+                                            styles={{
+                                                menuPortal: (base) => ({
+                                                    ...base,
+                                                    zIndex: 9999,
+                                                }),
+                                                menu: (base) => ({
+                                                    ...base,
+                                                    zIndex: 9999,
+                                                }),
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>District</label>
+                                        <Select
+                                            options={makeOptions(districts)}
+                                            value={getSelected(
+                                                districts,
+                                                formData.districtId
+                                            )}
+                                            onChange={handleDistrictChange}
+                                            placeholder={
+                                                formData.stateId
+                                                    ? "Select district"
+                                                    : "Select state first"
+                                            }
+                                            isSearchable
+                                            isClearable
+                                            isDisabled={!formData.stateId}
+                                            classNamePrefix="student-select"
+                                            menuPortalTarget={document.body}
+                                            menuPosition="fixed"
+                                            styles={{
+                                                menuPortal: (base) => ({
+                                                    ...base,
+                                                    zIndex: 9999,
+                                                }),
+                                                menu: (base) => ({
+                                                    ...base,
+                                                    zIndex: 9999,
+                                                }),
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-6 mb-4">
+                                        <label>City</label>
+                                        <Select
+                                            options={makeOptions(cities)}
+                                            value={getSelected(
+                                                cities,
+                                                formData.locationId
+                                            )}
+                                            onChange={(option) =>
+                                                handleSelectChange(
+                                                    "locationId",
+                                                    option
+                                                )
+                                            }
+                                            placeholder={
+                                                formData.districtId
+                                                    ? "Select city"
+                                                    : "Select district first"
+                                            }
+                                            isSearchable
+                                            isClearable
+                                            isDisabled={!formData.districtId}
+                                            classNamePrefix="student-select"
+                                            menuPortalTarget={document.body}
+                                            menuPosition="fixed"
+                                            styles={{
+                                                menuPortal: (base) => ({
+                                                    ...base,
+                                                    zIndex: 9999,
+                                                }),
+                                                menu: (base) => ({
+                                                    ...base,
+                                                    zIndex: 9999,
+                                                }),
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div className="col-lg-8 col-md-8 mb-4">
+                                        <label>
+                                            Address <span>*</span>
+                                        </label>
+                                        <div className="input-icon-box textarea-icon">
+                                            <i className="bi bi-house-door"></i>
+                                            <textarea
+                                                name="address"
+                                                className="form-control"
+                                                rows="3"
+                                                value={formData.address}
+                                                onChange={handleChange}
+                                                placeholder="Enter complete residential address"
+                                            ></textarea>
+                                        </div>
+                                        {errors.address && (
+                                            <ErrorText text={errors.address} />
+                                        )}
+                                    </div>
+
+                                    <div className="col-lg-4 col-md-4 mb-4">
+                                        <label>Pin Code</label>
+                                        <InputField
+                                            type="text"
+                                            icon="bi-geo"
+                                            name="pincode"
+                                            value={formData.pincode}
+                                            onChange={(e) =>
+                                                handleNumberChange("pincode", 6, e)
+                                            }
+                                            placeholder="Enter 6 digit PIN"
+                                            maxLength={6}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ===== DOCUMENT DETAILS ===== */}
+                            <div className="form-section">
+                                <div className="section-heading">
+                                    <div className="section-icon red">
+                                        <i className="bi bi-file-earmark-image-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h5>Document Details</h5>
+                                        <p>Upload student's required documents</p>
+                                    </div>
+                                </div>
+
+                                <div className="row">
+                                    <DocumentUpload
+                                        label="Student Photo"
+                                        required
+                                        name="selfImage1"
+                                        file={formData.selfImage1}
+                                        error={errors.selfImage1}
+                                        onChange={handleChange}
+                                        icon="bi-person-square"
+                                        accept="image/*"
+                                    />
+                                    <DocumentUpload
+                                        label="Signature Image"
+                                        name="signatureImage1"
+                                        file={formData.signatureImage1}
+                                        onChange={handleChange}
+                                        icon="bi-pen"
+                                        accept="image/*"
+                                    />
+                                    <DocumentUpload
+                                        label="Aadhaar Front"
+                                        name="aadhaarCardFrant1"
+                                        file={formData.aadhaarCardFrant1}
+                                        onChange={handleChange}
+                                        icon="bi-credit-card"
+                                        accept="image/*"
+                                    />
+                                    <DocumentUpload
+                                        label="Aadhaar Back"
+                                        name="aadhaarCardBack1"
+                                        file={formData.aadhaarCardBack1}
+                                        onChange={handleChange}
+                                        icon="bi-credit-card-2-back"
+                                        accept="image/*"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* ===== DECLARATION ===== */}
+                            <div className="declaration-card">
+                                <div className="declaration-header">
+                                    <div className="declaration-icon">
+                                        <i className="bi bi-shield-check"></i>
+                                    </div>
+                                    <div>
+                                        <h5>Declaration & Undertaking</h5>
+                                        <p>
+                                            Please read the declaration before
+                                            submitting the form.
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="view-declaration-btn"
+                                        onClick={() =>
+                                            setShowDeclarationModal(true)
+                                        }
+                                    >
+                                        <i className="bi bi-eye"></i>
+                                        Read Declaration
+                                    </button>
+                                </div>
+
+                                <div className="declaration-check">
+                                    <input
+                                        type="checkbox"
+                                        id="declarationCheck"
+                                        checked={isDeclarationAccepted}
+                                        onChange={(e) =>
+                                            setIsDeclarationAccepted(
+                                                e.target.checked
+                                            )
+                                        }
+                                    />
+                                    <label htmlFor="declarationCheck">
+                                        I hereby declare that I have read,
+                                        understood, and accept all the terms and
+                                        conditions mentioned above. I confirm that
+                                        all the information provided in this
+                                        application is true and correct to the
+                                        best of my knowledge.
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* ===== ACTIONS ===== */}
+                            <div className="form-actions">
+                                <button
+                                    type="button"
+                                    className="cancel-btn"
+                                    onClick={() => navigate("/student-list")}
+                                >
+                                    <i className="bi bi-x-lg"></i>
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    className="submit-btn"
+                                    disabled={
+                                        !isDeclarationAccepted || isSubmitting
+                                    }
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm"></span>
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="bi bi-check2-circle"></i>
+                                            Submit Registration
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
                 {/* ===== DECLARATION MODAL ===== */}

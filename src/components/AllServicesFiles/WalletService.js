@@ -155,3 +155,22 @@ export const getWalletShowBalance = async (userId) => {
 
     return response.data;
 };
+
+
+// ✅ Wallet Order Create — aapke existing pattern me
+export const createWalletOnline = async (formData) => {
+    const data = new FormData();
+
+    data.append("totalAmount", formData.totalAmount);
+    data.append("franchiseId", formData.franchiseId);
+
+    const response = await api.post("/Wallet/emp-online-wallet-create", data, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return response.data;
+};
+
+ 

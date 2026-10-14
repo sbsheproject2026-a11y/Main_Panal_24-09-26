@@ -1,32 +1,35 @@
  import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { getOfflinePayments } from "../../AllServicesFiles/PaymentService";
+import {
+    createOfflinePayment,
+    getOfflinePayments,
+} from "../../AllServicesFiles/PaymentService";
+import { useNavigate } from "react-router-dom";
 
 function OfflinePaymentList() {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("Success");
     const [list, setList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
 
-    // ✅ Search & Pagination State
     const [search, setSearch] = useState("");
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(100);
     const [currentPage, setCurrentPage] = useState(1);
 
-    // ✅ ADD FORM STATE
     const [showAddForm, setShowAddForm] = useState(false);
     const [addFormData, setAddFormData] = useState({
+        userId: "",
         studentName: "",
-        studentId: "",
-        orderId: "",
+        courseId: "",
+        feeName: "",
         amount: "",
         paymentDate: new Date().toISOString().split("T")[0],
-        remarks: "",
+        remark: "",
     });
     const [addErrors, setAddErrors] = useState({});
     const [addSubmitting, setAddSubmitting] = useState(false);
 
-    // ✅ Fetch function (useCallback for reuse)
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
@@ -51,12 +54,10 @@ function OfflinePaymentList() {
         }
     }, [activeTab]);
 
-    // ✅ Fetch on tab change
     useEffect(() => {
         fetchData();
     }, [fetchData]);
 
-    // ✅ Filtered List (Search)
     const filteredList = useMemo(() => {
         if (!search.trim()) return list;
         const s = search.toLowerCase().trim();
@@ -75,19 +76,16 @@ function OfflinePaymentList() {
         });
     }, [list, search]);
 
-    // ✅ Pagination Calculations
     const totalItems = filteredList.length;
     const totalPages = Math.ceil(totalItems / pageSize);
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const paginatedList = filteredList.slice(startIndex, endIndex);
 
-    // ✅ Reset page on search / pageSize change
     useEffect(() => {
         setCurrentPage(1);
     }, [search, pageSize]);
 
-    // ✅ Page number buttons
     const getPageNumbers = () => {
         const pages = [];
         const maxVisible = 5;
@@ -126,20 +124,26 @@ function OfflinePaymentList() {
         })}`;
     };
 
-    // ============================================================
-    // ✅ ADD FORM HANDLERS
-    // ============================================================
-
     const handleAdd = (item) => {
         setSelectedItem(null);
         setAddErrors({});
+
+        const studentUserId = item.eId || item.studentId || item.userId || "";
+        const courseId =
+            item.productId ||
+            item.ProductId ||
+            item.courseId ||
+            item.CourseId ||
+            "";
+
         setAddFormData({
+            userId: studentUserId,
             studentName: item.name?.trim() || "",
-            studentId: item.eId || item.studentId || "",
-            orderId: item.orderId || "",
+            courseId: courseId,
+            feeName: item.feeName || "",
             amount: "",
             paymentDate: new Date().toISOString().split("T")[0],
-            remarks: "",
+            remark: "",
         });
         setShowAddForm(true);
     };
@@ -160,6 +164,12 @@ function OfflinePaymentList() {
         if (!addFormData.paymentDate) {
             err.paymentDate = "Payment date required";
         }
+        if (!addFormData.userId) {
+            err.userId = "Student ID missing";
+        }
+        if (!addFormData.remark?.trim()) {
+            err.remark = "Remark required";
+        }
         setAddErrors(err);
         return Object.keys(err).length === 0;
     };
@@ -170,23 +180,30 @@ function OfflinePaymentList() {
 
         setAddSubmitting(true);
         try {
-            // 👇 YAHAN APNI API CALL LAGAO
-            // const res = await saveOfflinePayment({
-            //     studentId: addFormData.studentId,
-            //     orderId: addFormData.orderId,
-            //     amount: Number(addFormData.amount),
-            //     paymentDate: addFormData.paymentDate,
-            //     remarks: addFormData.remarks,
-            // });
+            const res = await createOfflinePayment({
+                userId: addFormData.userId,
+                amount: addFormData.amount,
+                remark: addFormData.remark.trim(),
+                paidDate: addFormData.paymentDate,
+                courseid: addFormData.courseId || 4,
+            });
 
-            console.log("Submitting:", addFormData);
-            alert("Payment added successfully!");
+            const responseData = res?.data || res;
 
-            setShowAddForm(false);
-            fetchData();   // list refresh
+            if (responseData?.success) {
+                alert(responseData.message || "Payment added successfully!");
+                setShowAddForm(false);
+                fetchData();
+            } else {
+                alert(responseData?.message || "Failed to save payment");
+            }
         } catch (err) {
-            console.error(err);
-            alert("Failed to save payment");
+            console.error("Add payment error:", err);
+            alert(
+                err?.response?.data?.message ||
+                    err?.message ||
+                    "Failed to save payment"
+            );
         } finally {
             setAddSubmitting(false);
         }
@@ -204,12 +221,8 @@ function OfflinePaymentList() {
                     font-family: 'Segoe UI', Tahoma, sans-serif;
                 }
 
-                .off-container {
-                    max-width: 1200px;
-                    margin: 0 auto;
-                }
+                .off-container { max-width: 1400px; margin: 0 auto; }
 
-                /* ============ TOP HEADER ============ */
                 .off-top-header {
                     background: #fff;
                     border-radius: 16px 16px 0 0;
@@ -227,7 +240,6 @@ function OfflinePaymentList() {
                     margin-bottom: 20px;
                 }
 
-                /* ============ TOP TABS ============ */
                 .off-tabs {
                     display: flex;
                     gap: 8px;
@@ -274,7 +286,6 @@ function OfflinePaymentList() {
                     color: #6366f1;
                 }
 
-                /* ============ BODY ============ */
                 .off-body {
                     background: #fff;
                     border-radius: 0 0 16px 16px;
@@ -283,7 +294,6 @@ function OfflinePaymentList() {
                     min-height: 400px;
                 }
 
-                /* ============ TOOLBAR ============ */
                 .off-toolbar {
                     display: flex;
                     justify-content: space-between;
@@ -379,39 +389,113 @@ function OfflinePaymentList() {
                     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
                 }
 
-                /* ============ LIST ============ */
-                .list-wrapper {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
+                /* ============================================
+                   ✅ TABLE WRAPPER — RollNoList style scroll
+                   ============================================ */
+                .table-wrapper {
+                    width: 0 !important;
+                    min-width: 100% !important;
+                    max-width: 100% !important;
+                    overflow-x: auto !important;
+                    overflow-y: hidden !important;
+                    box-sizing: border-box;
+                    position: relative;
+                    -webkit-overflow-scrolling: touch;
+                    scrollbar-gutter: stable;
+                    contain: inline-size;
+                    border: 2px solid #cbd5e1;
+                    border-radius: 12px;
+                    background: #fff;
                 }
 
-                .list-card {
-                    background: #fff;
-                    border-radius: 14px;
-                    padding: 18px 20px;
-                    border: 1px solid #e2e8f0;
+                /* Scrollbar — visible thin style */
+                .table-wrapper::-webkit-scrollbar {
+                    height: 10px;
+                }
+                .table-wrapper::-webkit-scrollbar-track {
+                    background: #eef1f5;
+                    border-radius: 10px;
+                }
+                .table-wrapper::-webkit-scrollbar-thumb {
+                    background: #b8bfcc;
+                    border-radius: 10px;
+                    border: 2px solid #eef1f5;
+                }
+                .table-wrapper::-webkit-scrollbar-thumb:hover {
+                    background: #8f98a8;
+                }
+
+                .table-wrapper {
+                    scrollbar-width: thin;
+                    scrollbar-color: #b8bfcc #eef1f5;
+                }
+
+                /* ============================================
+                   TABLE
+                   ============================================ */
+                .data-table {
+                    width: auto !important;
+                    min-width: 100% !important;
+                    max-width: none !important;
+                    table-layout: auto !important;
+                    border-collapse: separate !important;
+                    border-spacing: 0 !important;
+                    margin: 0 !important;
+                    font-size: 13.5px;
+                }
+
+                .data-table th,
+                .data-table td {
+                    box-sizing: border-box;
+                    white-space: nowrap !important;
+                }
+
+                .data-table thead th {
+                    padding: 14px 16px;
+                    text-align: left;
+                    font-size: 11.5px;
+                    font-weight: 700;
+                    color: #475569;
+                    text-transform: uppercase;
+                    letter-spacing: 0.6px;
+                    background: #f1f5f9;
+                    border-right: 1px solid #cbd5e1;
+                    border-bottom: 2px solid #94a3b8;
+                }
+
+                .data-table thead th:last-child { border-right: none; }
+                .data-table thead th.center { text-align: center; }
+                .data-table thead th.right  { text-align: right; }
+
+                .data-table tbody tr {
+                    transition: background 0.15s ease;
+                }
+
+                .data-table tbody tr:hover { background: #f8faff; }
+
+                .data-table tbody td {
+                    padding: 12px 16px;
+                    color: #1e293b;
+                    vertical-align: middle;
+                    border-right: 1px solid #e2e8f0;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+
+                .data-table tbody td:last-child { border-right: none; }
+                .data-table tbody tr:last-child td { border-bottom: none; }
+                .data-table tbody td.center { text-align: center; }
+                .data-table tbody td.right  { text-align: right; }
+
+                .table-user-cell {
                     display: flex;
                     align-items: center;
-                    gap: 20px;
-                    transition: all 0.25s ease;
-                    animation: cardFadeIn 0.4s ease;
+                    gap: 12px;
+                    min-width: 200px;
                 }
 
-                @keyframes cardFadeIn {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-
-                .list-card:hover {
-                    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
-                    border-color: #c7d2fe;
-                    transform: translateY(-2px);
-                }
-
-                .list-avatar {
-                    width: 48px;
-                    height: 48px;
+                .table-user-avatar {
+                    width: 38px;
+                    height: 38px;
                     border-radius: 50%;
                     background: linear-gradient(135deg, #6366f1, #8b5cf6);
                     color: #fff;
@@ -419,70 +503,145 @@ function OfflinePaymentList() {
                     align-items: center;
                     justify-content: center;
                     font-weight: 700;
-                    font-size: 18px;
+                    font-size: 14px;
                     flex-shrink: 0;
                 }
 
-                .list-info { flex: 1; min-width: 0; }
+                .table-user-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    min-width: 0;
+                }
 
-                .list-info h3 {
-                    font-size: 15px;
+                .table-user-name {
                     font-weight: 700;
                     color: #1e293b;
-                    margin-bottom: 3px;
+                    font-size: 13.5px;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
                 }
 
-                .list-info p {
-                    font-size: 12.5px;
-                    color: #64748b;
+                .table-user-email {
+                    font-size: 11.5px;
+                    color: #94a3b8;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
                 }
 
-                .list-amount {
-                    font-size: 16px;
-                    font-weight: 800;
-                    color: #059669;
-                    flex-shrink: 0;
-                    min-width: 100px;
-                    text-align: right;
+                .table-cell-mono {
+                    font-family: 'Courier New', monospace;
+                    font-size: 12px;
+                    color: #475569;
+                    letter-spacing: 0.2px;
+                    white-space: nowrap;
                 }
 
-                .list-btn {
-                    padding: 8px 16px;
-                    border: none;
-                    border-radius: 10px;
-                    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-                    color: #fff;
-                    font-weight: 600;
+                .table-cell-text {
+                    color: #475569;
                     font-size: 13px;
-                    cursor: pointer;
-                    transition: all 0.25s ease;
-                    font-family: inherit;
-                    display: flex;
+                    max-width: 220px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    display: block;
+                }
+
+                .table-amount {
+                    font-weight: 800;
+                    font-size: 14px;
+                    color: #1e293b;
+                    white-space: nowrap;
+                }
+
+                .table-amount-paid {
+                    font-weight: 700;
+                    font-size: 13.5px;
+                    color: #059669;
+                    white-space: nowrap;
+                }
+
+                .table-amount-pending {
+                    font-weight: 800;
+                    font-size: 14px;
+                    color: #ea580c;
+                    white-space: nowrap;
+                }
+
+                .table-status {
+                    display: inline-flex;
                     align-items: center;
                     gap: 5px;
-                    flex-shrink: 0;
+                    padding: 4px 10px;
+                    border-radius: 999px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    white-space: nowrap;
                 }
 
-                .list-btn:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+                .table-status.success {
+                    background: #d1fae5;
+                    color: #065f46;
                 }
 
-                .list-btn.add-btn {
+                .table-status.pending {
+                    background: #fef3c7;
+                    color: #92400e;
+                }
+
+                .table-status-dot {
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    background: currentColor;
+                    opacity: 0.7;
+                }
+
+                .table-actions {
+                    display: flex;
+                    gap: 8px;
+                    justify-content: center;
+                    white-space: nowrap;
+                }
+
+                .table-btn {
+                    padding: 7px 14px;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    font-size: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    font-family: inherit;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    white-space: nowrap;
+                }
+
+                .table-btn-view {
+                    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                    color: #fff;
+                }
+
+                .table-btn-view:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+                }
+
+                .table-btn-add {
                     background: linear-gradient(135deg, #10b981, #059669);
+                    color: #fff;
                 }
 
-                .list-btn.add-btn:hover {
-                    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+                .table-btn-add:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
                 }
 
-                /* ============ PAGINATION ============ */
+                /* Pagination */
                 .pagination-wrapper {
                     display: flex;
                     justify-content: space-between;
@@ -553,7 +712,6 @@ function OfflinePaymentList() {
                     color: #94a3b8;
                 }
 
-                /* ============ EMPTY / LOADING ============ */
                 .empty-box, .spinner-box {
                     padding: 60px 20px;
                     text-align: center;
@@ -584,18 +742,18 @@ function OfflinePaymentList() {
 
                 .spinner-box p { font-size: 13.5px; color: #64748b; }
 
-                /* ============ DETAILS MODAL ============ */
+                /* DETAILS MODAL */
                 .details-overlay {
                     position: fixed;
-                    top: 0; left: 0;
-                    width: 100%; height: 100%;
-                    background: rgba(0, 0, 0, 0.5);
+                    inset: 0;
+                    background: rgba(15, 23, 42, 0.55);
+                    backdrop-filter: blur(4px);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     z-index: 1000;
                     padding: 20px;
-                    animation: fadeIn 0.3s ease;
+                    animation: fadeIn 0.25s ease;
                 }
 
                 @keyframes fadeIn {
@@ -605,102 +763,345 @@ function OfflinePaymentList() {
 
                 .details-card {
                     background: #fff;
-                    border-radius: 20px;
-                    width: 500px;
+                    border-radius: 22px;
+                    width: 620px;
                     max-width: 100%;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-                    animation: cardPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    max-height: 92vh;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.35);
+                    animation: cardPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
                 }
 
                 @keyframes cardPop {
-                    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+                    from { opacity: 0; transform: scale(0.92) translateY(24px); }
                     to { opacity: 1; transform: scale(1) translateY(0); }
                 }
 
                 .details-header {
-                    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-                    color: #fff;
-                    padding: 22px 24px;
                     display: flex;
-                    justify-content: space-between;
                     align-items: center;
-                    position: sticky;
-                    top: 0;
-                    z-index: 2;
+                    justify-content: space-between;
+                    gap: 12px;
+                    padding: 20px 24px;
+                    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                    color: #fff;
+                    flex-shrink: 0;
                 }
 
-                .details-header h2 { font-size: 18px; font-weight: 700; }
+                .details-header-left {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                }
+
+                .details-header-icon {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 12px;
+                    background: rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(6px);
+                    border: 1px solid rgba(255, 255, 255, 0.25);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    color: #fff;
+                    flex-shrink: 0;
+                }
+
+                .details-header h2 {
+                    margin: 0 0 2px;
+                    font-size: 17px;
+                    font-weight: 700;
+                    letter-spacing: -0.2px;
+                }
+
+                .details-header span {
+                    font-size: 12px;
+                    opacity: 0.85;
+                }
 
                 .close-btn {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.2);
-                    border: none;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 10px;
+                    background: rgba(255, 255, 255, 0.18);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                     color: #fff;
                     cursor: pointer;
-                    font-size: 18px;
+                    font-size: 14px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     transition: all 0.2s ease;
-                }
-
-                .close-btn:hover {
-                    background: rgba(255, 255, 255, 0.35);
-                    transform: rotate(90deg);
-                }
-
-                .details-body { padding: 24px; }
-
-                .detail-row {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    padding: 12px 0;
-                    border-bottom: 1px dashed #e2e8f0;
-                    font-size: 13.5px;
-                }
-
-                .detail-row:last-child { border-bottom: none; }
-
-                .detail-row .label {
-                    color: #64748b;
-                    font-weight: 500;
                     flex-shrink: 0;
                 }
 
-                .detail-row .value {
-                    color: #1e293b;
-                    font-weight: 600;
-                    text-align: right;
-                    margin-left: 16px;
-                    word-break: break-word;
+                .close-btn:hover {
+                    background: rgba(255, 255, 255, 0.3);
+                    transform: rotate(90deg);
                 }
 
-                .details-footer { padding: 0 24px 24px; }
+                .details-body {
+                    padding: 22px 24px;
+                    overflow-y: auto;
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 18px;
+                }
 
-                .btn-close-modal {
-                    width: 100%;
-                    padding: 12px;
-                    border: none;
-                    border-radius: 12px;
-                    background: #f1f5f9;
-                    color: #64748b;
-                    font-weight: 600;
+                .details-hero {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                    padding: 30px 22px;
+                    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+                    border: 1px solid #c7d2fe;
+                    border-radius: 16px;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .details-hero::before {
+                    content: "";
+                    position: absolute;
+                    top: -40%;
+                    right: -10%;
+                    width: 180px;
+                    height: 180px;
+                    background: radial-gradient(circle, rgba(99, 102, 241, 0.14) 0%, transparent 70%);
+                    border-radius: 50%;
+                    pointer-events: none;
+                }
+
+                .details-hero-left {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                .details-hero-label {
+                    font-size: 11.5px;
+                    font-weight: 700;
+                    color: #6366f1;
+                    text-transform: uppercase;
+                    letter-spacing: 0.6px;
+                }
+
+                .details-hero-amount {
+                    font-size: 28px;
+                    font-weight: 800;
+                    color: #4338ca;
+                    letter-spacing: -0.6px;
+                    line-height: 1.1;
+                }
+
+                .details-status {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 8px 14px;
+                    border-radius: 999px;
+                    font-size: 12.5px;
+                    font-weight: 700;
+                    position: relative;
+                    z-index: 1;
+                    flex-shrink: 0;
+                }
+
+                .details-status.status-success {
+                    background: #d1fae5;
+                    color: #065f46;
+                }
+
+                .details-status.status-pending {
+                    background: #fef3c7;
+                    color: #92400e;
+                }
+
+                .details-section {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+
+                .details-section-title {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 12px;
+                    font-weight: 700;
+                    color: #6366f1;
+                    text-transform: uppercase;
+                    letter-spacing: 0.6px;
+                }
+
+                .details-section-title i {
                     font-size: 14px;
-                    cursor: pointer;
-                    font-family: inherit;
+                    color: #8b5cf6;
+                }
+
+                .details-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 10px;
+                }
+
+                .details-grid-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                    padding: 11px 14px;
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 12px;
                     transition: all 0.2s ease;
                 }
 
-                .btn-close-modal:hover { background: #e2e8f0; color: #475569; }
+                .details-grid-item:hover {
+                    background: #f1f5f9;
+                    border-color: #cbd5e1;
+                }
 
-                /* ============ ADD FORM ============ */
-                .add-form-card {
-                    width: 480px;
+                .grid-label {
+                    font-size: 10.5px;
+                    font-weight: 700;
+                    color: #94a3b8;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .grid-value {
+                    font-size: 13.5px;
+                    font-weight: 600;
+                    color: #1e293b;
+                    word-break: break-word;
+                    line-height: 1.35;
+                }
+
+                .grid-value-mono {
+                    font-family: "Courier New", monospace;
+                    font-size: 12.5px;
+                    letter-spacing: 0.2px;
+                }
+
+                .amount-rows {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+
+                .amount-row-item {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 12px 16px;
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 12px;
+                    font-size: 13.5px;
+                    color: #475569;
+                    font-weight: 500;
+                    transition: all 0.2s ease;
+                }
+
+                .amount-row-item:hover { background: #f1f5f9; }
+
+                .amount-row-item strong {
+                    font-size: 15px;
+                    font-weight: 800;
+                    letter-spacing: -0.2px;
+                }
+
+                .amt-total { color: #1e293b; }
+                .amt-paid { color: #059669; }
+
+                .amt-pending-row {
+                    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+                    border-color: #fed7aa;
+                }
+
+                .amt-pending { color: #ea580c; }
+
+                .amount-words {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 10px;
+                    padding: 12px 16px;
+                    background: #f0f9ff;
+                    border: 1px solid #bae6fd;
+                    border-radius: 12px;
+                    font-size: 12.5px;
+                    color: #0c4a6e;
+                    font-style: italic;
+                    line-height: 1.5;
+                }
+
+                .amount-words i {
+                    color: #0284c7;
+                    font-size: 14px;
+                    margin-top: 1px;
+                    flex-shrink: 0;
+                }
+
+                .details-footer {
+                    padding: 16px 24px 20px;
+                    border-top: 1px solid #f1f5f9;
+                    background: #fafbfc;
+                    flex-shrink: 0;
+                    display: flex;
+                    gap: 10px;
+                }
+
+                .btn-close-modal {
+                    flex: 1;
+                    padding: 12px 16px;
+                    border: 1.5px solid #e2e8f0;
+                    border-radius: 12px;
+                    background: #fff;
+                    color: #475569;
+                    font-weight: 700;
+                    font-size: 13.5px;
+                    cursor: pointer;
+                    font-family: inherit;
+                    transition: all 0.2s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+
+                .btn-close-modal:hover {
+                    background: #f1f5f9;
+                    border-color: #cbd5e1;
+                    color: #1e293b;
+                }
+
+                .details-body::-webkit-scrollbar { width: 6px; }
+                .details-body::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+                .details-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+                /* ADD FORM MODAL */
+                .add-form-card { width: 480px; max-height: 90vh; }
+
+                .add-form-card form {
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                    min-height: 0;
+                    overflow: hidden;
+                }
+
+                .add-form-card .details-body {
+                    overflow-y: auto;
+                    flex: 1;
+                    min-height: 0;
                 }
 
                 .form-group {
@@ -749,10 +1150,6 @@ function OfflinePaymentList() {
                 .form-input.has-error {
                     border-color: #ef4444;
                     background: #fef2f2;
-                }
-
-                .form-input.has-error:focus {
-                    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
                 }
 
                 .form-textarea {
@@ -817,14 +1214,11 @@ function OfflinePaymentList() {
                     cursor: not-allowed;
                 }
 
-                /* ============ RESPONSIVE ============ */
                 @media (max-width: 768px) {
                     .off-page { padding: 20px 12px; }
                     .off-top-header { padding: 20px 18px 0; }
                     .off-tabs { margin: 0 -18px; padding: 0 18px; }
                     .off-body { padding: 20px 18px; }
-                    .list-card { flex-wrap: wrap; gap: 12px; }
-                    .list-info { flex: 1 1 100%; }
                     .off-tab { padding: 10px 16px; font-size: 13.5px; }
                     .off-toolbar { flex-direction: column; align-items: stretch; }
                     .search-box { max-width: 100%; }
@@ -832,11 +1226,23 @@ function OfflinePaymentList() {
                     .pagination-wrapper { flex-direction: column; }
                     .pagination-buttons { flex-wrap: wrap; justify-content: center; }
                 }
+
+                @media (max-width: 640px) {
+                    .details-overlay { padding: 12px; }
+                    .details-card { border-radius: 18px; max-height: 94vh; }
+                    .details-header { padding: 16px 18px; }
+                    .details-header h2 { font-size: 15.5px; }
+                    .details-header-icon { width: 38px; height: 38px; font-size: 17px; }
+                    .details-body { padding: 18px; gap: 14px; }
+                    .details-hero { padding: 16px 18px; }
+                    .details-hero-amount { font-size: 22px; }
+                    .details-grid { grid-template-columns: 1fr; }
+                    .details-footer { padding: 14px 18px 18px; flex-direction: column; }
+                }
             `}</style>
 
             <div className="off-page">
                 <div className="off-container">
-                    {/* HEADER */}
                     <div className="off-top-header">
                         <div className="off-title">
                             <span>💳</span>
@@ -868,9 +1274,7 @@ function OfflinePaymentList() {
                         </div>
                     </div>
 
-                    {/* BODY */}
                     <div className="off-body">
-                        {/* ✅ TOOLBAR */}
                         <div className="off-toolbar">
                             <div className="search-box">
                                 <span className="search-icon">🔍</span>
@@ -897,16 +1301,15 @@ function OfflinePaymentList() {
                                     value={pageSize}
                                     onChange={(e) => setPageSize(Number(e.target.value))}
                                 >
-                                    <option value={10}>10</option>
-                                    <option value={25}>25</option>
-                                    <option value={50}>50</option>
                                     <option value={100}>100</option>
+                                    <option value={250}>250</option>
+                                    <option value={500}>500</option>
+                                    <option value={1000}>1000</option>
                                 </select>
                                 <span>entries</span>
                             </div>
                         </div>
 
-                        {/* LOADING */}
                         {loading && (
                             <div className="spinner-box">
                                 <div className="spinner"></div>
@@ -914,7 +1317,6 @@ function OfflinePaymentList() {
                             </div>
                         )}
 
-                        {/* ERROR */}
                         {error && !loading && (
                             <div className="empty-box">
                                 <div className="empty-icon">⚠️</div>
@@ -923,7 +1325,6 @@ function OfflinePaymentList() {
                             </div>
                         )}
 
-                        {/* EMPTY */}
                         {!loading && !error && filteredList.length === 0 && (
                             <div className="empty-box">
                                 <div className="empty-icon">
@@ -942,47 +1343,117 @@ function OfflinePaymentList() {
                             </div>
                         )}
 
-                        {/* LIST */}
                         {!loading && !error && filteredList.length > 0 && (
                             <>
-                                <div className="list-wrapper">
-                                    {paginatedList.map((item, index) => (
-                                        <div className="list-card" key={item.oId || index}>
-                                            <div className="list-avatar">
-                                                {item.name?.trim()?.charAt(0)?.toUpperCase() || "?"}
-                                            </div>
+                                <div className="table-wrapper">
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Student</th>
+                                                <th>Order ID</th>
+                                                <th>Course / Fee</th>
+                                                <th className="right">Total</th>
+                                                <th className="right">Paid</th>
+                                                <th className="right">Pending</th>
+                                                <th className="center">Status</th>
+                                                <th className="center">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {paginatedList.map((item, index) => (
+                                                <tr key={item.oId || index}>
+                                                    <td>
+                                                        <div className="table-user-cell">
+                                                            <div className="table-user-avatar">
+                                                                {item.name?.trim()?.charAt(0)?.toUpperCase() || "?"}
+                                                            </div>
+                                                            <div className="table-user-info">
+                                                                <span className="table-user-name">
+                                                                    {item.name?.trim() || "Unknown"}
+                                                                </span>
+                                                                <span className="table-user-email">
+                                                                    {item.mobileNo || item.emailId || "N/A"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span className="table-cell-mono">
+                                                            {item.orderId || "N/A"}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span
+                                                            className="table-cell-text"
+                                                            title={item.feeName || "N/A"}
+                                                        >
+                                                            {item.feeName || "N/A"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="right">
+                                                        <span className="table-amount">
+                                                            {formatAmount(item.amount)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="right">
+                                                        <span className="table-amount-paid">
+                                                            {formatAmount(item.paidAmount)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="right">
+                                                        <span className="table-amount-pending">
+                                                            {formatAmount(item.pendingAmount)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="center">
+                                                        <span
+                                                            className={`table-status ${
+                                                                item.payStatus === "Success"
+                                                                    ? "success"
+                                                                    : "pending"
+                                                            }`}
+                                                        >
+                                                            <span className="table-status-dot"></span>
+                                                            {item.payStatus || "Pending"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="center">
+                                                        <div className="table-actions">
+                                                            <button
+                                                                className="table-btn table-btn-view"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    e.preventDefault();
+                                                                    navigate(`/student-payments/${item.eId}`);
+                                                                }}
+                                                                title={`View payments of ${item.name}`}
+                                                            >
+                                                                📄 Print
+                                                            </button>
 
-                                            <div className="list-info">
-                                                <h3>{item.name?.trim() || "Unknown"}</h3>
-                                                <p>
-                                                    {item.feeName || "N/A"} • {item.orderId || "N/A"}
-                                                </p>
-                                            </div>
+                                                            <button
+                                                                className="table-btn table-btn-view"
+                                                                onClick={() => setSelectedItem(item)}
+                                                            >
+                                                                👁️ View
+                                                            </button>
 
-                                            <div className="list-amount">
-                                                {formatAmount(item.amount)}
-                                            </div>
-
-                                            <button
-                                                className="list-btn"
-                                                onClick={() => setSelectedItem(item)}
-                                            >
-                                                👁️ View
-                                            </button>
-
-                                            {item.payStatus === "Pending" && (
-                                                <button
-                                                    className="list-btn add-btn"
-                                                    onClick={() => handleAdd(item)}
-                                                >
-                                                    ➕ Add
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))}
+                                                            {Number(item.pendingAmount || 0) > 0 && (
+                                                                <button
+                                                                    className="table-btn table-btn-add"
+                                                                    onClick={() => handleAdd(item)}
+                                                                >
+                                                                    ➕ Add
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
 
-                                {/* ✅ PAGINATION */}
                                 <div className="pagination-wrapper">
                                     <div className="pagination-info">
                                         Showing <strong>{startIndex + 1}</strong> to{" "}
@@ -1048,78 +1519,174 @@ function OfflinePaymentList() {
                 </div>
             </div>
 
-            {/* ============ DETAILS MODAL ============ */}
+            {/* DETAILS MODAL */}
             {selectedItem && (
                 <div className="details-overlay" onClick={() => setSelectedItem(null)}>
                     <div className="details-card" onClick={(e) => e.stopPropagation()}>
                         <div className="details-header">
-                            <h2>📄 Payment Details</h2>
-                            <button className="close-btn" onClick={() => setSelectedItem(null)}>
-                                ✕
+                            <div className="details-header-left">
+                                <div className="details-header-icon">
+                                    <i className="bi bi-receipt"></i>
+                                </div>
+                                <div>
+                                    <h2>Payment Details</h2>
+                                    <span>Transaction Information</span>
+                                </div>
+                            </div>
+                            <button
+                                className="close-btn"
+                                onClick={() => setSelectedItem(null)}
+                                title="Close"
+                            >
+                                <i className="bi bi-x-lg"></i>
                             </button>
                         </div>
 
                         <div className="details-body">
-
-                            <div className="detail-row">
-                                <span className="label">✅ Status</span>
-                                <span className="value">{selectedItem.payStatus || "N/A"}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="label">👤 Name</span>
-                                <span className="value">{selectedItem.name?.trim() || "N/A"}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="label">📧 Email</span>
-                                <span className="value">{selectedItem.emailId || "N/A"}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="label">📱 Mobile</span>
-                                <span className="value">{selectedItem.mobileNo || "N/A"}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="label">📚 Course</span>
-                                <span className="value">{selectedItem.feeName || "N/A"}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="label">📋 Order ID</span>
-                                <span className="value">{selectedItem.orderId || "N/A"}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="label">🔖 Reference ID</span>
-                                <span className="value">{selectedItem.referenceId || "N/A"}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="label">💰 Amount</span>
-                                <span className="value" style={{ color: "#059669" }}>
-                                    {formatAmount(selectedItem.amount)}
+                            <div className="details-hero">
+                                <div className="details-hero-left">
+                                    <span className="details-hero-label">Total Amount</span>
+                                    <strong className="details-hero-amount">
+                                        {formatAmount(selectedItem.amount)}
+                                    </strong>
+                                </div>
+                                <span
+                                    className={`details-status ${
+                                        selectedItem.payStatus === "Success"
+                                            ? "status-success"
+                                            : "status-pending"
+                                    }`}
+                                >
+                                    <i
+                                        className={`bi ${
+                                            selectedItem.payStatus === "Success"
+                                                ? "bi-check-circle-fill"
+                                                : "bi-clock-fill"
+                                        }`}
+                                    ></i>
+                                    {selectedItem.payStatus || "Pending"}
                                 </span>
                             </div>
-                            <div className="detail-row">
-                                <span className="label">💵 Amount (Words)</span>
-                                <span className="value">{selectedItem.amountW || "N/A"}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="label">📅 Order Date</span>
-                                <span className="value">{selectedItem.oDate || "N/A"}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="label">🖨️ Pay Date</span>
-                                <span className="value">{selectedItem.printPayDate || "N/A"}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="label">🏠 Address</span>
-                                <span className="value">{selectedItem.address || "N/A"}</span>
+
+                            <div className="details-section">
+                                <div className="details-section-title">
+                                    <i className="bi bi-person-fill"></i>
+                                    <span>Student Information</span>
+                                </div>
+                                <div className="details-grid">
+                                    <div className="details-grid-item">
+                                        <span className="grid-label">Name</span>
+                                        <span className="grid-value">
+                                            {selectedItem.name?.trim() || "N/A"}
+                                        </span>
+                                    </div>
+                                    <div className="details-grid-item">
+                                        <span className="grid-label">Email</span>
+                                        <span className="grid-value grid-value-mono">
+                                            {selectedItem.emailId || "N/A"}
+                                        </span>
+                                    </div>
+                                    <div className="details-grid-item">
+                                        <span className="grid-label">Mobile</span>
+                                        <span className="grid-value grid-value-mono">
+                                            {selectedItem.mobileNo || "N/A"}
+                                        </span>
+                                    </div>
+                                    <div className="details-grid-item">
+                                        <span className="grid-label">Address</span>
+                                        <span className="grid-value">
+                                            {selectedItem.address || "N/A"}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="detail-row">
-                                <span className="label">💳 Gateway</span>
-                                <span className="value">{selectedItem.getwayPrm || "N/A"}</span>
+                            <div className="details-section">
+                                <div className="details-section-title">
+                                    <i className="bi bi-cash-stack"></i>
+                                    <span>Payment Breakdown</span>
+                                </div>
+
+                                <div className="amount-rows">
+                                    <div className="amount-row-item">
+                                        <span>Total Amount</span>
+                                        <strong className="amt-total">
+                                            {formatAmount(selectedItem.amount)}
+                                        </strong>
+                                    </div>
+                                    <div className="amount-row-item">
+                                        <span>Paid Amount</span>
+                                        <strong className="amt-paid">
+                                            {formatAmount(selectedItem.paidAmount)}
+                                        </strong>
+                                    </div>
+                                    <div className="amount-row-item amt-pending-row">
+                                        <span>Pending Amount</span>
+                                        <strong className="amt-pending">
+                                            {formatAmount(selectedItem.pendingAmount)}
+                                        </strong>
+                                    </div>
+                                    {selectedItem.amountW && (
+                                        <div className="amount-words">
+                                            <i className="bi bi-chat-quote"></i>
+                                            <span>{selectedItem.amountW}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="details-section">
+                                <div className="details-section-title">
+                                    <i className="bi bi-receipt-cutoff"></i>
+                                    <span>Transaction Info</span>
+                                </div>
+                                <div className="details-grid">
+                                    <div className="details-grid-item">
+                                        <span className="grid-label">Order ID</span>
+                                        <span className="grid-value grid-value-mono">
+                                            {selectedItem.orderId || "N/A"}
+                                        </span>
+                                    </div>
+                                    <div className="details-grid-item">
+                                        <span className="grid-label">Reference ID</span>
+                                        <span className="grid-value grid-value-mono">
+                                            {selectedItem.referenceId || "N/A"}
+                                        </span>
+                                    </div>
+                                    <div className="details-grid-item">
+                                        <span className="grid-label">Course / Fee</span>
+                                        <span className="grid-value">
+                                            {selectedItem.feeName || "N/A"}
+                                        </span>
+                                    </div>
+                                    <div className="details-grid-item">
+                                        <span className="grid-label">Gateway</span>
+                                        <span className="grid-value">
+                                            {selectedItem.getwayPrm || "N/A"}
+                                        </span>
+                                    </div>
+                                    <div className="details-grid-item">
+                                        <span className="grid-label">Order Date</span>
+                                        <span className="grid-value">
+                                            {selectedItem.oDate || "N/A"}
+                                        </span>
+                                    </div>
+                                    <div className="details-grid-item">
+                                        <span className="grid-label">Pay Date</span>
+                                        <span className="grid-value">
+                                            {selectedItem.printPayDate || "N/A"}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div className="details-footer">
-                            <button className="btn-close-modal" onClick={() => setSelectedItem(null)}>
+                            <button
+                                className="btn-close-modal"
+                                onClick={() => setSelectedItem(null)}
+                            >
+                                <i className="bi bi-x-lg"></i>
                                 Close
                             </button>
                         </div>
@@ -1127,7 +1694,7 @@ function OfflinePaymentList() {
                 </div>
             )}
 
-            {/* ============ ADD PAYMENT MODAL ============ */}
+            {/* ADD PAYMENT MODAL */}
             {showAddForm && (
                 <div className="details-overlay" onClick={() => setShowAddForm(false)}>
                     <div
@@ -1135,7 +1702,7 @@ function OfflinePaymentList() {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="details-header">
-                            <h2>➕ Add Payment</h2>
+                            <h2>➕ Add Offline Payment</h2>
                             <button
                                 className="close-btn"
                                 onClick={() => setShowAddForm(false)}
@@ -1146,12 +1713,8 @@ function OfflinePaymentList() {
 
                         <form onSubmit={handleAddSubmit}>
                             <div className="details-body">
-
-                                {/* Student Name */}
                                 <div className="form-group">
-                                    <label className="form-label">
-                                        👤 Student Name
-                                    </label>
+                                    <label className="form-label">👤 Student Name</label>
                                     <input
                                         type="text"
                                         className="form-input readonly"
@@ -1160,20 +1723,33 @@ function OfflinePaymentList() {
                                     />
                                 </div>
 
-                                {/* Student ID */}
                                 <div className="form-group">
-                                    <label className="form-label">
-                                        🆔 Student ID
-                                    </label>
+                                    <label className="form-label">🆔 Student ID (UserId)</label>
                                     <input
                                         type="text"
                                         className="form-input readonly"
-                                        value={addFormData.studentId}
+                                        value={addFormData.userId}
                                         readOnly
                                     />
+                                    {addErrors.userId && (
+                                        <small className="error-text">
+                                            {addErrors.userId}
+                                        </small>
+                                    )}
                                 </div>
 
-                                {/* Amount */}
+                                {addFormData.courseId && (
+                                    <div className="form-group">
+                                        <label className="form-label">📚 Course ID</label>
+                                        <input
+                                            type="text"
+                                            className="form-input readonly"
+                                            value={addFormData.courseId}
+                                            readOnly
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="form-group">
                                     <label className="form-label">
                                         💰 Amount <span className="req">*</span>
@@ -1185,7 +1761,7 @@ function OfflinePaymentList() {
                                         placeholder="Enter amount"
                                         value={addFormData.amount}
                                         onChange={handleAddChange}
-                                        min="0"
+                                        min="1"
                                         step="0.01"
                                         autoFocus
                                     />
@@ -1196,7 +1772,6 @@ function OfflinePaymentList() {
                                     )}
                                 </div>
 
-                                {/* Payment Date */}
                                 <div className="form-group">
                                     <label className="form-label">
                                         📅 Payment Date <span className="req">*</span>
@@ -1207,6 +1782,7 @@ function OfflinePaymentList() {
                                         className={`form-input ${addErrors.paymentDate ? "has-error" : ""}`}
                                         value={addFormData.paymentDate}
                                         onChange={handleAddChange}
+                                        max={new Date().toISOString().split("T")[0]}
                                     />
                                     {addErrors.paymentDate && (
                                         <small className="error-text">
@@ -1215,19 +1791,24 @@ function OfflinePaymentList() {
                                     )}
                                 </div>
 
-                                {/* Remarks */}
                                 <div className="form-group">
                                     <label className="form-label">
-                                        📝 Remarks
+                                        📝 Remark <span className="req">*</span>
                                     </label>
                                     <textarea
-                                        name="remarks"
-                                        className="form-input form-textarea"
-                                        placeholder="Write remarks (optional)"
-                                        value={addFormData.remarks}
+                                        name="remark"
+                                        className={`form-input form-textarea ${addErrors.remark ? "has-error" : ""}`}
+                                        placeholder="e.g. Cash payment collected at office"
+                                        value={addFormData.remark}
                                         onChange={handleAddChange}
                                         rows={3}
+                                        maxLength={200}
                                     />
+                                    {addErrors.remark && (
+                                        <small className="error-text">
+                                            {addErrors.remark}
+                                        </small>
+                                    )}
                                 </div>
                             </div>
 
