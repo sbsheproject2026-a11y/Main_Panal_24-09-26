@@ -150,89 +150,65 @@ export const createStudentfordata = async (formData) => {
 
  
 
- export const createStudyCentre = async (formData) => {
+export const createStudyCentre = async (formData) => {
     const data = new FormData();
 
-    // Personal / Basic Details
+    // ============ Basic Details ============
     data.append("name", formData.centerName?.trim() || "");
     data.append("fatherName", formData.ownerName?.trim() || "");
     data.append("mobileNo", formData.mobile || "");
     data.append("email", formData.email?.trim() || "");
-      data.append("whatsAppNo", formData.alternateMobile || "");
-       // Department / Courses
-    formData.departmentIds.forEach((department, index) => {
+    data.append("whatsAppNo", formData.alternateMobile || "");
 
-            data.append(
-                `DepartmentIds[${index}].DepartmentId`,
-                department.departmentId
-            );
+    // ============ ✅ Department + Course Pairs ============
+    (formData.departmentIds || []).forEach((item, index) => {
+        data.append(
+            `DepartmentIds[${index}].DepartmentId`,
+            item.departmentId ?? ""
+        );
+        data.append(
+            `DepartmentIds[${index}].CourseId`,
+            item.courseId ?? ""
+        );
+    });
 
-        });
-          
-
-    // Center / Institute Details
+    // ============ Center Details ============
     data.append("experience", formData.experience?.trim() || "");
     data.append("InstituteTypeId", formData.instituteType || "");
     data.append("affiliation", formData.affiliation?.trim() || "");
     data.append("website", formData.website?.trim() || "");
 
-    // Location Details
+    // ============ Location ============
     data.append("locationId", formData.locationId ?? "");
     data.append("address", formData.address?.trim() || "");
     data.append("pincode", formData.pinCode || "");
 
-    // Infrastructure Details
+    // ============ Infrastructure ============
     data.append("totalArea", formData.totalArea ?? "");
     data.append("numberofClassrooms", formData.classrooms ?? "");
     data.append("computerLabAvailable", formData.computerLab || "");
     data.append("numberofComputers", formData.numberOfComputers ?? "");
     data.append("otherFacilities", formData.otherFacilities?.trim() || "");
 
-    // Verification Details
+    // ============ Verification ============
     data.append("aadhaarCardNumber", formData.aadhaarNumber || "");
     data.append("pANCardNumber", formData.panNumber?.toUpperCase() || "");
 
-    // Course / Message Details
-    //data.append("coursesOffered", formData.coursesOffered?.trim() || "");
+    // ============ Message ============
     data.append("remark", formData.message?.trim() || "");
-  
     data.append("isActive", formData.isActive ?? 1);
 
-    // Documents
-    if (formData.passportPhoto) {
-        data.append("PassportPhoto1", formData.passportPhoto);
-    }
+    // ============ Files ============
+    if (formData.passportPhoto) data.append("PassportPhoto1", formData.passportPhoto);
+    if (formData.authorizedSignature) data.append("AuthorizedSignature1", formData.authorizedSignature);
+    if (formData.aadhaarCard) data.append("AadhaarCard1", formData.aadhaarCard);
+    if (formData.panCard) data.append("PanCard1", formData.panCard);
+    if (formData.instituteCertificate) data.append("instituteCertificate1", formData.instituteCertificate);
+    if (formData.buildingPhoto1) data.append("buildingPhoto11", formData.buildingPhoto1);
+    if (formData.buildingPhoto2) data.append("buildingPhoto22", formData.buildingPhoto2);
 
-    if (formData.authorizedSignature) {
-        data.append("AuthorizedSignature1", formData.authorizedSignature);
-    }
-
-    if (formData.aadhaarCard) {
-        data.append("AadhaarCard1", formData.aadhaarCard);
-    }
-
-    if (formData.panCard) {
-        data.append("PanCard1", formData.panCard);
-    }
-    if (formData.instituteCertificate) {
-        data.append("instituteCertificate1", formData.instituteCertificate);
-    }
-    if (formData.buildingPhoto1) {
-        data.append("buildingPhoto11", formData.buildingPhoto1);
-    }
-    if (formData.buildingPhoto2) {
-        data.append("buildingPhoto22", formData.buildingPhoto2);
-    }
-
-
-      // ✅ YAHAN ADD KARO — api.post se pehle
-    console.log("URL:", "/Home/study-center-create");
-    console.log("Data size:", data);
-    console.log("Entries:", [...data.entries()].length);
     const response = await api.post("/Home/study-center-create", data, {
-        headers: {
-            "Content-Type": "multipart/form-data"
-        }
+        headers: { "Content-Type": "multipart/form-data" },
     });
 
     return response.data;

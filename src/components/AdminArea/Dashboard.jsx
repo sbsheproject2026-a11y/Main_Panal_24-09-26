@@ -1,104 +1,101 @@
- 
-import React from "react";
+ import React, { useEffect, useState } from "react";
+import { getDashboard } from "../AllServicesFiles/MastertypeService";
+import { getEnquiries } from "../AllServicesFiles/EmployeeService";
 
 function Dashboard() {
+  const [loading, setLoading] = useState(false);
+  const [enquiryLoading, setEnquiryLoading] = useState(false);
+
+  const [dashboardData, setDashboardData] = useState({
+    totalStudent: 0,
+    totalFranchise: 0,
+    totalAccFranchise: 0,
+    totalEmployee: 0,
+    totalCourse: 0,
+  });
+
+  // ✅ Dynamic enquiries state
+  const [enquiries, setEnquiries] = useState([]);
+
+  useEffect(() => {
+    loadDashboard();
+    loadEnquiries();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+
+      const result = await getDashboard();
+
+      setDashboardData({
+        totalStudent: result?.data?.totalStudent || 0,
+        totalFranchise: result?.data?.totalFranchise || 0,
+        totalAccFranchise: result?.data?.totalAccFranchise || 0,
+        totalEmployee: result?.data?.totalEmployee || 0,
+        totalCourse: result?.data?.totalCourse || 0,
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Unable to load Dashboard.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Fixed loadEnquiries
+  const loadEnquiries = async () => {
+    try {
+      setEnquiryLoading(true);
+
+      const result = await getEnquiries(1);
+
+      // API response: result.data.data (array) — fallback empty array
+      setEnquiries(result?.data?.data || []);
+    } catch (error) {
+      console.log(error);
+      setEnquiries([]);
+    } finally {
+      setEnquiryLoading(false);
+    }
+  };
+
+  // ✅ Dynamic stats — API data se
   const stats = [
     {
       title: "Total Students",
-      value: "2,458",
+      value: dashboardData.totalStudent.toLocaleString("en-IN"),
       change: "+12.5%",
       icon: "bi-mortarboard-fill",
       type: "orange",
     },
     {
       title: "Total Employees",
-      value: "186",
+      value: dashboardData.totalEmployee.toLocaleString("en-IN"),
       change: "+8.2%",
       icon: "bi-people-fill",
       type: "blue",
     },
     {
       title: "Total Franchise",
-      value: "42",
+      value: dashboardData.totalFranchise.toLocaleString("en-IN"),
       change: "+5.4%",
       icon: "bi-building-fill",
       type: "green",
     },
     {
+      title: "Total Acc. Franchise",
+      value: dashboardData.totalAccFranchise.toLocaleString("en-IN"),
+      change: "+5.4%",
+      icon: "bi-buildings-fill",
+      type: "purple",
+    },
+    {
       title: "Total Courses",
-      value: "68",
+      value: dashboardData.totalCourse.toLocaleString("en-IN"),
       change: "+3.1%",
       icon: "bi-book-half",
       type: "purple",
-    },
-  ];
-
-  const recentStudents = [
-    {
-      name: "Rahul Kumar",
-      course: "B.Sc Nursing",
-      mobile: "9876543210",
-      date: "06 Sep 2026",
-      status: "Active",
-    },
-    {
-      name: "Priya Sharma",
-      course: "GNM Nursing",
-      mobile: "9876543211",
-      date: "06 Sep 2026",
-      status: "Active",
-    },
-    {
-      name: "Aman Singh",
-      course: "D.Pharmacy",
-      mobile: "9876543212",
-      date: "05 Sep 2026",
-      status: "Pending",
-    },
-    {
-      name: "Neha Verma",
-      course: "BPT",
-      mobile: "9876543213",
-      date: "05 Sep 2026",
-      status: "Active",
-    },
-    {
-      name: "Vikas Yadav",
-      course: "B.Sc Medical",
-      mobile: "9876543214",
-      date: "04 Sep 2026",
-      status: "Pending",
-    },
-  ];
-
-  const enquiries = [
-    {
-      name: "Mohit Kumar",
-      mobile: "9876500001",
-      course: "B.Sc Nursing",
-      date: "06 Sep 2026",
-      status: "New",
-    },
-    {
-      name: "Anjali Singh",
-      mobile: "9876500002",
-      course: "GNM",
-      date: "06 Sep 2026",
-      status: "Contacted",
-    },
-    {
-      name: "Deepak Sharma",
-      mobile: "9876500003",
-      course: "D.Pharmacy",
-      date: "05 Sep 2026",
-      status: "New",
-    },
-    {
-      name: "Pooja Rani",
-      mobile: "9876500004",
-      course: "BPT",
-      date: "04 Sep 2026",
-      status: "Contacted",
     },
   ];
 
@@ -663,11 +660,6 @@ function Dashboard() {
                 Welcome back! Here's what's happening with your organization today.
               </p>
             </div>
-
-            {/* <button className="btn text-white px-4" style={{ background: "#ff6600" }}>
-              <i className="bi bi-download me-2"></i>
-              Download Report
-            </button> */}
           </div>
 
           <div className="card welcome-card mb-4">
@@ -702,7 +694,17 @@ function Dashboard() {
                   </div>
 
                   <div className="stat-title">{item.title}</div>
-                  <div className="stat-value">{item.value}</div>
+                  <div className="stat-value">
+                    {loading ? (
+                      <span
+                        className="spinner-border spinner-border-sm text-secondary"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                    ) : (
+                      item.value
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -840,162 +842,6 @@ function Dashboard() {
                 <div className="dashboard-card-header">
                   <div>
                     <h5 className="dashboard-card-title">
-                      Recent Students
-                    </h5>
-                    <div className="dashboard-card-subtitle">
-                      Latest student registrations
-                    </div>
-                  </div>
-
-                  <a href="/students" className="view-all">
-                    View All
-                    <i className="bi bi-arrow-right ms-1"></i>
-                  </a>
-                </div>
-
-                <div className="table-responsive">
-                  <table className="table dashboard-table">
-                    <thead>
-                      <tr>
-                        <th>Student</th>
-                        <th>Mobile</th>
-                        <th>Course</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {recentStudents.map((item, index) => (
-                        <tr key={index}>
-                          <td>
-                            <div className="student-info">
-                              <div className="student-avatar">
-                                {item.name.charAt(0)}
-                              </div>
-
-                              <div>
-                                <div className="student-name">
-                                  {item.name}
-                                </div>
-                                <div className="student-course">
-                                  Student
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td>{item.mobile}</td>
-                          <td>{item.course}</td>
-                          <td>{item.date}</td>
-
-                          <td>
-                            <span
-                              className={`status-badge ${
-                                item.status === "Active"
-                                  ? "status-active"
-                                  : "status-pending"
-                              }`}
-                            >
-                              {item.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-xl-4">
-              <div className="dashboard-card">
-                <div className="dashboard-card-header">
-                  <div>
-                    <h5 className="dashboard-card-title">
-                      Quick Actions
-                    </h5>
-                    <div className="dashboard-card-subtitle">
-                      Frequently used options
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-3">
-
-                  <a href="/student-create" className="quick-action">
-                    <div className="quick-action-icon">
-                      <i className="bi bi-person-plus-fill"></i>
-                    </div>
-                    <div>
-                      <div className="quick-action-title">
-                        Confirm Request
-                      </div>
-                      <div className="quick-action-text">
-                         Confirm Request for new student
-                      </div>
-                    </div>
-                    <i className="bi bi-chevron-right ms-auto text-muted"></i>
-                  </a>
-
-                  <a href="/employee-create" className="quick-action">
-                    <div className="quick-action-icon">
-                      <i className="bi bi-person-badge-fill"></i>
-                    </div>
-                    <div>
-                      <div className="quick-action-title">
-                        Add Employee
-                      </div>
-                      <div className="quick-action-text">
-                        Create employee profile
-                      </div>
-                    </div>
-                    <i className="bi bi-chevron-right ms-auto text-muted"></i>
-                  </a>
-
-                  <a href="/franchise-create" className="quick-action">
-                    <div className="quick-action-icon">
-                      <i className="bi bi-building-add"></i>
-                    </div>
-                    <div>
-                      <div className="quick-action-title">
-                        Add Franchise
-                      </div>
-                      <div className="quick-action-text">
-                        Register new franchise
-                      </div>
-                    </div>
-                    <i className="bi bi-chevron-right ms-auto text-muted"></i>
-                  </a>
-
-                  <a href="/enquiries-list?type=franchise" className="quick-action mb-0">
-                    <div className="quick-action-icon">
-                      <i className="bi bi-chat-left-text-fill"></i>
-                    </div>
-                    <div>
-                      <div className="quick-action-title">
-                        View Enquiries
-                      </div>
-                      <div className="quick-action-text">
-                        Manage student enquiries
-                      </div>
-                    </div>
-                    <i className="bi bi-chevron-right ms-auto text-muted"></i>
-                  </a>
-
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="row g-3">
-
-            <div className="col-xl-12">
-              <div className="dashboard-card table-card">
-                <div className="dashboard-card-header">
-                  <div>
-                    <h5 className="dashboard-card-title">
                       Recent Enquiries
                     </h5>
                     <div className="dashboard-card-subtitle">
@@ -1022,44 +868,155 @@ function Dashboard() {
                     </thead>
 
                     <tbody>
-                      {enquiries.map((item, index) => (
-                        <tr key={index}>
-                          <td>
-                            <div className="student-info">
-                              <div className="student-avatar">
-                                {item.name.charAt(0)}
-                              </div>
-
-                              <div className="student-name">
-                                {item.name}
-                              </div>
-                            </div>
-                          </td>
-
-                          <td>{item.mobile}</td>
-                          <td>{item.course}</td>
-                          <td>{item.date}</td>
-
-                          <td>
+                      {/* ✅ Loading state */}
+                      {enquiryLoading ? (
+                        <tr>
+                          <td colSpan="5" className="text-center py-4">
                             <span
-                              className={`status-badge ${
-                                item.status === "New"
-                                  ? "status-new"
-                                  : "status-contacted"
-                              }`}
-                            >
-                              {item.status}
+                              className="spinner-border spinner-border-sm text-secondary"
+                              role="status"
+                              aria-hidden="true"
+                            ></span>
+                            <span className="ms-2 text-muted">
+                              Loading enquiries...
                             </span>
                           </td>
                         </tr>
-                      ))}
+                      ) : enquiries.length === 0 ? (
+                        /* ✅ Empty state */
+                        <tr>
+                          <td colSpan="5" className="text-center py-4 text-muted">
+                            No enquiries found.
+                          </td>
+                        </tr>
+                      ) : (
+                        /* ✅ Dynamic rows */
+                        enquiries.slice(0, 5).map((item, index) => {
+                          const name = item?.name || item?.studentName || "N/A";
+                          const mobile = item?.mobile || item?.mobileNo || item?.contactNo || "—";
+                          const course = item?.course || item?.courseName || "—";
+                          const date =   item?.enquiryDate || "—";
+                          const status = item?.status || item?.enquiryStatus || "New";
+
+                          return (
+                            <tr key={item?.id || index}>
+                              <td>
+                                <div className="student-info">
+                                  <div className="student-avatar">
+                                    {String(name).charAt(0).toUpperCase()}
+                                  </div>
+
+                                  <div className="student-name">
+                                    {name}
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td>{mobile}</td>
+                              <td>{course}</td>
+                              <td>{date}</td>
+
+                              <td>
+                                <span
+                                  className={`status-badge ${
+                                    status === "New"
+                                      ? "status-new"
+                                      : status === "Contacted"
+                                      ? "status-contacted"
+                                      : "status-pending"
+                                  }`}
+                                >
+                                  {status}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
 
-           
+            <div className="col-xl-4">
+              <div className="dashboard-card">
+                <div className="dashboard-card-header">
+                  <div>
+                    <h5 className="dashboard-card-title">
+                      Quick Actions
+                    </h5>
+                    <div className="dashboard-card-subtitle">
+                      Frequently used options
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3">
+
+                  <a href="/send-to-confirm-student" className="quick-action">
+                    <div className="quick-action-icon">
+                      <i className="bi bi-person-plus-fill"></i>
+                    </div>
+                    <div>
+                      <div className="quick-action-title">
+                        Confirm Request
+                      </div>
+                      <div className="quick-action-text">
+                        Confirm Request for new student
+                      </div>
+                    </div>
+                    <i className="bi bi-chevron-right ms-auto text-muted"></i>
+                  </a>
+
+                  <a href="/employee-list" className="quick-action">
+                    <div className="quick-action-icon">
+                      <i className="bi bi-person-badge-fill"></i>
+                    </div>
+                    <div>
+                      <div className="quick-action-title">
+                         Employee List
+                      </div>
+                      <div className="quick-action-text">
+                          employee profile
+                      </div>
+                    </div>
+                    <i className="bi bi-chevron-right ms-auto text-muted"></i>
+                  </a>
+
+                  <a href="/franchise-list" className="quick-action">
+                    <div className="quick-action-icon">
+                      <i className="bi bi-building-add"></i>
+                    </div>
+                    <div>
+                      <div className="quick-action-title">
+                      Franchise List
+                      </div>
+                      <div className="quick-action-text">
+                      new franchise
+                      </div>
+                    </div>
+                    <i className="bi bi-chevron-right ms-auto text-muted"></i>
+                  </a>
+
+                  <a href="/enquiries-list?type=franchise" className="quick-action mb-0">
+                    <div className="quick-action-icon">
+                      <i className="bi bi-chat-left-text-fill"></i>
+                    </div>
+                    <div>
+                      <div className="quick-action-title">
+                        View Enquiries
+                      </div>
+                      <div className="quick-action-text">
+                        Manage student enquiries
+                      </div>
+                    </div>
+                    <i className="bi bi-chevron-right ms-auto text-muted"></i>
+                  </a>
+
+                </div>
+              </div>
+            </div>
 
           </div>
 
@@ -1070,4 +1027,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
- 

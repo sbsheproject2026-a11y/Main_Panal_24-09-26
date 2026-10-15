@@ -19,6 +19,9 @@ function FrenchiseList() {
     const handleEdit = (id) => {
         navigate(`/study-centre-update/${id}`);
     };
+    const handleEditDepartment = (id) => {
+        navigate(`/add-franchise-department/${id}`);
+    };
 
 
     useEffect(() => {
@@ -1396,6 +1399,18 @@ function FrenchiseList() {
 
                                                 <div className="franchise-actions">
 
+                                                    <button
+                                                        type="button"
+                                                        className="franchise-action franchise-edit"
+                                                        title="Edit"
+                                                        onClick={() =>
+                                                            handleEditDepartment(item.id)
+                                                        }
+                                                    >
+
+                                                        View
+
+                                                    </button>
                                                     <button
                                                         type="button"
                                                         className="franchise-action franchise-edit"

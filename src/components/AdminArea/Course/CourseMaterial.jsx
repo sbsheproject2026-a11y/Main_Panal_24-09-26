@@ -7,6 +7,7 @@ import {
     getCoursematerial,
     deleteCourseMetrial,
 } from "../../AllServicesFiles/CourseService";
+import { FILE_URL } from "../../api";
 
 function CourseMaterial() {
     const { id } = useParams();
@@ -806,6 +807,7 @@ function CourseMaterial() {
                                         <th>Material Name</th>
                                         <th>Alt Tag</th>
                                         <th>File</th>
+                                        <th>View</th>
                                         <th className="action-column">Action</th>
                                     </tr>
                                 </thead>
@@ -892,6 +894,27 @@ function CourseMaterial() {
                                                             <span className="no-file">No File</span>
                                                         )}
                                                     </td>
+                                                    <td>
+    {file ? (
+        <button
+            type="button"
+            className="table-view-btn"
+            onClick={() =>
+                window.open(
+                    `${FILE_URL}${file}`,
+                    "_blank",
+                    "noopener,noreferrer"
+                )
+            }
+            title="View File"
+        >
+            <i className="bi bi-file-earmark-text"></i>
+            <span>View</span>
+        </button>
+    ) : (
+        <span className="no-file">No File</span>
+    )}
+</td>
 
                                                     <td>
                                                         <div className="table-actions">
@@ -2199,6 +2222,44 @@ function CourseMaterial() {
                         justify-content: space-between;
                     }
                 }
+                        /* ✅ TABLE VIEW BUTTON */
+    .table-view-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 7px;
+        border: 1px solid #dce2ea;
+        background: #fff;
+        color: #f56600;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .table-view-btn > i {
+        font-size: 13px;
+    }
+
+    .table-view-btn:hover {
+        background: #f56600;
+        border-color: #f56600;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245, 102, 0, 0.22);
+    }
+
+    .table-view-btn:active {
+        transform: translateY(0) scale(0.98);
+    }
+
+    .no-file {
+        color: #9aa3b2;
+        font-size: 11px;
+        font-style: italic;
+    }
             `}</style>
         </div>
     );

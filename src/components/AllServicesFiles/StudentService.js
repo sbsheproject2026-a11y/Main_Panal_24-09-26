@@ -381,6 +381,15 @@ export const getStudentData = async (id) => {
     return response.data;
 };
  
+export const getDepartmentData = async (id) => {
+    
+    const response = await api.get(
+        `/DropDownFranchise/dropdown-franchise-getmastertypes/${id}`
+    );
+
+    return response.data;
+};
+ 
  
 
 export const getCourseCategory = async (id) => {
@@ -416,7 +425,21 @@ export const translateToHindi = async (text) => {
 };
 
  
+export const getStudyCentreCourse = async (id) => {
+    const response = await api.get(
+        `/DropDownEmployee/dropdown-studycentre-course/${id}`
+    );
 
+    return response.data;
+};
+
+export const getStudyCentreSelectedCourse = async (id,courseTypeId) => {
+    const response = await api.get(
+        `/DropDownFranchise/dropdown-franchise-getCourse/${id}?courseTypeId=${courseTypeId}`
+    );
+
+    return response.data;
+};
  
 
 export const getAmountDetail = async (userId, oId) => {

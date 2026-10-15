@@ -1,4 +1,4 @@
- import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Select from "react-select";
 import { toast, ToastContainer } from "react-toastify";
@@ -244,22 +244,22 @@ const NewStudentRegistration = () => {
         }
     };
 
- const loadCourseType = async () => {
-    try {
-        const result = await getStudentData(13);
-        const allData = result?.data || [];
+    const loadCourseType = async () => {
+        try {
+            const result = await getStudentData(13);
+            const allData = result?.data || [];
 
-        // ✅ Only keep IDs: 79, 74, 72
-        const allowedIds = [79, 74, 72];
-        const filtered = allData.filter((item) =>
-            allowedIds.includes(Number(item.id))
-        );
+            // ✅ Only keep IDs: 79, 74, 72
+            const allowedIds = [79, 74, 72];
+            const filtered = allData.filter((item) =>
+                allowedIds.includes(Number(item.id))
+            );
 
-        setCourseTypes(filtered);
-    } catch (error) {
-        console.error("Course Type Error:", error);
-    }
-};
+            setCourseTypes(filtered);
+        } catch (error) {
+            console.error("Course Type Error:", error);
+        }
+    };
 
     const loadEducationlevels = async () => {
         try {
@@ -816,7 +816,8 @@ const NewStudentRegistration = () => {
                                             }
                                             placeholder="Select session"
                                             isSearchable
-                                            isClearable
+                                            isClearable={false}
+                                            isDisabled
                                             classNamePrefix="student-select"
                                         />
                                         {errors.examSessionId && (

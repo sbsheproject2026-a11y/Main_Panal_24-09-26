@@ -341,3 +341,47 @@ export const updatePasswordapi = async (data) => {
 
   return response.data;
 };
+
+export const GetStudyCentreDepartmentData = async (id) => {
+    const response = await api.get(
+        `/Frenchise/frenchise-get-study-centre-department/${id}`
+    );
+
+    return response.data;
+};
+
+export const GetStudyCentreDepartmentDelete = async (id) => {
+    const response = await api.delete(
+        `/Frenchise/frenchise-delete-department/${id}`
+    );
+
+    return response.data;
+};
+
+
+ export const createStudyCentreDepartment = async (formData) => {
+    const data = new FormData();
+
+    // ✅ referenceId ko string me convert karo
+    data.append("referenceId", String(formData.referenceId ?? ""));
+
+    // ✅ Department + Course Pairs
+    (formData.departmentIds || []).forEach((item, index) => {
+        data.append(
+            `DepartmentIds[${index}].DepartmentId`,
+            item.departmentId ?? ""
+        );
+        data.append(
+            `DepartmentIds[${index}].CourseId`,
+            item.courseId ?? ""
+        );
+    });
+
+    const response = await api.post(
+        "/Frenchise/study-center-create-department",
+        data,
+        { headers: { "Content-Type": "multipart/form-data" } }
+    );
+
+    return response.data;
+};

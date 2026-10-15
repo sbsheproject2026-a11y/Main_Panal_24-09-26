@@ -1,6 +1,6 @@
- import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
-import { GetConfirmToAdmin, sendToConfirmStatus  } from '../../AllServicesFiles/AdminStudentService';
+import React, { useEffect, useState } from 'react'
+import { useNavigate,  useSearchParams } from 'react-router-dom';
+import { GetConfirmToAdmin, sendToConfirmStatus } from '../../AllServicesFiles/AdminStudentService';
 import { FILE_URL } from '../../api';
 import { getStudentFeeDetails } from '../../AllServicesFiles/PaymentService';
 
@@ -23,7 +23,8 @@ function SendToConfirmStudent() {
     const [feeDetails, setFeeDetails] = useState(null);
     const [feeLoading, setFeeLoading] = useState(false);
     const [feeError, setFeeError] = useState("");
-
+     const [searchParams] = useSearchParams();
+  const studyModeId = Number(searchParams.get("studyModeId")) || 0;
     const navigate = useNavigate();
 
     // ✅ PRINT
@@ -48,28 +49,28 @@ function SendToConfirmStudent() {
     };
 
     // ✅ FEE BUTTON CLICK
-   const handleFeeClick = async (item) => {
-    setSelectedItem(item);
-    setFeeDetails(null);
-    setFeeError("");
-    setFeeLoading(true);
+    const handleFeeClick = async (item) => {
+        setSelectedItem(item);
+        setFeeDetails(null);
+        setFeeError("");
+        setFeeLoading(true);
 
-    try {
-        const result = await getStudentFeeDetails(item.id);
-        
+        try {
+            const result = await getStudentFeeDetails(item.id);
 
-        if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
-            setFeeDetails(result.data[0]);   // 👈 poori array save karo
-        } else {
-            setFeeError("No fee record found for this student");
+
+            if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
+                setFeeDetails(result.data[0]);   // 👈 poori array save karo
+            } else {
+                setFeeError("No fee record found for this student");
+            }
+        } catch (err) {
+            console.error("Fee Error:", err);
+            setFeeError(err.response?.data?.message || "Failed to load fee details");
+        } finally {
+            setFeeLoading(false);
         }
-    } catch (err) {
-        console.error("Fee Error:", err);
-        setFeeError(err.response?.data?.message || "Failed to load fee details");
-    } finally {
-        setFeeLoading(false);
-    }
-};
+    };
 
     // ✅ CLOSE FEE MODAL
     const closeFeeModal = () => {
@@ -80,12 +81,12 @@ function SendToConfirmStudent() {
 
     useEffect(() => {
         loadStudents();
-    }, [pageNo, pageSize, search]);
+    }, [pageNo, pageSize, search,studyModeId]);
 
     const loadStudents = async () => {
         try {
             setLoading(true);
-            const result = await GetConfirmToAdmin(pageNo, pageSize, search);
+            const result = await GetConfirmToAdmin(pageNo, pageSize, search,studyModeId);
 
             setData(result.data.data);
             setTotalRecords(result.data.totalRecords);
@@ -1507,162 +1508,160 @@ function SendToConfirmStudent() {
                                 <div className="alert alert-danger">{feeError}</div>
                             )}
 
-                          {feeDetails && !feeLoading && (
-    <div className="payment-receipt">
+                            {feeDetails && !feeLoading && (
+                                <div className="payment-receipt">
 
-        {/* ===== HEADER (Amount + Status) ===== */}
-        <div className="receipt-top">
-            <div className="receipt-amount-box">
-                <span className="receipt-amount-label">Amount Paid</span>
-                <h1 className="receipt-amount">
-                    {formatAmount(feeDetails.amount)}
-                </h1>
-                <span className="receipt-amount-words">
-                    {feeDetails.amountW || ""}
-                </span>
-            </div>
+                                    {/* ===== HEADER (Amount + Status) ===== */}
+                                    <div className="receipt-top">
+                                        <div className="receipt-amount-box">
+                                            <span className="receipt-amount-label">Amount Paid</span>
+                                            <h1 className="receipt-amount">
+                                                {formatAmount(feeDetails.amount)}
+                                            </h1>
+                                            <span className="receipt-amount-words">
+                                                {feeDetails.amountW || ""}
+                                            </span>
+                                        </div>
 
-            <div
-                className={`receipt-status ${
-                    feeDetails.payStatus?.toLowerCase() === "pending"
-                        ? "status-pending"
-                        : feeDetails.payStatus?.toLowerCase() === "paid" ||
-                          feeDetails.payStatus?.toLowerCase() === "success"
-                        ? "status-paid"
-                        : "status-failed"
-                }`}
-            >
-                <i
-                    className={`bi ${
-                        feeDetails.payStatus?.toLowerCase() === "pending"
-                            ? "bi-clock-history"
-                            : feeDetails.payStatus?.toLowerCase() === "paid" ||
-                              feeDetails.payStatus?.toLowerCase() === "success"
-                            ? "bi-check-circle-fill"
-                            : "bi-x-circle-fill"
-                    }`}
-                ></i>
-                {feeDetails.payStatus || "Unknown"}
-            </div>
-        </div>
+                                        <div
+                                            className={`receipt-status ${feeDetails.payStatus?.toLowerCase() === "pending"
+                                                    ? "status-pending"
+                                                    : feeDetails.payStatus?.toLowerCase() === "paid" ||
+                                                        feeDetails.payStatus?.toLowerCase() === "success"
+                                                        ? "status-paid"
+                                                        : "status-failed"
+                                                }`}
+                                        >
+                                            <i
+                                                className={`bi ${feeDetails.payStatus?.toLowerCase() === "pending"
+                                                        ? "bi-clock-history"
+                                                        : feeDetails.payStatus?.toLowerCase() === "paid" ||
+                                                            feeDetails.payStatus?.toLowerCase() === "success"
+                                                            ? "bi-check-circle-fill"
+                                                            : "bi-x-circle-fill"
+                                                    }`}
+                                            ></i>
+                                            {feeDetails.payStatus || "Unknown"}
+                                        </div>
+                                    </div>
 
-        {/* ===== DIVIDER ===== */}
-        <div className="receipt-divider">
-            <span></span>
-            <i className="bi bi-scissors"></i>
-            <span></span>
-        </div>
+                                    {/* ===== DIVIDER ===== */}
+                                    <div className="receipt-divider">
+                                        <span></span>
+                                        <i className="bi bi-scissors"></i>
+                                        <span></span>
+                                    </div>
 
-        {/* ===== STUDENT INFO ===== */}
-        <div className="receipt-section">
-            <h6 className="receipt-section-title">
-                <i className="bi bi-person-badge-fill"></i>
-                Student Information
-            </h6>
+                                    {/* ===== STUDENT INFO ===== */}
+                                    <div className="receipt-section">
+                                        <h6 className="receipt-section-title">
+                                            <i className="bi bi-person-badge-fill"></i>
+                                            Student Information
+                                        </h6>
 
-            <div className="receipt-grid">
-                <div className="receipt-item">
-                    <span className="receipt-label">Full Name</span>
-                    <span className="receipt-value">
-                        {feeDetails.name?.trim() || "N/A"}
-                    </span>
-                </div>
+                                        <div className="receipt-grid">
+                                            <div className="receipt-item">
+                                                <span className="receipt-label">Full Name</span>
+                                                <span className="receipt-value">
+                                                    {feeDetails.name?.trim() || "N/A"}
+                                                </span>
+                                            </div>
 
-                <div className="receipt-item">
-                    <span className="receipt-label">Mobile No</span>
-                    <span className="receipt-value">
-                        {feeDetails.mobileNo || "N/A"}
-                    </span>
-                </div>
+                                            <div className="receipt-item">
+                                                <span className="receipt-label">Mobile No</span>
+                                                <span className="receipt-value">
+                                                    {feeDetails.mobileNo || "N/A"}
+                                                </span>
+                                            </div>
 
-                <div className="receipt-item full">
-                    <span className="receipt-label">Email Address</span>
-                    <span className="receipt-value">
-                        {feeDetails.emailId || "N/A"}
-                    </span>
-                </div>
+                                            <div className="receipt-item full">
+                                                <span className="receipt-label">Email Address</span>
+                                                <span className="receipt-value">
+                                                    {feeDetails.emailId || "N/A"}
+                                                </span>
+                                            </div>
 
-                <div className="receipt-item full">
-                    <span className="receipt-label">Address</span>
-                    <span className="receipt-value">
-                        {feeDetails.address || "N/A"}
-                    </span>
-                </div>
-            </div>
-        </div>
+                                            <div className="receipt-item full">
+                                                <span className="receipt-label">Address</span>
+                                                <span className="receipt-value">
+                                                    {feeDetails.address || "N/A"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-        {/* ===== COURSE INFO ===== */}
-        <div className="receipt-section">
-            <h6 className="receipt-section-title">
-                <i className="bi bi-mortarboard-fill"></i>
-                Course Details
-            </h6>
+                                    {/* ===== COURSE INFO ===== */}
+                                    <div className="receipt-section">
+                                        <h6 className="receipt-section-title">
+                                            <i className="bi bi-mortarboard-fill"></i>
+                                            Course Details
+                                        </h6>
 
-            <div className="receipt-grid">
-                <div className="receipt-item full">
-                    <span className="receipt-label">Course Name</span>
-                    <span className="receipt-value">
-                        {feeDetails.feeName || "N/A"}
-                    </span>
-                </div>
-            </div>
-        </div>
+                                        <div className="receipt-grid">
+                                            <div className="receipt-item full">
+                                                <span className="receipt-label">Course Name</span>
+                                                <span className="receipt-value">
+                                                    {feeDetails.feeName || "N/A"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-        {/* ===== TRANSACTION INFO ===== */}
-        <div className="receipt-section">
-            <h6 className="receipt-section-title">
-                <i className="bi bi-receipt-cutoff"></i>
-                Transaction Details
-            </h6>
+                                    {/* ===== TRANSACTION INFO ===== */}
+                                    <div className="receipt-section">
+                                        <h6 className="receipt-section-title">
+                                            <i className="bi bi-receipt-cutoff"></i>
+                                            Transaction Details
+                                        </h6>
 
-            <div className="receipt-grid">
-                <div className="receipt-item">
-                    <span className="receipt-label">Order ID</span>
-                    <span className="receipt-value mono">
-                        {feeDetails.orderId || "N/A"}
-                    </span>
-                </div>
+                                        <div className="receipt-grid">
+                                            <div className="receipt-item">
+                                                <span className="receipt-label">Order ID</span>
+                                                <span className="receipt-value mono">
+                                                    {feeDetails.orderId || "N/A"}
+                                                </span>
+                                            </div>
 
-                <div className="receipt-item">
-                    <span className="receipt-label">Reference ID</span>
-                    <span className="receipt-value mono">
-                        {feeDetails.referenceId || "-"}
-                    </span>
-                </div>
+                                            <div className="receipt-item">
+                                                <span className="receipt-label">Reference ID</span>
+                                                <span className="receipt-value mono">
+                                                    {feeDetails.referenceId || "-"}
+                                                </span>
+                                            </div>
 
-                <div className="receipt-item">
-                    <span className="receipt-label">Order Date</span>
-                    <span className="receipt-value">
-                        {feeDetails.oDate || "N/A"}
-                    </span>
-                </div>
+                                            <div className="receipt-item">
+                                                <span className="receipt-label">Order Date</span>
+                                                <span className="receipt-value">
+                                                    {feeDetails.oDate || "N/A"}
+                                                </span>
+                                            </div>
 
-                <div className="receipt-item">
-                    <span className="receipt-label">Pay Date</span>
-                    <span className="receipt-value">
-                        {feeDetails.printPayDate &&
-                        feeDetails.printPayDate !== "01 Jan 1900"
-                            ? feeDetails.printPayDate
-                            : "-"}
-                    </span>
-                </div>
+                                            <div className="receipt-item">
+                                                <span className="receipt-label">Pay Date</span>
+                                                <span className="receipt-value">
+                                                    {feeDetails.printPayDate &&
+                                                        feeDetails.printPayDate !== "01 Jan 1900"
+                                                        ? feeDetails.printPayDate
+                                                        : "-"}
+                                                </span>
+                                            </div>
 
-                <div className="receipt-item full">
-                    <span className="receipt-label">Gateway</span>
-                    <span className="receipt-value">
-                        {feeDetails.getwayPrm || "Not Specified"}
-                    </span>
-                </div>
-            </div>
-        </div>
+                                            <div className="receipt-item full">
+                                                <span className="receipt-label">Gateway</span>
+                                                <span className="receipt-value">
+                                                    {feeDetails.getwayPrm || "Not Specified"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-        {/* ===== FOOTER NOTE ===== */}
-        <div className="receipt-note">
-            <i className="bi bi-info-circle"></i>
-            This is a computer-generated receipt. Please keep it for your records.
-        </div>
-    </div>
-)}
+                                    {/* ===== FOOTER NOTE ===== */}
+                                    <div className="receipt-note">
+                                        <i className="bi bi-info-circle"></i>
+                                        This is a computer-generated receipt. Please keep it for your records.
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="details-footer">

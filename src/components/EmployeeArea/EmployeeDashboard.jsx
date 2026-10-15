@@ -1,4 +1,4 @@
- import React from "react";
+ import React, { useEffect, useState } from "react";
 import {
   FaUserGraduate,
   FaUserPlus,
@@ -11,37 +11,75 @@ import {
   FaBell,
   FaPlus,
 } from "react-icons/fa";
+import { getEmpDashboard } from "../AllServicesFiles/MastertypeService";
 
 const EmployeeDashboard = () => {
+  // ✅ State
+  const [loading, setLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState({
+    totalStudent: 0,
+    totalFranchise: 0,
+    totalAccFranchise: 0,
+    totalEmployee: 0,
+    totalCourse: 0,
+  });
+
+  // ✅ useEffect
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+
+      const result = await getEmpDashboard();
+
+      setDashboardData({
+        totalStudent: result?.data?.totalStudent || 0,
+        totalFranchise: result?.data?.totalFranchise || 0,
+        totalAccFranchise: result?.data?.totalAccFranchise || 0,
+        totalEmployee: result?.data?.totalEmployee || 0,
+        totalCourse: result?.data?.totalCourse || 0,
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Unable to load Dashboard.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Stats — Total Students & Active Courses API se bind
   const stats = [
     {
       title: "Total Students",
-      value: "1,250",
-      change: "+12.5%",
+      value: dashboardData.totalStudent.toLocaleString("en-IN"),   // ✅ API se
+      change: "",
       icon: <FaUserGraduate />,
       color: "#4f46e5",
       bg: "#eef2ff",
     },
     {
       title: "New Admissions",
-      value: "86",
-      change: "+8.2%",
+      value: "",                                                    // ⏳ pending
+      change: "",
       icon: <FaUserPlus />,
       color: "#0891b2",
       bg: "#ecfeff",
     },
     {
       title: "Pending Fees",
-      value: "₹2,45,000",
-      change: "+5.4%",
+      value: "₹",                                                   // ⏳ pending
+      change: "",
       icon: <FaMoneyBillWave />,
       color: "#d97706",
       bg: "#fffbeb",
     },
     {
       title: "Active Courses",
-      value: "12",
-      change: "+2 New",
+      value: dashboardData.totalCourse.toLocaleString("en-IN"),    // ✅ API se
+      change: "",
       icon: <FaBookOpen />,
       color: "#16a34a",
       bg: "#f0fdf4",
@@ -90,8 +128,6 @@ const EmployeeDashboard = () => {
             Welcome back! Here's what's happening at your centre.
           </p>
         </div>
-
-         
       </div>
 
       {/* Stats Cards */}
@@ -109,13 +145,23 @@ const EmployeeDashboard = () => {
                     <p className="text-muted mb-2">{item.title}</p>
 
                     <h3 className="fw-bold mb-2">
-                      {item.value}
+                      {loading ? (
+                        <span
+                          className="spinner-border spinner-border-sm text-secondary"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                      ) : (
+                        item.value
+                      )}
                     </h3>
 
-                    <small className="text-success fw-semibold">
-                      <FaArrowUp size={11} className="me-1" />
-                      {item.change}
-                    </small>
+                    {item.change && (
+                      <small className="text-success fw-semibold">
+                        <FaArrowUp size={11} className="me-1" />
+                        {item.change}
+                      </small>
+                    )}
                   </div>
 
                   <div
@@ -213,7 +259,6 @@ const EmployeeDashboard = () => {
           </div>
         </div>
 
-         
         {/* Fee Overview */}
         <div className="col-xl-4">
           <div
@@ -283,81 +328,7 @@ const EmployeeDashboard = () => {
           </div>
         </div>
 
-        {/* Notices */}
-        <div className="col-12">
-          <div
-            className="card border-0 shadow-sm"
-            style={{ borderRadius: "15px" }}
-          >
-            <div className="card-body p-4">
-
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                  <h5 className="fw-bold mb-1">
-                    Institute Notices
-                  </h5>
-
-                  <small className="text-muted">
-                    Latest announcements from institute
-                  </small>
-                </div>
-
-                <button className="btn btn-sm btn-outline-primary">
-                  View All
-                </button>
-              </div>
-
-              <div className="list-group list-group-flush">
-
-                <div className="list-group-item px-0 d-flex align-items-center">
-                  <div
-                    className="rounded-circle p-3 me-3"
-                    style={{
-                      background: "#eef2ff",
-                      color: "#4f46e5",
-                    }}
-                  >
-                    <FaBell />
-                  </div>
-
-                  <div>
-                    <h6 className="mb-1 fw-semibold">
-                      New examination schedule announced
-                    </h6>
-
-                    <small className="text-muted">
-                      Today, 10:30 AM
-                    </small>
-                  </div>
-                </div>
-
-                <div className="list-group-item px-0 d-flex align-items-center">
-                  <div
-                    className="rounded-circle p-3 me-3"
-                    style={{
-                      background: "#f0fdf4",
-                      color: "#16a34a",
-                    }}
-                  >
-                    <FaCertificate />
-                  </div>
-
-                  <div>
-                    <h6 className="mb-1 fw-semibold">
-                      Certificate verification is now available
-                    </h6>
-
-                    <small className="text-muted">
-                      Yesterday
-                    </small>
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-        </div>
+       
 
       </div>
     </div>

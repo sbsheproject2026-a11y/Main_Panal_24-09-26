@@ -1,8 +1,8 @@
 import api from "../api";
  
-export const GetConfirmToAdmin = (pageNo, pageSize, search) => {
+export const GetConfirmToAdmin = (pageNo, pageSize, search,studyModeId) => {
     return api.get(
-      `/RequestStudent/request-student-confirm-to-admin?spageNo=${pageNo}&pageSize=${pageSize}&search=${search}`
+      `/RequestStudent/request-student-confirm-to-admin?spageNo=${pageNo}&pageSize=${pageSize}&search=${search}&studyModeId=${studyModeId}`
     );
 };
 

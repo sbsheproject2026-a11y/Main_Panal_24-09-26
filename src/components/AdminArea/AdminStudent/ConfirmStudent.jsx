@@ -1,8 +1,8 @@
- import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   GetConfirmAddmissions,
- 
+
 } from "../../AllServicesFiles/AdminStudentService";
 import { FILE_URL } from "../../api";
 
@@ -714,7 +714,7 @@ function ConfirmStudent() {
 
                           <td className="pe-4">
                             <span
-                              
+
                               style={{
                                 background: "#f1f8f5",
                                 color: "#198754",
@@ -727,7 +727,7 @@ function ConfirmStudent() {
                           </td>
                           <td className="pe-4">
                             <span
-                              
+
                               style={{
                                 background: "#f1f8f5",
                                 color: "#198754",
@@ -1044,8 +1044,23 @@ function ConfirmStudent() {
                         }
                       />
                     </div>
+                    <div className="col-md-4">
+                      <DocumentButton
+                        icon="bi-person-badge-fill"
+                        title="NOC Certificate"
+                        subtitle="Print NOC "
+                        color="#087990"
+                        bg="#f3fcff"
+                        onClick={() =>
+                          openDocument(
+                            `/noc-print/${selectedStudent.id}`
+                          )
+                        }
+                      />
+                    </div>
 
-                    <div className="col-md-6">
+
+                    <div className="col-md-4">
                       <DocumentButton
                         icon="bi-card-text"
                         title="Admit Card 1st"
@@ -1064,7 +1079,7 @@ function ConfirmStudent() {
                       />
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <DocumentButton
                         icon="bi-card-text"
                         title="Admit Card 2nd"
@@ -1082,8 +1097,21 @@ function ConfirmStudent() {
                         }
                       />
                     </div>
-
-                    <div className="col-md-6">
+                    <div className="col-md-4">
+                      <DocumentButton
+                        icon="bi-person-badge-fill"
+                        title="Registration Certificate"
+                        subtitle="Print Registration "
+                        color="#087990"
+                        bg="#f3fcff"
+                        onClick={() =>
+                          openDocument(
+                            `/reg-print/${selectedStudent.id}`
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="col-md-4">
                       <DocumentButton
                         icon="bi bi-file-earmark-bar-graph-fill"
                         title="Marksheet 1st"
@@ -1102,7 +1130,7 @@ function ConfirmStudent() {
                       />
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <DocumentButton
                         icon="bi-file-earmark-bar-graph-fill"
                         title="Marksheet 2nd"

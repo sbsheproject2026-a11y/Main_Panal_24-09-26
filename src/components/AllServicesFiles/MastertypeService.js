@@ -44,3 +44,25 @@ export const getMasterTypeDelete = async (id) => {
 };
 
 
+
+export const getDashboard = async () => {
+    const response = await api.get(
+        "/DropDown/dashboard"
+    );
+
+    return response.data;
+};
+export const getEmpDashboard = async () => {
+  const token = localStorage.getItem("token");
+
+  const response = await api.get(
+    "/DropDownEmployee/emp-dashboard",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data;
+};

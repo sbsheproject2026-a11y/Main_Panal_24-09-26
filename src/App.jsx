@@ -32,6 +32,8 @@ import StudentLayout from './components/StudentArea/StudentLayout/StudentLayout'
 import UpdatePassword from './components/EmployeeArea/EmployeePage/UpdatePassword'
 import NewStudentRegistration from './components/WebsiteForms/NewStudentRegistration'
 import RegistrationModeSelect from './components/WebsiteForms/RegistrationModeSelect'
+import REGPrint from './components/DocumentPrintFiles/AllDocumentsPrint/REGPrint'
+import NOCPrint from './components/DocumentPrintFiles/AllDocumentsPrint/NOCPrint'
 
 
 
@@ -86,6 +88,8 @@ function App() {
                     <Route path="/id-card-print/:id" element={<FranchiseIdCard />} />
                     <Route path="/admit-card-print/:id" element={<AdmitCardPrint />} />
                     <Route path="/id-card/:id" element={<IdCard />} />
+                    <Route path="/noc-print/:id" element={<NOCPrint />} />
+                    <Route path="/reg-print/:id" element={<REGPrint />} />
                    
                 </Route>
 

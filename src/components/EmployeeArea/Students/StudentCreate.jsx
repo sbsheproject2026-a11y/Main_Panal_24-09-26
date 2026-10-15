@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { toast, ToastContainer } from "react-toastify";
@@ -8,27 +8,28 @@ import {
     createStudent,
 
     getCity,
-    getCourse,
-    getCourseCategory,
+
+    getDepartmentData,
 
     getDistrict,
-
 
     getMasterSession,
     getState,
     getStudentData,
+    getStudyCentreSelectedCourse,
     translateToHindi
 } from "../../AllServicesFiles/StudentService";
-
-
-
-
 
 const StudentCreate = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
-  const location = useLocation();
-  const referenceId = location.state?.referenceId || 0;
+    const loginUserId = String(localStorage.getItem("UserId") || 0).trim();
+    const location = useLocation();
+ const referenceId =
+    Number(location.state?.referenceId) > 0
+        ? Number(location.state.referenceId)
+        : Number(loginUserId) || 0;
+
     // =========================
     // Dropdown States
     // =========================
@@ -41,7 +42,7 @@ const StudentCreate = () => {
 
     const [casteCategories, setCasteCategories] = useState([]);
     const [courseTypes, setCourseTypes] = useState([]);
-    const [courseCategories, setCourseCategories] = useState([]);
+
     const [courses, setCourses] = useState([]);
     const [masterSessions, setMasterSessions] = useState([]);
 
@@ -82,7 +83,7 @@ const StudentCreate = () => {
 
         casteCategoryId: 0,
         courseTypeId: 0,
-        courseCategoryId: 0,
+
         courseId: 0,
         examSessionId: 0,
 
@@ -92,7 +93,7 @@ const StudentCreate = () => {
         districtId: 0,
         locationId: 0,
         studyModeId: 0,
-       referenceId: referenceId, 
+        referenceId: referenceId,
 
         address: "",
         pincode: "",
@@ -125,7 +126,7 @@ const StudentCreate = () => {
             loadGender(),
 
             loadCasteCategory(),
-            loadCourseType(),
+            loadCourseType(referenceId),
             loadEducationlevels(),
             loadMasterSession()
         ]);
@@ -153,8 +154,6 @@ const StudentCreate = () => {
         }
     };
 
-
-
     const loadCasteCategory = async () => {
         try {
             const result = await getStudentData(21);
@@ -164,20 +163,19 @@ const StudentCreate = () => {
         }
     };
 
-    const loadCourseType = async () => {
+    const loadCourseType = async (referenceId) => {
         try {
-            const result = await getStudentData(13);
+            const result = await getDepartmentData(referenceId);
             setCourseTypes(result?.data || []);
-
         } catch (error) {
             console.error("Course Type Error:", error);
         }
     };
+
     const loadEducationlevels = async () => {
         try {
             const result = await getStudentData(24);
             setEducationlevels(result?.data || []);
-
         } catch (error) {
             console.error("Course Type Error:", error);
         }
@@ -212,25 +210,15 @@ const StudentCreate = () => {
         }
     };
 
-    const loadCourseCategory = async (courseTypeId) => {
+    const loadCourse = async (referenceId, courseTypeId) => {
         try {
-            const result = await getCourseCategory(courseTypeId);
-            setCourseCategories(result?.data || []);
+            const result = await getStudyCentreSelectedCourse(referenceId, courseTypeId);
+            setCourses(result?.data || []);
         } catch (error) {
-            console.error("Course Category Error:", error);
-            setCourseCategories([]);
+            console.error("Course Error:", error);
+            setCourses([]);
         }
     };
-
-   const loadCourse = async (courseCategoryId,courseTypeId) => {
-          try {
-              const result = await getCourse(courseCategoryId,courseTypeId);
-              setCourses(result?.data || []);
-          } catch (error) {
-              console.error("Course Error:", error);
-              setCourses([]);
-          }
-      };
 
     // =========================
     // Generic Change
@@ -433,11 +421,6 @@ const StudentCreate = () => {
                 "Programme is required";
         }
 
-        if (!formData.courseCategoryId) {
-            newErrors.courseCategoryId =
-                "Course category is required";
-        }
-
         if (!formData.courseId) {
             newErrors.courseId =
                 "Course is required";
@@ -451,13 +434,10 @@ const StudentCreate = () => {
             return false;
         }
 
-
         setErrors(newErrors);
 
         return Object.keys(newErrors).length === 0;
     };
-
-
 
     // =========================
     // Submit
@@ -488,8 +468,6 @@ const StudentCreate = () => {
         try {
             setIsSubmitting(true);
 
-
-
             const result = await createStudent(formData);
 
             // Sirf Successfully hone par Success page par jayega
@@ -498,7 +476,6 @@ const StudentCreate = () => {
             );
 
             navigate("/student-list");
-
 
         } catch (error) {
             console.error("Create Student Error:", error);
@@ -512,7 +489,6 @@ const StudentCreate = () => {
             setIsSubmitting(false);
         }
     };
-
 
     // =========================
     // Select Change
@@ -543,9 +519,7 @@ const StudentCreate = () => {
     // Course Type Change
     // =========================
 
-    const handleCourseTypeChange = (
-        selectedOption
-    ) => {
+    const handleCourseTypeChange = (selectedOption) => {
         const id = selectedOption
             ? Number(selectedOption.value)
             : 0;
@@ -553,40 +527,16 @@ const StudentCreate = () => {
         setFormData((prev) => ({
             ...prev,
             courseTypeId: id,
-            courseCategoryId: 0,
             courseId: 0
         }));
 
-        setCourseCategories([]);
-        setCourses([]);
-
+        // ✅ Pass loginUserId + courseTypeId to loadCourse
         if (id) {
-            loadCourseCategory(id);
+            loadCourse(referenceId, id);
+        } else {
+            setCourses([]);
         }
     };
-
-    // =========================
-    // Course Category Change
-    // =========================
-
-    const handleCourseCategoryChange = (selectedOption) => {
-    const id = selectedOption ? Number(selectedOption.value) : 0;
-
-    setFormData((prev) => {
-        const updated = {
-            ...prev,
-            courseCategoryId: id,
-            courseId: 0,
-        };
-
-        // Yahan prev.courseTypeId available hai
-        if (id) loadCourse(id, prev.courseTypeId);
-
-        return updated;
-    });
-
-    setCourses([]);
-};
 
     // =========================
     // State Change
@@ -657,8 +607,6 @@ const StudentCreate = () => {
 
     return (
         <>
-            {/* Aapka Student Registration Form */}
-
             <ToastContainer
                 position="top-right"
                 autoClose={3000}
@@ -666,16 +614,10 @@ const StudentCreate = () => {
             />
             <div className="student-registration-page">
 
-
-                {/* =====================================
-                 PAGE HEADER
-             ===================================== */}
-
+                {/* PAGE HEADER */}
                 <div className="container-fluid px-3 px-md-4">
 
                     <div className="page-heading">
-
-
                         <button
                             type="button"
                             className="back-btn"
@@ -688,12 +630,7 @@ const StudentCreate = () => {
                         </button>
                     </div>
 
-
-
-                    {/* =====================================
-                     MAIN CARD
-                 ===================================== */}
-
+                    {/* MAIN CARD */}
                     <div className="registration-card">
 
                         <div className="registration-top">
@@ -720,10 +657,7 @@ const StudentCreate = () => {
                             className="registration-form"
                         >
 
-                            {/* =====================================
-                             COURSE DETAILS
-                         ===================================== */}
-
+                            {/* COURSE DETAILS */}
                             <div className="form-section">
 
                                 <div className="section-heading">
@@ -741,7 +675,6 @@ const StudentCreate = () => {
                                 </div>
 
                                 <div className="row">
-
 
                                     <div className="col-lg-4 col-md-6 mb-4">
                                         <label>
@@ -777,45 +710,6 @@ const StudentCreate = () => {
 
                                     <div className="col-lg-4 col-md-6 mb-4">
                                         <label>
-                                            Course Category
-                                            <span>*</span>
-                                        </label>
-
-                                        <Select
-                                            options={makeOptions(
-                                                courseCategories
-                                            )}
-                                            value={getSelected(
-                                                courseCategories,
-                                                formData.courseCategoryId
-                                            )}
-                                            onChange={
-                                                handleCourseCategoryChange
-                                            }
-                                            placeholder={
-                                                formData.courseTypeId
-                                                    ? "Select category"
-                                                    : "Select programme first"
-                                            }
-                                            isSearchable
-                                            isClearable
-                                            isDisabled={
-                                                !formData.courseTypeId
-                                            }
-                                            classNamePrefix="student-select"
-                                        />
-
-                                        {errors.courseCategoryId && (
-                                            <ErrorText
-                                                text={
-                                                    errors.courseCategoryId
-                                                }
-                                            />
-                                        )}
-                                    </div>
-
-                                    <div className="col-lg-4 col-md-6 mb-4">
-                                        <label>
                                             Course
                                             <span>*</span>
                                         </label>
@@ -835,14 +729,14 @@ const StudentCreate = () => {
                                                 )
                                             }
                                             placeholder={
-                                                formData.courseCategoryId
+                                                formData.courseTypeId
                                                     ? "Select course"
                                                     : "Select category first"
                                             }
                                             isSearchable
                                             isClearable
                                             isDisabled={
-                                                !formData.courseCategoryId
+                                                !formData.courseTypeId
                                             }
                                             classNamePrefix="student-select"
                                         />
@@ -856,32 +750,7 @@ const StudentCreate = () => {
                                         )}
                                     </div>
 
-                                </div>
-                            </div>
-
-                            {/* =====================================
-                             PERSONAL DETAILS
-                         ===================================== */}
-
-                            <div className="form-section">
-
-                                <div className="section-heading">
-                                    <div className="section-icon green">
-                                        <i className="bi bi-person-vcard-fill"></i>
-                                    </div>
-
-                                    <div>
-                                        <h5>Personal Details</h5>
-                                        <p>
-                                            Enter student's personal
-                                            information
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="row">
-
-                                    <div className="col-lg-4 col-md-6 mb-4">
+ <div className="col-lg-4 col-md-6 mb-4">
                                         <label>
                                             Session
                                             <span>*</span>
@@ -915,6 +784,29 @@ const StudentCreate = () => {
                                             />
                                         )}
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* PERSONAL DETAILS */}
+                            <div className="form-section">
+
+                                <div className="section-heading">
+                                    <div className="section-icon green">
+                                        <i className="bi bi-person-vcard-fill"></i>
+                                    </div>
+
+                                    <div>
+                                        <h5>Personal Details</h5>
+                                        <p>
+                                            Enter student's personal
+                                            information
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="row">
+
+                                   
 
                                     <div className="col-lg-4 col-md-6 mb-4">
                                         <label>
@@ -1102,10 +994,7 @@ const StudentCreate = () => {
                                 </div>
                             </div>
 
-                            {/* =====================================
-                             ACADEMIC DETAILS
-                         ===================================== */}
-
+                            {/* ACADEMIC DETAILS */}
                             <div className="form-section">
 
                                 <div className="section-heading">
@@ -1148,10 +1037,9 @@ const StudentCreate = () => {
                                                     (academic, index) => (
                                                         <React.Fragment key={index}>
 
-                                                            {/* ================= FIRST ROW ================= */}
+                                                            {/* FIRST ROW */}
                                                             <tr className="academic-row">
 
-                                                                {/* Level */}
                                                                 <td>
                                                                     <label className="academic-mobile-label">
                                                                         Level
@@ -1201,7 +1089,6 @@ const StudentCreate = () => {
                                                                     />
                                                                 </td>
 
-                                                                {/* School / College */}
                                                                 <td>
                                                                     <label className="academic-mobile-label">
                                                                         School / College
@@ -1224,7 +1111,6 @@ const StudentCreate = () => {
                                                                     />
                                                                 </td>
 
-                                                                {/* Roll No */}
                                                                 <td>
                                                                     <label className="academic-mobile-label">
                                                                         Roll No
@@ -1247,11 +1133,9 @@ const StudentCreate = () => {
 
                                                             </tr>
 
-
-                                                            {/* ================= SECOND ROW ================= */}
+                                                            {/* SECOND ROW */}
                                                             <tr className="academic-row">
 
-                                                                {/* Board / University */}
                                                                 <td>
                                                                     <label className="academic-mobile-label">
                                                                         Board / University
@@ -1274,7 +1158,6 @@ const StudentCreate = () => {
                                                                     />
                                                                 </td>
 
-                                                                {/* Percentage / CGPA */}
                                                                 <td>
                                                                     <label className="academic-mobile-label">
                                                                         Percentage / CGPA
@@ -1297,7 +1180,6 @@ const StudentCreate = () => {
                                                                     />
                                                                 </td>
 
-                                                                {/* Document + Action */}
                                                                 <td>
                                                                     <label className="academic-mobile-label">
                                                                         Document
@@ -1366,11 +1248,7 @@ const StudentCreate = () => {
                                 </div>
                             </div>
 
-
-                            {/* =====================================
-                             CONTACT & ADDRESS
-                         ===================================== */}
-
+                            {/* CONTACT & ADDRESS */}
                             <div className="form-section">
 
                                 <div className="section-heading">
@@ -1597,10 +1475,7 @@ const StudentCreate = () => {
                                 </div>
                             </div>
 
-                            {/* =====================================
-                             DOCUMENT DETAILS
-                         ===================================== */}
-
+                            {/* DOCUMENT DETAILS */}
                             <div className="form-section">
 
                                 <div className="section-heading">
@@ -1678,10 +1553,7 @@ const StudentCreate = () => {
                                 </div>
                             </div>
 
-                            {/* =====================================
-                             DECLARATION
-                         ===================================== */}
-
+                            {/* DECLARATION */}
                             <div className="declaration-card">
 
                                 <div className="declaration-header">
@@ -1747,10 +1619,7 @@ const StudentCreate = () => {
 
                             </div>
 
-                            {/* =====================================
-                             FOOTER
-                         ===================================== */}
-
+                            {/* FOOTER */}
                             <div className="form-actions">
 
                                 <button
@@ -1793,10 +1662,7 @@ const StudentCreate = () => {
                     </div>
                 </div>
 
-                {/* =====================================
-                 DECLARATION MODAL
-             ===================================== */}
-
+                {/* DECLARATION MODAL */}
                 {showDeclarationModal && (
                     <div className="declaration-overlay">
 
@@ -2212,7 +2078,6 @@ const DocumentUpload = ({
                 <ErrorText text={error} />
             )}
 
-            {/* ================= PART 2 CSS ================= */}
             <style>{`
 
 /* =========================================================
@@ -2232,11 +2097,6 @@ const DocumentUpload = ({
     padding: 25px 0 50px;
     color: #253044;
 }
-
-
-/* =========================================================
-   PAGE HEADING
-   ========================================================= */
 
 .page-heading {
     display: flex;
@@ -2321,11 +2181,6 @@ const DocumentUpload = ({
     transform: translateY(-1px);
 }
 
-
-/* =========================================================
-   BREADCRUMB
-   ========================================================= */
-
 .breadcrumb-custom {
     display: flex;
     align-items: center;
@@ -2357,11 +2212,6 @@ const DocumentUpload = ({
     font-weight: 600;
 }
 
-
-/* =========================================================
-   MAIN CARD
-   ========================================================= */
-
 .registration-card {
     width: 100%;
     max-width: 1000px;
@@ -2376,11 +2226,6 @@ const DocumentUpload = ({
 
     overflow: hidden;
 }
-
-
-/* =========================================================
-   TOP HEADER
-   ========================================================= */
 
 .registration-top {
     display: flex;
@@ -2437,11 +2282,6 @@ const DocumentUpload = ({
     margin-right: 4px;
 }
 
-
-/* =========================================================
-   FORM
-   ========================================================= */
-
 .registration-form {
     padding: 28px;
 }
@@ -2453,11 +2293,6 @@ const DocumentUpload = ({
 .form-section:last-of-type {
     margin-bottom: 22px;
 }
-
-
-/* =========================================================
-   SECTION HEADING
-   ========================================================= */
 
 .section-heading {
     position: relative;
@@ -2551,11 +2386,6 @@ const DocumentUpload = ({
     color: #929aaa;
 }
 
-
-/* =========================================================
-   LABEL
-   ========================================================= */
-
 .registration-form label {
     display: block;
 
@@ -2574,11 +2404,6 @@ const DocumentUpload = ({
 
     font-size: 13px;
 }
-
-
-/* =========================================================
-   INPUT
-   ========================================================= */
 
 .input-icon-box {
     position: relative;
@@ -2672,11 +2497,6 @@ textarea.form-control {
     padding-left: 40px;
 }
 
-
-/* =========================================================
-   REACT SELECT
-   ========================================================= */
-
 .student-select__control {
     min-height: 43px !important;
 
@@ -2751,11 +2571,6 @@ textarea.form-control {
     color: #fff !important;
 }
 
-
-/* =========================================================
-   ERROR
-   ========================================================= */
-
 .field-error {
     display: flex;
     align-items: center;
@@ -2770,11 +2585,6 @@ textarea.form-control {
 
     font-weight: 500;
 }
-
-
-/* =========================================================
-   ACADEMIC SECTION
-   ========================================================= */
 
 .add-academic-btn {
     display: flex;
@@ -2808,11 +2618,6 @@ textarea.form-control {
         0 4px 12px rgba(25, 135, 84, 0.2);
 }
 
-
-/* =========================================================
-   ACADEMIC TABLE - 3 COLUMNS / 2 ROWS
-   ========================================================= */
-
 .academic-wrapper {
     width: 100%;
 
@@ -2839,9 +2644,6 @@ textarea.form-control {
     min-width: 0;
 }
 
-
-/* Header */
-
 .academic-table thead th {
     width: 33.333%;
 
@@ -2861,9 +2663,6 @@ textarea.form-control {
     white-space: nowrap;
 }
 
-
-/* Body cells */
-
 .academic-table tbody td {
     width: 33.333%;
 
@@ -2876,22 +2675,13 @@ textarea.form-control {
     vertical-align: middle;
 }
 
-
-/* Every qualification's second row */
-
 .academic-table tbody tr.academic-row:last-of-type td {
     border-bottom: 1px solid #edf0f3;
 }
 
-
-/* Hover */
-
 .academic-table tbody tr.academic-row:hover td {
     background: #fbfdfc;
 }
-
-
-/* Input */
 
 .academic-table .table-input {
     width: 100%;
@@ -2932,9 +2722,6 @@ textarea.form-control {
         0 0 0 2px rgba(25, 135, 84, 0.08);
 }
 
-
-/* React Select inside academic table */
-
 .academic-table .student-select__control {
     width: 100%;
 
@@ -2944,9 +2731,6 @@ textarea.form-control {
 
     box-sizing: border-box;
 }
-
-
-/* File input */
 
 .academic-table .file-table-input {
     width: 100%;
@@ -2986,9 +2770,6 @@ textarea.form-control {
     font-size: 9px;
 }
 
-
-/* Selected file name */
-
 .academic-table .file-name {
     display: block;
 
@@ -3011,11 +2792,6 @@ textarea.form-control {
     margin-right: 3px;
 }
 
-
-/* =========================================================
-   DOCUMENT + ACTION
-   ========================================================= */
-
 .document-action-wrapper {
     display: flex;
 
@@ -3035,9 +2811,6 @@ textarea.form-control {
 .document-input-wrapper .file-table-input {
     width: 100%;
 }
-
-
-/* Delete button */
 
 .academic-table .delete-row-btn {
     width: 38px;
@@ -3082,28 +2855,13 @@ textarea.form-control {
     cursor: not-allowed;
 }
 
-
-/* =========================================================
-   LABELS FOR MOBILE
-   ========================================================= */
-
 .academic-mobile-label {
     display: none;
 }
 
-
-/* =========================================================
-   QUALIFICATION SEPARATOR
-   ========================================================= */
-
 .academic-table tbody tr.academic-row:nth-child(2n) td {
     border-bottom: 8px solid #f5f7fb;
 }
-
-
-/* =========================================================
-   DOCUMENT UPLOAD
-   ========================================================= */
 
 .document-upload {
     position: relative;
@@ -3236,11 +2994,6 @@ textarea.form-control {
 
     white-space: nowrap;
 }
-
-
-/* =========================================================
-   DECLARATION
-   ========================================================= */
 
 .declaration-card {
     margin-top: 10px;
@@ -3379,11 +3132,6 @@ textarea.form-control {
     cursor: pointer;
 }
 
-
-/* =========================================================
-   FORM ACTIONS
-   ========================================================= */
-
 .form-actions {
     display: flex;
     justify-content: flex-end;
@@ -3472,11 +3220,6 @@ textarea.form-control {
 .submit-btn .spinner-border {
     margin-right: 7px;
 }
-
-
-/* =========================================================
-   DECLARATION MODAL
-   ========================================================= */
 
 .declaration-overlay {
     position: fixed;
@@ -3735,11 +3478,6 @@ textarea.form-control {
     cursor: not-allowed;
 }
 
-
-/* =========================================================
-   RESPONSIVE - TABLET
-   ========================================================= */
-
 @media (max-width: 991px) {
 
     .registration-form {
@@ -3777,11 +3515,6 @@ textarea.form-control {
         font-size: 9px;
     }
 }
-
-
-/* =========================================================
-   RESPONSIVE - MOBILE
-   ========================================================= */
 
 @media (max-width: 767px) {
 
@@ -3888,11 +3621,6 @@ textarea.form-control {
 
         font-size: 9px;
     }
-
-
-    /* =====================================================
-       ACADEMIC TABLE MOBILE
-       ===================================================== */
 
     .academic-wrapper {
         overflow: visible;
@@ -4010,19 +3738,11 @@ textarea.form-control {
         border-bottom: none;
     }
 
-
-    /* Mobile file name */
-
     .academic-table .file-name {
         max-width: calc(100% - 50px);
 
         font-size: 9px;
     }
-
-
-    /* =====================================================
-       OTHER MOBILE SECTIONS
-       ===================================================== */
 
     .declaration-card {
         padding: 15px;
@@ -4082,11 +3802,6 @@ textarea.form-control {
         flex: 1;
     }
 }
-
-
-/* =========================================================
-   SMALL MOBILE
-   ========================================================= */
 
 @media (max-width: 480px) {
 
@@ -4161,7 +3876,6 @@ textarea.form-control {
         width: 100%;
     }
 }
-      
 
 `}</style>
         </div>
