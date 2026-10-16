@@ -349,3 +349,11 @@ export const sendToCourseCommission = async (payload) => {
     );
     return response.data;
 };
+
+export const getStudentCourseById = async (id) => {
+    const response = await api.get(
+        `/Course/course-getstudent-details-all/${id}`
+    );
+
+    return response.data;
+};

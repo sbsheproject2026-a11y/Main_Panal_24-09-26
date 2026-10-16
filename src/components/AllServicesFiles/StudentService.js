@@ -357,6 +357,13 @@ export const getState = async () => {
 
     return response.data;
 };
+export const getStudyCentreState = async () => {
+    const response = await api.get(
+        "/DropDownEmployee/dropdown-studycentre-getstate"
+    );
+
+    return response.data;
+};
 export const getDistrict = async (id) => {
     const response = await api.get(
         `/DropDownEmployee/dropdown-emp-getdistrict/${id}`
@@ -460,6 +467,6 @@ export const getAmountDetail = async (userId, oId) => {
 
 // ✅ Sahi
 export const getStudentProfile = async (id) => {
-    const response = await api.get(`/Home/student-prifile/${id}`);
+    const response = await api.get(`/Home/student-profile/${id}`);
     return response.data;
 };

@@ -2,17 +2,15 @@
 import { getStudentDelete, getStudents } from "../../AllServicesFiles/StudentService";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FILE_URL } from "../../api";
- 
 
 function StudentList() {
-   const location = useLocation();
-    const roleId = String(localStorage.getItem("RoleId") || "").trim();
-    const loginUserId = String(localStorage.getItem("UserId") || 0).trim();
-    const referenceId = location.state?.referenceId || 0;
+  const location = useLocation();
+  const roleId = String(localStorage.getItem("RoleId") || "").trim();
+  const loginUserId = String(localStorage.getItem("UserId") || 0).trim();
+  const referenceId = location.state?.referenceId || 0;
 
-    // ✅ Role 33 → referenceId, warna loginUserId
-    const userId = roleId === "33" ? referenceId : loginUserId;
-
+  // ✅ Role 33 → referenceId, warna loginUserId
+  const userId = roleId === "33" ? referenceId : loginUserId;
 
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
@@ -39,18 +37,56 @@ function StudentList() {
     navigate(`/academic-update/${id}`);
   };
 
+  // ✅ Debounced effect — fast typing se API spam na ho
   useEffect(() => {
-    loadStudents();
-  }, [userId,pageNo, pageSize, search]);
+    const timer = setTimeout(() => {
+      loadStudents();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [userId, pageNo, pageSize, search]);
 
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const result = await getStudents(userId,pageNo, pageSize, search);
-      setData(result?.data?.data || []);
-      setTotalRecords(result?.data?.totalRecords || 0);
+      const result = await getStudents(userId, pageNo, pageSize, search);
+
+      // ✅ DEBUG — API response structure dekhne ke liye
+      console.log("Student API Response:", result);
+
+      // ✅ Data nikaalo — multiple possible paths
+      const responseData =
+        result?.data?.data ??
+        result?.data?.items ??
+        result?.data?.records ??
+        result?.data?.list ??
+        result?.data ??
+        result?.items ??
+        result?.list ??
+        result ??
+        [];
+
+      // ✅ TotalRecords nikaalo — multiple possible field names
+      const total =
+        result?.data?.totalRecords ??
+        result?.data?.totalCount ??
+        result?.data?.total ??
+        result?.data?.count ??
+        result?.data?.recordsTotal ??
+        result?.totalRecords ??
+        result?.totalCount ??
+        result?.total ??
+        result?.count ??
+        result?.recordsTotal ??
+        (Array.isArray(responseData) ? responseData.length : 0);
+
+      console.log("Extracted Data Length:", Array.isArray(responseData) ? responseData.length : "not array");
+      console.log("Extracted Total:", total);
+
+      setData(Array.isArray(responseData) ? responseData : []);
+      setTotalRecords(Number(total) || 0);
     } catch (error) {
-      console.log(error);
+      console.log("Student API Error:", error);
       setData([]);
       setTotalRecords(0);
     } finally {
@@ -58,7 +94,8 @@ function StudentList() {
     }
   };
 
-  const totalPages = Math.ceil(totalRecords / pageSize);
+  // ✅ Safe total pages — kabhi 0 na ho
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
 
   const startRecord = totalRecords === 0 ? 0 : (pageNo - 1) * pageSize + 1;
   const endRecord = totalRecords === 0 ? 0 : Math.min(pageNo * pageSize, totalRecords);
@@ -300,10 +337,6 @@ function StudentList() {
           font-weight: 600;
         }
 
-        /* =========================================================
-           TABLE WRAPPER — only this area scrolls
-        ========================================================= */
-
         .student-table-wrapper {
           width: 0 !important;
           min-width: 100% !important;
@@ -318,10 +351,6 @@ function StudentList() {
           border-radius: 14px;
           border: 1px solid #edf0f5;
         }
-
-        /* =========================================================
-           TABLE — AUTO WIDTH + AUTO HEIGHT
-        ========================================================= */
 
         .student-table {
           width: auto !important;
@@ -368,10 +397,6 @@ function StudentList() {
         .student-table tbody tr:hover {
           background: #fafbff;
         }
-
-        /* =========================================================
-           CELL CONTENT
-        ========================================================= */
 
         .sr-column {
           text-align: center;
@@ -495,15 +520,17 @@ function StudentList() {
         }
 
         .student-action {
-          width: 34px;
           height: 34px;
           min-width: 34px;
-          display: flex;
+          padding: 0 10px;
+          display: inline-flex;
           align-items: center;
           justify-content: center;
           border: 0;
           border-radius: 9px;
           cursor: pointer;
+          font-size: 11px;
+          font-weight: 600;
           transition: all .2s ease;
         }
 
@@ -540,10 +567,6 @@ function StudentList() {
           color: #fff;
           background: #e5484d;
         }
-
-        /* =========================================================
-           EMPTY / LOADING
-        ========================================================= */
 
         .student-empty-state {
           height: 280px;
@@ -598,10 +621,6 @@ function StudentList() {
           margin-bottom: 12px;
         }
 
-        /* =========================================================
-           PAGINATION
-        ========================================================= */
-
         .student-table-footer {
           display: flex;
           align-items: center;
@@ -625,6 +644,7 @@ function StudentList() {
           display: flex;
           align-items: center;
           gap: 5px;
+          flex-wrap: wrap;
         }
 
         .student-pagination button {
@@ -656,10 +676,6 @@ function StudentList() {
           cursor: not-allowed;
         }
 
-        /* =========================================================
-           SCROLLBAR
-        ========================================================= */
-
         .student-table-wrapper::-webkit-scrollbar {
           height: 9px;
         }
@@ -682,10 +698,6 @@ function StudentList() {
           scrollbar-width: thin;
           scrollbar-color: #b8bfcc #eef1f5;
         }
-
-        /* =========================================================
-           MODAL
-        ========================================================= */
 
         .student-delete-overlay {
           position: fixed;
@@ -777,10 +789,6 @@ function StudentList() {
           color: #fff;
           background: #e5484d;
         }
-
-        /* =========================================================
-           MOBILE
-        ========================================================= */
 
         @media (max-width: 768px) {
           .student-card-header {
@@ -943,8 +951,7 @@ function StudentList() {
                                 <div>
                                   {item.selfImageShow ? (
                                     <img
-                               
-                                       src={`${FILE_URL}${item.selfImageShow}`}
+                                      src={`${FILE_URL}${item.selfImageShow}`}
                                       alt="Student"
                                       className="student-image"
                                       onError={(e) => {
@@ -1029,9 +1036,9 @@ function StudentList() {
                                   type="button"
                                   className="student-action view"
                                   onClick={() => handleformprint(item.id)}
-                                  title="View Student"
+                                  title="Print Admission Form"
                                 >
-                                 Print
+                                  Print
                                 </button>
                                 <button
                                   type="button"
@@ -1113,7 +1120,8 @@ function StudentList() {
                 </div>
               </div>
 
-              {totalPages > 0 && (
+              {/* ✅ Pagination — jab tak totalRecords > 0 ho */}
+              {totalRecords > 0 && (
                 <div className="student-table-footer">
                   <div className="student-record-info">
                     Page <strong>{pageNo}</strong> of{" "}
@@ -1124,7 +1132,8 @@ function StudentList() {
                     <button
                       type="button"
                       onClick={handlePrevious}
-                      disabled={pageNo === 1}
+                      disabled={pageNo === 1 || loading}
+                      title="Previous Page"
                     >
                       <i className="bi bi-chevron-left"></i>
                     </button>
@@ -1135,6 +1144,7 @@ function StudentList() {
                         type="button"
                         className={pageNo === page ? "active" : ""}
                         onClick={() => setPageNo(page)}
+                        disabled={loading}
                       >
                         {page}
                       </button>
@@ -1143,7 +1153,8 @@ function StudentList() {
                     <button
                       type="button"
                       onClick={handleNext}
-                      disabled={pageNo === totalPages}
+                      disabled={pageNo >= totalPages || loading}
+                      title="Next Page"
                     >
                       <i className="bi bi-chevron-right"></i>
                     </button>

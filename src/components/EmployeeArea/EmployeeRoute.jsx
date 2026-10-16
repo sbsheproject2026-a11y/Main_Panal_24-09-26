@@ -27,7 +27,7 @@ const employeeRoutes = [
     { path: "/student-list", element: <StudentList />, role: ["6", "90", "33"] },
     { path: "/student-to-confirm", element: <SendToConfirm />, role: ["6", "90", "33"] },
     { path: "/profile", element: <Profile />, role: ["6", "90", "33"] },
-    { path: "/help", element: <NeedHelp />, role: ["6", "90", "33"] },
+    
     { path: "/update-password", element: <UpdatePassword />, role: ["6", "90", "33"] },
     { path: "/wallet-recharge", element: <WalletRecharge1 />, role: ["6", "90", "33"] },
     { path: "/online-wallet-recharge", element: <WalletRechargeOnline />, role: ["6", "90", "33"] },

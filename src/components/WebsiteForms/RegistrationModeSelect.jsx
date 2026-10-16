@@ -4,7 +4,7 @@ import Select from "react-select";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import { getState } from "../AllServicesFiles/StudentService";
+import { getStudyCentreState } from "../AllServicesFiles/StudentService";
 import { getFrenchises } from "../AllServicesFiles/WebformService";
 
 import "./StudentRegistration.css";
@@ -27,7 +27,7 @@ const RegistrationModeSelect = () => {
 
     const loadState = async () => {
         try {
-            const result = await getState();
+            const result = await getStudyCentreState();
             setStates(result?.data || []);
         } catch (error) {
             console.error("State Error:", error);

@@ -1,5 +1,4 @@
-
-import React, { useEffect, useMemo, useState } from "react";
+ import React, { useEffect, useMemo, useState } from "react";
 import {
   getMasterTypeDetails,
   createMasterTypeDetail,
@@ -22,8 +21,8 @@ function MasterTypeDetails() {
     name: "",
     file: null,
     parentId: null,
-    isActive: 0,
-    srNo:0,
+    isActive: 1,
+    srNo: 0,
     masterTypeId: 0,
   });
 
@@ -33,8 +32,7 @@ function MasterTypeDetails() {
 
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-  const [deleteMasterTypeDetailName, setDeleteMasterTypeDetailName] =
-    useState("");
+  const [deleteMasterTypeDetailName, setDeleteMasterTypeDetailName] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -47,14 +45,10 @@ function MasterTypeDetails() {
     loadMasterTypesdetails();
   }, []);
 
-  /* ================= LOAD MASTER TYPES ================= */
-
   const loadMasterTypes = async () => {
     try {
       setMasterTypeLoading(true);
-
       const result = await getMasterTypes();
-
       setMasterTypes(result?.data || []);
     } catch (error) {
       console.error(error);
@@ -63,14 +57,11 @@ function MasterTypeDetails() {
       setMasterTypeLoading(false);
     }
   };
-  /* ================= LOAD MASTER TYPES details ================= */
 
   const loadMasterTypesdetails = async () => {
     try {
       setMasterTypedLoading(true);
-
       const result = await getMasterTypesdetails();
-
       setMasterTypesdetails(result?.data || []);
     } catch (error) {
       console.error(error);
@@ -80,14 +71,10 @@ function MasterTypeDetails() {
     }
   };
 
-  /* ================= LOAD DETAILS ================= */
-
   const loadMasterTypeDetails = async () => {
     try {
       setLoading(true);
-
       const result = await getMasterTypeDetails();
-
       setData(result?.data || []);
       setCurrentPage(1);
     } catch (error) {
@@ -98,8 +85,6 @@ function MasterTypeDetails() {
     }
   };
 
-  /* ================= RESET FORM ================= */
-
   const resetForm = () => {
     setFormData({
       id: 0,
@@ -107,18 +92,15 @@ function MasterTypeDetails() {
       name: "",
       file: null,
       parentId: null,
-      isActive: 0,
+      isActive: 1,
       srNo: 0,
       masterTypeId: 0,
     });
   };
 
-  /* ================= EDIT ================= */
-
   const handleEdit = async (id) => {
     try {
       const result = await getMasterTypeDetailById(id);
-
       setFormData({
         id: result.id,
         code: result.code || "",
@@ -128,19 +110,14 @@ function MasterTypeDetails() {
         file: result.file || null,
         parentId: result.parentId || null,
         masterTypeId: result.masterTypeId || 0,
+        isActive: result.isActive || 1,
       });
-
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       console.error(error);
       alert("Unable to load Master Type Detail.");
     }
   };
-
-  /* ================= DELETE ================= */
 
   const handleDelete = (id, name) => {
     setDeleteId(id);
@@ -157,17 +134,9 @@ function MasterTypeDetails() {
   const confirmDelete = async () => {
     try {
       if (!deleteId) return;
-
       const result = await getMasterTypeDetailDelete(deleteId);
-
-      alert(
-        result?.message ||
-        result ||
-        "Master Type Detail deleted successfully"
-      );
-
+      alert(result?.message || result || "Master Type Detail deleted successfully");
       closeDeleteModal();
-
       await loadMasterTypeDetails();
     } catch (error) {
       console.error(error);
@@ -175,60 +144,43 @@ function MasterTypeDetails() {
     }
   };
 
-  /* ================= FORM CHANGE ================= */
-
- const handleChange = (e) => {
-  const { name, value, files } = e.target;
-
-  setFormData((prev) => ({
-    ...prev,
-    [name]: name === "file" ? files?.[0] || null : value,
-  }));
-};
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "file" ? files?.[0] || null : value,
+    }));
+  };
 
   const handleMasterTypeChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      masterTypeId: Number(e.target.value),
-    }));
-  };
-  const handleMasterTypedChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      parentId: Number(e.target.value),
-    }));
+    setFormData((prev) => ({ ...prev, masterTypeId: Number(e.target.value) }));
   };
 
-  /* ================= SUBMIT ================= */
+  const handleMasterTypedChange = (e) => {
+    setFormData((prev) => ({ ...prev, parentId: Number(e.target.value) }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.masterTypeId) {
       alert("Please select Master Type.");
       return;
     }
-
     try {
       setSaving(true);
-
       let result;
-
       if (formData.id > 0) {
         result = await updateMasterTypeDetail(formData);
       } else {
         result = await createMasterTypeDetail(formData);
       }
-
       alert(
         result?.message ||
-        (formData.id > 0
-          ? "Master Type Detail updated successfully"
-          : "Master Type Detail created successfully")
+          (formData.id > 0
+            ? "Master Type Detail updated successfully"
+            : "Master Type Detail created successfully")
       );
-
       await loadMasterTypeDetails();
-
       resetForm();
     } catch (error) {
       console.error(error);
@@ -238,8 +190,6 @@ function MasterTypeDetails() {
     }
   };
 
-  /* ================= SEARCH ================= */
-
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
@@ -247,77 +197,31 @@ function MasterTypeDetails() {
 
   const filteredData = useMemo(() => {
     const search = searchTerm.toLowerCase().trim();
-
     if (!search) return data;
-
     return data.filter((item) => {
-      const masterTypeName =
-        item.masterTypeName ||
-        item.masterType?.name ||
-        "";
-
+      const masterTypeName = item.masterTypeName || item.masterType?.name || "";
       return (
-        item.code
-          ?.toString()
-          .toLowerCase()
-          .includes(search) ||
-        item.name
-          ?.toString()
-          .toLowerCase()
-          .includes(search) ||
-        masterTypeName
-          ?.toString()
-          .toLowerCase()
-          .includes(search)
+        item.code?.toString().toLowerCase().includes(search) ||
+        item.name?.toString().toLowerCase().includes(search) ||
+        masterTypeName?.toString().toLowerCase().includes(search)
       );
     });
   }, [data, searchTerm]);
 
-  /* ================= PAGINATION ================= */
-
-  const totalPages = Math.ceil(
-    filteredData.length / itemsPerPage
-  );
-
-  const startIndex =
-    (currentPage - 1) * itemsPerPage;
-
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-
-  const currentData = filteredData.slice(
-    startIndex,
-    endIndex
-  );
+  const currentData = filteredData.slice(startIndex, endIndex);
 
   const getPageNumbers = () => {
     if (totalPages <= 5) {
-      return Array.from(
-        { length: totalPages },
-        (_, index) => index + 1
-      );
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
-
-    if (currentPage <= 3) {
-      return [1, 2, 3, 4, 5];
-    }
-
+    if (currentPage <= 3) return [1, 2, 3, 4, 5];
     if (currentPage >= totalPages - 2) {
-      return [
-        totalPages - 4,
-        totalPages - 3,
-        totalPages - 2,
-        totalPages - 1,
-        totalPages,
-      ];
+      return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
     }
-
-    return [
-      currentPage - 2,
-      currentPage - 1,
-      currentPage,
-      currentPage + 1,
-      currentPage + 2,
-    ];
+    return [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
   };
 
   const pageNumbers = getPageNumbers();
@@ -328,61 +232,36 @@ function MasterTypeDetails() {
   };
 
   const handlePrevious = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
   const handleNext = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  /* ================= MASTER TYPE NAME ================= */
+  const handlePageChange = (page) => setCurrentPage(page);
 
   const getMasterTypeName = (item) => {
-    if (item.masterTypeName) {
-      return item.masterTypeName;
-    }
-
-    if (item.masterType?.name) {
-      return item.masterType.name;
-    }
-
+    if (item.masterTypeName) return item.masterTypeName;
+    if (item.masterType?.name) return item.masterType.name;
     const masterType = masterTypes.find(
-      (master) =>
-        Number(master.id) === Number(item.masterTypeId)
+      (master) => Number(master.id) === Number(item.masterTypeId)
     );
-
     return masterType?.name || "—";
   };
 
   return (
-    <>
-      {/* =====================================================
-          PAGE HEADER
-      ====================================================== */}
-
+    <div className="master-type-details-page">
+      {/* PAGE HEADER */}
       <div className="page-header mb-4">
         <div>
           <div className="d-flex align-items-center gap-2 mb-2">
             <div className="page-icon detail-icon">
               <i className="bi bi-diagram-3-fill"></i>
             </div>
-
             <div>
-              <h1 className="page-title mb-0">
-                Master Type Details
-              </h1>
-
-              <p className="page-subtitle mb-0">
-                Manage master type detail records
-              </p>
+              <h1 className="page-title mb-0">Master Type Details</h1>
+              <p className="page-subtitle mb-0">Manage master type detail records</p>
             </div>
           </div>
         </div>
@@ -395,46 +274,25 @@ function MasterTypeDetails() {
                 Dashboard
               </a>
             </li>
-
-            <li className="breadcrumb-item">
-              Master Detail
-            </li>
-
-            <li className="breadcrumb-item active">
-              Master Type Details
-            </li>
+            <li className="breadcrumb-item">Master Detail</li>
+            <li className="breadcrumb-item active">Master Type Details</li>
           </ol>
         </nav>
       </div>
 
       <section className="section">
-
-        {/* =====================================================
-            FORM CARD
-        ====================================================== */}
-
+        {/* FORM CARD */}
         <div className="card modern-card border-0 mb-4">
           <div className="card-body p-0">
-
             <div className="card-header-modern">
               <div className="d-flex align-items-center gap-3">
                 <div className="section-icon">
-                  <i
-                    className={
-                      formData.id > 0
-                        ? "bi bi-pencil-square"
-                        : "bi bi-plus-lg"
-                    }
-                  ></i>
+                  <i className={formData.id > 0 ? "bi bi-pencil-square" : "bi bi-plus-lg"}></i>
                 </div>
-
                 <div>
                   <h5 className="mb-1 fw-bold">
-                    {formData.id > 0
-                      ? "Edit Master Type Detail"
-                      : "Add Master Type Detail"}
+                    {formData.id > 0 ? "Edit Master Type Detail" : "Add Master Type Detail"}
                   </h5>
-
                   <small className="text-muted">
                     {formData.id > 0
                       ? "Update master type detail information"
@@ -444,11 +302,7 @@ function MasterTypeDetails() {
               </div>
 
               {formData.id > 0 && (
-                <button
-                  type="button"
-                  className="btn btn-light btn-sm reset-btn"
-                  onClick={resetForm}
-                >
+                <button type="button" className="btn btn-light btn-sm reset-btn" onClick={resetForm}>
                   <i className="bi bi-x-lg me-1"></i>
                   Cancel Edit
                 </button>
@@ -457,24 +311,13 @@ function MasterTypeDetails() {
 
             <div className="p-4">
               <form onSubmit={handleSubmit}>
-
                 <div className="row g-4">
-
-                  {/* MASTER TYPE */}
-
                   <div className="col-md-6">
                     <label className="form-label-modern">
-                      Master Type
-                      <span className="text-danger ms-1">
-                        *
-                      </span>
+                      Master Type<span className="text-danger ms-1">*</span>
                     </label>
-
                     <div className="input-group-modern">
-                      <span className="input-icon">
-                        <i className="bi bi-diagram-3"></i>
-                      </span>
-
+                      <span className="input-icon"><i className="bi bi-diagram-3"></i></span>
                       <select
                         className="form-select modern-input modern-select"
                         required
@@ -483,80 +326,40 @@ function MasterTypeDetails() {
                         disabled={masterTypeLoading}
                       >
                         <option value={0}>
-                          {masterTypeLoading
-                            ? "Loading Master Types..."
-                            : "Select Master Type"}
+                          {masterTypeLoading ? "Loading Master Types..." : "Select Master Type"}
                         </option>
-
                         {masterTypes.map((item) => (
-                          <option
-                            key={item.id}
-                            value={item.id}
-                          >
-                            {item.name}
-                          </option>
+                          <option key={item.id} value={item.id}>{item.name}</option>
                         ))}
                       </select>
                     </div>
-
-                    <small className="field-help">
-                      Select the parent master type
-                    </small>
+                    <small className="field-help">Select the parent master type</small>
                   </div>
-                  {/* Parent MASTER TYPE details */}
 
                   <div className="col-md-6">
-                    <label className="form-label-modern">
-                      Parent
-                      <span className="text-danger ms-1">
-
-                      </span>
-                    </label>
-
+                    <label className="form-label-modern">Parent</label>
                     <div className="input-group-modern">
-                      <span className="input-icon">
-                        <i className="bi bi-diagram-3"></i>
-                      </span>
-
+                      <span className="input-icon"><i className="bi bi-diagram-3"></i></span>
                       <select
                         className="form-select modern-input modern-select"
-
                         value={formData.parentId}
                         onChange={handleMasterTypedChange}
                         disabled={masterTypedLoading}
                       >
                         <option value={0}>
-                          {masterTypedLoading
-                            ? "Loading Master Types..."
-                            : "Select Master Type"}
+                          {masterTypedLoading ? "Loading Master Types..." : "Select Master Type"}
                         </option>
-
                         {masterTypesdetsils.map((item) => (
-                          <option
-                            key={item.id}
-                            value={item.id}
-                          >
-                            {item.name}
-                          </option>
+                          <option key={item.id} value={item.id}>{item.name}</option>
                         ))}
                       </select>
                     </div>
-
-
                   </div>
 
-                  {/* CODE */}
-
                   <div className="col-md-2">
-                    <label className="form-label-modern">
-                      SrNo
-                    </label>
-
+                    <label className="form-label-modern">SrNo</label>
                     <div className="input-group-modern">
-                      <span className="input-icon">
-                        <i className="bi bi-hash"></i>
-                      </span>
-
+                      <span className="input-icon"><i className="bi bi-hash"></i></span>
                       <input
                         type="number"
                         name="srNo"
@@ -566,19 +369,12 @@ function MasterTypeDetails() {
                         onChange={handleChange}
                       />
                     </div>
-
-                     
                   </div>
+
                   <div className="col-md-4">
-                    <label className="form-label-modern">
-                      Code
-                    </label>
-
+                    <label className="form-label-modern">Code</label>
                     <div className="input-group-modern">
-                      <span className="input-icon">
-                        <i className="bi bi-hash"></i>
-                      </span>
-
+                      <span className="input-icon"><i className="bi bi-hash"></i></span>
                       <input
                         type="text"
                         name="code"
@@ -588,27 +384,15 @@ function MasterTypeDetails() {
                         onChange={handleChange}
                       />
                     </div>
-
-                    <small className="field-help">
-                      Enter a unique code for this detail
-                    </small>
+                    <small className="field-help">Enter a unique code for this detail</small>
                   </div>
-
-                  {/* NAME */}
 
                   <div className="col-md-6">
                     <label className="form-label-modern">
-                      Name
-                      <span className="text-danger ms-1">
-                        *
-                      </span>
+                      Name<span className="text-danger ms-1">*</span>
                     </label>
-
                     <div className="input-group-modern">
-                      <span className="input-icon">
-                        <i className="bi bi-tag"></i>
-                      </span>
-
+                      <span className="input-icon"><i className="bi bi-tag"></i></span>
                       <input
                         type="text"
                         name="name"
@@ -619,288 +403,148 @@ function MasterTypeDetails() {
                         required
                       />
                     </div>
-                    
                   </div>
-                  {/* File */}
-
-              <div className="col-md-6">
-  <label className="form-label-modern">
-    File
-  </label>
-
-  <div className="input-group-modern">
-    <span className="input-icon">
-      <i className="bi bi-file-earmark"></i>
-    </span>
-
-    <input
-      type="file"
-      name="file"
-      className="form-control modern-input"
-      accept="image/*,.pdf"
-      onChange={handleChange}
-    />
-  </div>
-
-  {/* Existing File Preview */}
-  {formData.filePath && (
-    <div
-      style={{
-        marginTop: "10px",
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-      }}
-    >
-      {/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(formData.filePath) ? (
-        /* IMAGE */
-        <a
-          href={`${FILE_URL}${formData.filePath}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img
-            src={`${FILE_URL}${formData.filePath}`}
-            alt="File Preview"
-            style={{
-              width: "80px",
-              height: "80px",
-              objectFit: "cover",
-              borderRadius: "6px",
-              border: "1px solid #ddd",
-              cursor: "pointer",
-            }}
-          />
-        </a>
-      ) : /\.pdf$/i.test(formData.filePath) ? (
-        /* PDF */
-        <a
-          href={`${FILE_URL}${formData.filePath}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 14px",
-            border: "1px solid #ddd",
-            borderRadius: "6px",
-            textDecoration: "none",
-            color: "#d32f2f",
-            background: "#fff",
-            fontWeight: "600",
-          }}
-        >
-          <i
-            className="bi bi-file-earmark-pdf-fill"
-            style={{ fontSize: "24px" }}
-          ></i>
-
-          <span>View PDF</span>
-        </a>
-      ) : (
-        /* OTHER FILE */
-        <a
-          href={`${FILE_URL}${formData.filePath}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            color: "#ff6600",
-            fontWeight: "600",
-            textDecoration: "none",
-          }}
-        >
-          <i className="bi bi-file-earmark"></i> View File
-        </a>
-      )}
-    </div>
-  )}
-</div>
-
-                  {/* STATUS */}
 
                   <div className="col-md-6">
-                    <label className="form-label-modern">
-                      Status
-                    </label>
+                    <label className="form-label-modern">File</label>
+                    <div className="input-group-modern">
+                      <span className="input-icon"><i className="bi bi-file-earmark"></i></span>
+                      <input
+                        type="file"
+                        name="file"
+                        className="form-control modern-input"
+                        accept="image/*,.pdf"
+                        onChange={handleChange}
+                      />
+                    </div>
 
+                    {formData.filePath && (
+                      <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "12px" }}>
+                        {/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(formData.filePath) ? (
+                          <a href={`${FILE_URL}${formData.filePath}`} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={`${FILE_URL}${formData.filePath}`}
+                              alt="File Preview"
+                              style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "6px", border: "1px solid #ddd", cursor: "pointer" }}
+                            />
+                          </a>
+                        ) : /\.pdf$/i.test(formData.filePath) ? (
+                          <a
+                            href={`${FILE_URL}${formData.filePath}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 14px", border: "1px solid #ddd", borderRadius: "6px", textDecoration: "none", color: "#d32f2f", background: "#fff", fontWeight: "600" }}
+                          >
+                            <i className="bi bi-file-earmark-pdf-fill" style={{ fontSize: "24px" }}></i>
+                            <span>View PDF</span>
+                          </a>
+                        ) : (
+                          <a
+                            href={`${FILE_URL}${formData.filePath}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "#ff6600", fontWeight: "600", textDecoration: "none" }}
+                          >
+                            <i className="bi bi-file-earmark"></i> View File
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label-modern">Status</label>
                     <div className="status-box">
                       <div className="d-flex align-items-center justify-content-between">
-
                         <div className="d-flex align-items-center gap-3">
-
-                          <div
-                            className={
-                              formData.isActive === 1
-                                ? "status-icon active"
-                                : "status-icon inactive"
-                            }
-                          >
-                            <i
-                              className={
-                                formData.isActive === 1
-                                  ? "bi bi-check-lg"
-                                  : "bi bi-pause-fill"
-                              }
-                            ></i>
+                          <div className={formData.isActive === 1 ? "status-icon active" : "status-icon inactive"}>
+                            <i className={formData.isActive === 1 ? "bi bi-check-lg" : "bi bi-pause-fill"}></i>
                           </div>
-
                           <div>
                             <div className="fw-semibold">
-                              {formData.isActive === 1
-                                ? "Active"
-                                : "Inactive"}
+                              {formData.isActive === 1 ? "Active" : "Inactive"}
                             </div>
-
                             <small className="text-muted">
-                              {formData.isActive === 1
-                                ? "This detail is active"
-                                : "This detail is inactive"}
+                              {formData.isActive === 1 ? "This detail is active" : "This detail is inactive"}
                             </small>
                           </div>
                         </div>
-
                         <div className="form-check form-switch mb-0">
                           <input
                             className="form-check-input custom-switch"
                             type="checkbox"
-                            checked={
-                              formData.isActive === 1
-                            }
+                            checked={formData.isActive === 1}
                             onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                isActive:
-                                  e.target.checked
-                                    ? 1
-                                    : 0,
-                              }))
+                              setFormData((prev) => ({ ...prev, isActive: e.target.checked ? 1 : 0 }))
                             }
                           />
                         </div>
-
                       </div>
                     </div>
                   </div>
 
-                  {/* ACTIONS */}
-
                   <div className="col-12">
                     <div className="form-actions">
-
-                      <button
-                        type="submit"
-                        className="btn btn-primary modern-primary-btn"
-                        disabled={saving}
-                      >
+                      <button type="submit" className="btn btn-primary modern-primary-btn" disabled={saving}>
                         {saving ? (
                           <>
-                            <span
-                              className="spinner-border spinner-border-sm me-2"
-                              role="status"
-                            ></span>
+                            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
                             Saving...
                           </>
                         ) : (
                           <>
-                            <i
-                              className={
-                                formData.id > 0
-                                  ? "bi bi-check2-circle me-2"
-                                  : "bi bi-plus-lg me-2"
-                              }
-                            ></i>
-
-                            {formData.id > 0
-                              ? "Update Detail"
-                              : "Create Detail"}
+                            <i className={formData.id > 0 ? "bi bi-check2-circle me-2" : "bi bi-plus-lg me-2"}></i>
+                            {formData.id > 0 ? "Update Detail" : "Create Detail"}
                           </>
                         )}
                       </button>
 
-                      <button
-                        type="button"
-                        className="btn btn-light modern-reset-btn"
-                        onClick={resetForm}
-                      >
+                      <button type="button" className="btn btn-light modern-reset-btn" onClick={resetForm}>
                         <i className="bi bi-arrow-counterclockwise me-2"></i>
                         Reset
                       </button>
-
                     </div>
                   </div>
-
                 </div>
               </form>
             </div>
           </div>
         </div>
 
-        {/* =====================================================
-            LIST CARD
-        ====================================================== */}
-
+        {/* LIST CARD */}
         <div className="card modern-card border-0">
           <div className="card-body p-0">
-
             <div className="card-header-modern">
-
               <div className="d-flex align-items-center gap-3">
                 <div className="section-icon purple">
                   <i className="bi bi-list-ul"></i>
                 </div>
-
                 <div>
-                  <h5 className="mb-1 fw-bold">
-                    Master Type Details List
-                  </h5>
-
-                  <small className="text-muted">
-                    View and manage all detail records
-                  </small>
+                  <h5 className="mb-1 fw-bold">Master Type Details List</h5>
+                  <small className="text-muted">View and manage all detail records</small>
                 </div>
               </div>
-
               <div className="record-count">
                 <span>{filteredData.length}</span>
                 <small>Records</small>
               </div>
-
             </div>
 
             <div className="p-4">
-
-              {/* TOOLBAR */}
-
               <div className="table-toolbar mb-4">
-
                 <div className="entries-control">
-                  <span className="text-muted">
-                    Show
-                  </span>
-
-                  <select
-                    className="form-select entries-select"
-                    value={itemsPerPage}
-                    onChange={
-                      handleItemsPerPageChange
-                    }
-                  >
+                  <span className="text-muted">Show</span>
+                  <select className="form-select entries-select" value={itemsPerPage} onChange={handleItemsPerPageChange}>
                     <option value={10}>10</option>
                     <option value={25}>25</option>
                     <option value={50}>50</option>
                     <option value={100}>100</option>
                   </select>
-
-                  <span className="text-muted">
-                    entries
-                  </span>
+                  <span className="text-muted">entries</span>
                 </div>
 
                 <div className="search-wrapper">
-
                   <i className="bi bi-search"></i>
-
                   <input
                     type="text"
                     className="form-control search-input"
@@ -908,7 +552,6 @@ function MasterTypeDetails() {
                     value={searchTerm}
                     onChange={handleSearchChange}
                   />
-
                   {searchTerm && (
                     <button
                       type="button"
@@ -921,287 +564,155 @@ function MasterTypeDetails() {
                       <i className="bi bi-x-circle-fill"></i>
                     </button>
                   )}
-
                 </div>
-
               </div>
 
-              {/* SHOWING */}
-
               <div className="d-flex justify-content-between align-items-center mb-3">
-
                 <div className="showing-text">
                   {filteredData.length > 0 ? (
                     <>
-                      Showing{" "}
-                      <strong>
-                        {startIndex + 1}
-                      </strong>{" "}
-                      to{" "}
-                      <strong>
-                        {Math.min(
-                          endIndex,
-                          filteredData.length
-                        )}
-                      </strong>{" "}
-                      of{" "}
-                      <strong>
-                        {filteredData.length}
-                      </strong>{" "}
-                      records
+                      Showing <strong>{startIndex + 1}</strong> to{" "}
+                      <strong>{Math.min(endIndex, filteredData.length)}</strong>{" "}
+                      of <strong>{filteredData.length}</strong> records
                     </>
                   ) : (
                     "No records available"
                   )}
                 </div>
-
                 {searchTerm && (
                   <span className="search-result-label">
                     <i className="bi bi-funnel me-1"></i>
                     Filtered
                   </span>
                 )}
-
               </div>
 
-              {/* TABLE */}
-
-              <div className="table-responsive modern-table-wrapper">
-
+              {/* ✅ TABLE — Visible Scrollbar */}
+              <div className="modern-table-responsive">
                 <table className="table modern-table align-middle mb-0">
-
                   <thead>
                     <tr>
-                      <th style={{ width: "65px" }}>
-                        #
-                      </th>
-
-
-
-                      <th>
-                        Code
-                      </th>
-
-                      <th>
-                        Detail Name
-                      </th>
-                      <th>
-                        Master Type
-                      </th>
-                      <th style={{ width: "130px" }}>
-                        Status
-                      </th>
-                      <th style={{ width: "130px" }}>
-                        File
-                      </th>
-
-                      <th
-                        className="text-center"
-                        style={{ width: "120px" }}
-                      >
-                        Action
-                      </th>
+                      <th style={{ width: "65px" }}>#</th>
+                      <th>Code</th>
+                      <th>Detail Name</th>
+                      <th>Master Type</th>
+                      <th style={{ width: "130px" }}>Status</th>
+                      <th style={{ width: "200px" }}>File</th>
+                      <th className="text-center" style={{ width: "120px" }}>Action</th>
                     </tr>
                   </thead>
 
                   <tbody>
-
                     {loading ? (
-
                       <tr>
-                        <td
-                          colSpan="6"
-                          className="text-center py-5"
-                        >
-                          <div
-                            className="spinner-border text-primary"
-                            role="status"
-                          ></div>
-
-                          <div className="mt-2 text-muted">
-                            Loading details...
-                          </div>
+                        <td colSpan="7" className="text-center py-5">
+                          <div className="spinner-border text-primary" role="status"></div>
+                          <div className="mt-2 text-muted">Loading details...</div>
                         </td>
                       </tr>
-
                     ) : currentData.length > 0 ? (
+                      currentData.map((item, index) => {
+                        const masterTypeName = getMasterTypeName(item);
+                        return (
+                          <tr key={item.id}>
+                            <td>
+                              <span className="row-number">{startIndex + index + 1}</span>
+                            </td>
 
-                      currentData.map(
-                        (item, index) => {
+                            <td>
+                              <span className="code-badge">{item.code || "—"}</span>
+                            </td>
 
-                          const masterTypeName =
-                            getMasterTypeName(item);
-
-                          return (
-                            <tr key={item.id}>
-
-                              {/* NUMBER */}
-
-                              <td>
-                                <span className="row-number">
-                                  {startIndex + index + 1}
-                                </span>
-                              </td>
-
-
-                              {/* CODE */}
-
-                              <td>
-                                <span className="code-badge">
-                                  {item.code || "—"}
-                                </span>
-                              </td>
-
-                              {/* NAME */}
-
-                              <td>
-                                <div className="name-cell">
-
-                                  <div className="name-avatar detail-avatar">
-                                    {item.name
-                                      ?.charAt(0)
-                                      ?.toUpperCase() || "D"}
-                                  </div>
-
-                                  <div>
-                                    <div className="fw-semibold">
-                                      {item.name}
-                                    </div>
-
-                                    <small className="text-muted">
-                                      Master Detail
-                                    </small>
-                                  </div>
-
+                            <td>
+                              <div className="name-cell">
+                                <div className="name-avatar detail-avatar">
+                                  {item.name?.charAt(0)?.toUpperCase() || "D"}
                                 </div>
-                              </td>
-
-                              {/* MASTER TYPE */}
-
-                              <td>
-                                <div className="master-type-cell">
-
-                                  <div className="master-type-icon">
-                                    <i className="bi bi-diagram-3"></i>
-                                  </div>
-
-                                  <div>
-                                    <div className="fw-semibold">
-                                      {masterTypeName}
-                                    </div>
-
-                                    <small className="text-muted">
-                                      Parent Type
-                                    </small>
-                                  </div>
-
+                                <div>
+                                  <div className="fw-semibold">{item.name}</div>
+                                  <small className="text-muted">Master Detail</small>
                                 </div>
-                              </td>
+                              </div>
+                            </td>
 
+                            <td>
+                              <div className="master-type-cell">
+                                <div className="master-type-icon">
+                                  <i className="bi bi-diagram-3"></i>
+                                </div>
+                                <div>
+                                  <div className="fw-semibold">{masterTypeName}</div>
+                                  <small className="text-muted">Parent Type</small>
+                                </div>
+                              </div>
+                            </td>
 
-                              {/* STATUS */}
-
-                              <td>
-                                {item.isActive === 1 ? (
-
-                                  <span className="status-badge active">
-                                    <span className="status-dot"></span>
-                                    Active
-                                  </span>
-
-                                ) : (
-
-                                  <span className="status-badge inactive">
-                                    <span className="status-dot"></span>
-                                    Inactive
-                                  </span>
-
-                                )}
-                              </td>
-{/* File */}
- <td>
-                                <span className="code-badge">
-                                  {item.filePath || "—"}
+                            <td>
+                              {item.isActive === 1 ? (
+                                <span className="status-badge active">
+                                  <span className="status-dot"></span>
+                                  Active
                                 </span>
-                              </td>
-                              {/* ACTION */}
+                              ) : (
+                                <span className="status-badge inactive">
+                                  <span className="status-dot"></span>
+                                  Inactive
+                                </span>
+                              )}
+                            </td>
 
-                              <td>
-                                <div className="action-buttons">
+                            <td>
+                              <span className="code-badge file-path-badge">
+                                {item.filePath || "—"}
+                              </span>
+                            </td>
 
-                                  <button
-                                    type="button"
-                                    className="action-btn edit"
-                                    title="Edit"
-                                    onClick={() =>
-                                      handleEdit(item.id)
-                                    }
-                                  >
-                                    <i className="bi bi-pencil"></i>
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    className="action-btn delete"
-                                    title="Delete"
-                                    onClick={() =>
-                                      handleDelete(
-                                        item.id,
-                                        item.name
-                                      )
-                                    }
-                                  >
-                                    <i className="bi bi-trash3"></i>
-                                  </button>
-
-                                </div>
-                              </td>
-
-                            </tr>
-                          );
-                        }
-                      )
-
+                            <td>
+                              <div className="action-buttons">
+                                <button
+                                  type="button"
+                                  className="action-btn edit"
+                                  title="Edit"
+                                  onClick={() => handleEdit(item.id)}
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="action-btn delete"
+                                  title="Delete"
+                                  onClick={() => handleDelete(item.id, item.name)}
+                                >
+                                  <i className="bi bi-trash3"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
-
                       <tr>
-                        <td
-                          colSpan="6"
-                          className="text-center py-5"
-                        >
+                        <td colSpan="7" className="text-center py-5">
                           <div className="empty-state">
-
                             <div className="empty-icon">
                               <i className="bi bi-inbox"></i>
                             </div>
-
-                            <h6 className="fw-bold mt-3">
-                              No Master Type Details Found
-                            </h6>
-
+                            <h6 className="fw-bold mt-3">No Master Type Details Found</h6>
                             <p className="text-muted mb-0">
                               {searchTerm
                                 ? "Try changing your search keyword."
                                 : "There are no detail records available."}
                             </p>
-
                           </div>
                         </td>
                       </tr>
-
                     )}
-
                   </tbody>
-
                 </table>
               </div>
 
-              {/* PAGINATION */}
-
               {totalPages > 0 && (
-
                 <div className="pagination-wrapper mt-4">
-
                   <button
                     type="button"
                     className="pagination-btn"
@@ -1213,162 +724,119 @@ function MasterTypeDetails() {
                   </button>
 
                   <div className="page-numbers">
-
                     {pageNumbers.map((page) => (
-
                       <button
                         type="button"
                         key={page}
-                        onClick={() =>
-                          handlePageChange(page)
-                        }
-                        className={
-                          currentPage === page
-                            ? "page-number active"
-                            : "page-number"
-                        }
+                        onClick={() => handlePageChange(page)}
+                        className={currentPage === page ? "page-number active" : "page-number"}
                       >
                         {page}
                       </button>
-
                     ))}
-
                   </div>
 
                   <button
                     type="button"
                     className="pagination-btn"
                     onClick={handleNext}
-                    disabled={
-                      currentPage === totalPages
-                    }
+                    disabled={currentPage === totalPages}
                   >
                     <span>Next</span>
                     <i className="bi bi-chevron-right"></i>
                   </button>
-
                 </div>
-
               )}
-
             </div>
           </div>
         </div>
       </section>
 
-      {/* =====================================================
-          DELETE MODAL
-      ====================================================== */}
-
+      {/* DELETE MODAL */}
       {deleteModal && (
         <>
           <div
             className="modal fade show"
             style={{
               display: "block",
-              backgroundColor:
-                "rgba(15, 23, 42, 0.65)",
+              backgroundColor: "rgba(15, 23, 42, 0.65)",
               backdropFilter: "blur(3px)",
             }}
             tabIndex="-1"
           >
-
             <div className="modal-dialog modal-dialog-centered">
-
               <div className="modal-content delete-modal">
-
                 <div className="delete-modal-top">
-
-                  <button
-                    type="button"
-                    className="delete-close-btn"
-                    onClick={closeDeleteModal}
-                  >
+                  <button type="button" className="delete-close-btn" onClick={closeDeleteModal}>
                     <i className="bi bi-x-lg"></i>
                   </button>
-
                   <div className="delete-icon">
                     <i className="bi bi-trash3-fill"></i>
                   </div>
-
-                  <h4 className="fw-bold mt-3 mb-2">
-                    Delete Detail?
-                  </h4>
-
+                  <h4 className="fw-bold mt-3 mb-2">Delete Detail?</h4>
                   <p className="text-muted mb-0">
-                    You are about to permanently
-                    delete this master type detail.
+                    You are about to permanently delete this master type detail.
                   </p>
-
                 </div>
 
                 <div className="delete-record">
-
                   <div className="delete-record-icon">
-                    {deleteMasterTypeDetailName
-                      ?.charAt(0)
-                      ?.toUpperCase() || "D"}
+                    {deleteMasterTypeDetailName?.charAt(0)?.toUpperCase() || "D"}
                   </div>
-
                   <div>
-                    <small className="text-muted">
-                      Master Type Detail
-                    </small>
-
-                    <div className="fw-bold">
-                      {deleteMasterTypeDetailName}
-                    </div>
+                    <small className="text-muted">Master Type Detail</small>
+                    <div className="fw-bold">{deleteMasterTypeDetailName}</div>
                   </div>
-
                 </div>
 
                 <div className="delete-warning">
-
                   <i className="bi bi-exclamation-triangle-fill"></i>
-
-                  <span>
-                    This action cannot be undone.
-                  </span>
-
+                  <span>This action cannot be undone.</span>
                 </div>
 
                 <div className="delete-modal-footer">
-
-                  <button
-                    type="button"
-                    className="btn btn-light cancel-delete-btn"
-                    onClick={closeDeleteModal}
-                  >
+                  <button type="button" className="btn btn-light cancel-delete-btn" onClick={closeDeleteModal}>
                     Cancel
                   </button>
-
-                  <button
-                    type="button"
-                    className="btn confirm-delete-btn"
-                    onClick={confirmDelete}
-                  >
+                  <button type="button" className="btn confirm-delete-btn" onClick={confirmDelete}>
                     <i className="bi bi-trash3 me-2"></i>
                     Delete Permanently
                   </button>
-
                 </div>
-
               </div>
             </div>
           </div>
-
           <div className="modal-backdrop fade show"></div>
         </>
       )}
 
-      {/* =====================================================
-          CUSTOM CSS
-      ====================================================== */}
-
+      {/* CUSTOM CSS */}
       <style>{`
+        /* ================= PAGE — NO HORIZONTAL SCROLL ================= */
+        html, body, #root {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden !important;
+          box-sizing: border-box;
+        }
 
-        /* ================= PAGE ================= */
+        .master-type-details-page {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          overflow-x: hidden;
+          box-sizing: border-box;
+        }
 
+        .section {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          overflow-x: hidden;
+          box-sizing: border-box;
+        }
+
+        /* ================= PAGE HEADER ================= */
         .page-header {
           display: flex;
           justify-content: space-between;
@@ -1384,28 +852,14 @@ function MasterTypeDetails() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(
-            135deg,
-            #4154f1,
-            #6c63ff
-          );
+          background: linear-gradient(135deg, #4154f1, #6c63ff);
           color: #fff;
           font-size: 20px;
-          box-shadow:
-            0 8px 20px rgba(
-              65,
-              84,
-              241,
-              .22
-            );
+          box-shadow: 0 8px 20px rgba(65, 84, 241, .22);
         }
 
         .detail-icon {
-          background: linear-gradient(
-            135deg,
-            #7c3aed,
-            #6366f1
-          );
+          background: linear-gradient(135deg, #7c3aed, #6366f1);
         }
 
         .page-title {
@@ -1419,29 +873,20 @@ function MasterTypeDetails() {
           font-size: 13px;
         }
 
-        .custom-breadcrumb {
-          font-size: 13px;
-        }
-
-        .custom-breadcrumb a {
-          color: #64748b;
-          text-decoration: none;
-        }
-
-        .custom-breadcrumb .active {
-          color: #4154f1;
-          font-weight: 600;
-        }
+        .custom-breadcrumb { font-size: 13px; }
+        .custom-breadcrumb a { color: #64748b; text-decoration: none; }
+        .custom-breadcrumb .active { color: #4154f1; font-weight: 600; }
 
         /* ================= CARD ================= */
-
         .modern-card {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
           background: #fff;
           border-radius: 16px;
-          box-shadow:
-            0 5px 25px
-            rgba(15, 23, 42, .06);
+          box-shadow: 0 5px 25px rgba(15, 23, 42, .06);
           overflow: hidden;
+          box-sizing: border-box;
         }
 
         .card-header-modern {
@@ -1451,12 +896,7 @@ function MasterTypeDetails() {
           justify-content: space-between;
           align-items: center;
           border-bottom: 1px solid #eef2f7;
-          background:
-            linear-gradient(
-              180deg,
-              #ffffff 0%,
-              #fbfcff 100%
-            );
+          background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
         }
 
         .section-icon {
@@ -1466,23 +906,13 @@ function MasterTypeDetails() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(
-            65,
-            84,
-            241,
-            .10
-          );
+          background: rgba(65, 84, 241, .10);
           color: #4154f1;
           font-size: 18px;
         }
 
         .section-icon.purple {
-          background: rgba(
-            124,
-            58,
-            237,
-            .10
-          );
+          background: rgba(124, 58, 237, .10);
           color: #7c3aed;
         }
 
@@ -1493,7 +923,6 @@ function MasterTypeDetails() {
         }
 
         /* ================= FORM ================= */
-
         .form-label-modern {
           font-size: 13px;
           font-weight: 600;
@@ -1501,9 +930,7 @@ function MasterTypeDetails() {
           margin-bottom: 8px;
         }
 
-        .input-group-modern {
-          position: relative;
-        }
+        .input-group-modern { position: relative; }
 
         .input-icon {
           position: absolute;
@@ -1528,14 +955,10 @@ function MasterTypeDetails() {
 
         .modern-input:focus {
           border-color: #4154f1;
-          box-shadow:
-            0 0 0 3px
-            rgba(65, 84, 241, .10);
+          box-shadow: 0 0 0 3px rgba(65, 84, 241, .10);
         }
 
-        .modern-select {
-          cursor: pointer;
-        }
+        .modern-select { cursor: pointer; }
 
         .field-help {
           display: block;
@@ -1545,7 +968,6 @@ function MasterTypeDetails() {
         }
 
         /* ================= STATUS ================= */
-
         .status-box {
           min-height: 70px;
           border: 1px solid #e2e8f0;
@@ -1563,15 +985,8 @@ function MasterTypeDetails() {
           justify-content: center;
         }
 
-        .status-icon.active {
-          color: #16a34a;
-          background: #dcfce7;
-        }
-
-        .status-icon.inactive {
-          color: #64748b;
-          background: #e2e8f0;
-        }
+        .status-icon.active { color: #16a34a; background: #dcfce7; }
+        .status-icon.inactive { color: #64748b; background: #e2e8f0; }
 
         .custom-switch {
           width: 42px !important;
@@ -1585,7 +1000,6 @@ function MasterTypeDetails() {
         }
 
         /* ================= BUTTONS ================= */
-
         .form-actions {
           display: flex;
           gap: 10px;
@@ -1597,25 +1011,13 @@ function MasterTypeDetails() {
           min-height: 44px;
           padding: 0 22px;
           border-radius: 9px;
-          background:
-            linear-gradient(
-              135deg,
-              #4154f1,
-              #5b5ff7
-            );
-          box-shadow:
-            0 7px 18px
-            rgba(65, 84, 241, .18);
+          background: linear-gradient(135deg, #4154f1, #5b5ff7);
+          box-shadow: 0 7px 18px rgba(65, 84, 241, .18);
           font-weight: 600;
         }
 
         .modern-primary-btn:hover {
-          background:
-            linear-gradient(
-              135deg,
-              #3445db,
-              #4f53e7
-            );
+          background: linear-gradient(135deg, #3445db, #4f53e7);
           transform: translateY(-1px);
         }
 
@@ -1629,7 +1031,6 @@ function MasterTypeDetails() {
         }
 
         /* ================= RECORD COUNT ================= */
-
         .record-count {
           display: flex;
           align-items: center;
@@ -1651,12 +1052,9 @@ function MasterTypeDetails() {
           font-size: 13px;
         }
 
-        .record-count small {
-          font-size: 12px;
-        }
+        .record-count small { font-size: 12px; }
 
         /* ================= TOOLBAR ================= */
-
         .table-toolbar {
           display: flex;
           justify-content: space-between;
@@ -1704,9 +1102,7 @@ function MasterTypeDetails() {
 
         .search-input:focus {
           border-color: #4154f1;
-          box-shadow:
-            0 0 0 3px
-            rgba(65, 84, 241, .08);
+          box-shadow: 0 0 0 3px rgba(65, 84, 241, .08);
         }
 
         .search-clear {
@@ -1720,14 +1116,8 @@ function MasterTypeDetails() {
           padding: 0;
         }
 
-        .showing-text {
-          color: #94a3b8;
-          font-size: 12px;
-        }
-
-        .showing-text strong {
-          color: #475569;
-        }
+        .showing-text { color: #94a3b8; font-size: 12px; }
+        .showing-text strong { color: #475569; }
 
         .search-result-label {
           font-size: 11px;
@@ -1738,15 +1128,51 @@ function MasterTypeDetails() {
           font-weight: 600;
         }
 
-        /* ================= TABLE ================= */
-
-        .modern-table-wrapper {
+        /* =========================================================
+           ✅ TABLE WRAPPER — VISIBLE SCROLLBAR (Employee style)
+        ========================================================= */
+        .modern-table-responsive {
+          display: block !important;
+          width: 0 !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+          overflow-x: auto !important;
+          overflow-y: hidden !important;
+          box-sizing: border-box !important;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+          scrollbar-color: #c9ced8 #eef1f5;
           border: 1px solid #edf1f6;
           border-radius: 12px;
         }
 
+        .modern-table-responsive::-webkit-scrollbar {
+          height: 9px;
+        }
+
+        .modern-table-responsive::-webkit-scrollbar-track {
+          background: #eef1f5;
+          border-radius: 10px;
+        }
+
+        .modern-table-responsive::-webkit-scrollbar-thumb {
+          background: #c9ced8;
+          border-radius: 10px;
+        }
+
+        .modern-table-responsive::-webkit-scrollbar-thumb:hover {
+          background: #aeb5c2;
+        }
+
+        /* ================= TABLE ================= */
         .modern-table {
-          min-width: 950px;
+          width: auto !important;
+          min-width: 100% !important;
+          max-width: none !important;
+          table-layout: auto !important;
+          border-collapse: separate !important;
+          border-spacing: 0 !important;
+          margin: 0 !important;
         }
 
         .modern-table thead th {
@@ -1758,6 +1184,8 @@ function MasterTypeDetails() {
           font-weight: 700;
           padding: 15px 16px;
           border-bottom: 1px solid #e9eef5;
+          white-space: nowrap;
+          vertical-align: middle;
         }
 
         .modern-table tbody td {
@@ -1765,22 +1193,15 @@ function MasterTypeDetails() {
           border-bottom: 1px solid #f1f5f9;
           color: #334155;
           font-size: 13px;
+          white-space: nowrap;
+          vertical-align: middle;
         }
 
-        .modern-table tbody tr:last-child td {
-          border-bottom: 0;
-        }
-
-        .modern-table tbody tr {
-          transition: background .2s ease;
-        }
-
-        .modern-table tbody tr:hover {
-          background: #fafbff;
-        }
+        .modern-table tbody tr:last-child td { border-bottom: 0; }
+        .modern-table tbody tr { transition: background .2s ease; }
+        .modern-table tbody tr:hover { background: #fafbff; }
 
         /* ================= NUMBER ================= */
-
         .row-number {
           width: 30px;
           height: 30px;
@@ -1795,7 +1216,6 @@ function MasterTypeDetails() {
         }
 
         /* ================= MASTER TYPE ================= */
-
         .master-type-cell {
           display: flex;
           align-items: center;
@@ -1815,12 +1235,9 @@ function MasterTypeDetails() {
           font-size: 14px;
         }
 
-        .master-type-cell small {
-          font-size: 10px;
-        }
+        .master-type-cell small { font-size: 10px; }
 
         /* ================= CODE ================= */
-
         .code-badge {
           display: inline-flex;
           padding: 6px 10px;
@@ -1830,10 +1247,17 @@ function MasterTypeDetails() {
           font-family: monospace;
           font-size: 12px;
           font-weight: 600;
+          max-width: 180px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .file-path-badge {
+          max-width: 200px;
         }
 
         /* ================= NAME ================= */
-
         .name-cell {
           display: flex;
           align-items: center;
@@ -1848,33 +1272,20 @@ function MasterTypeDetails() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background:
-            linear-gradient(
-              135deg,
-              #eef2ff,
-              #e0e7ff
-            );
+          background: linear-gradient(135deg, #eef2ff, #e0e7ff);
           color: #4154f1;
           font-weight: 700;
           font-size: 13px;
         }
 
         .detail-avatar {
-          background:
-            linear-gradient(
-              135deg,
-              #f0fdf4,
-              #dcfce7
-            );
+          background: linear-gradient(135deg, #f0fdf4, #dcfce7);
           color: #16a34a;
         }
 
-        .name-cell small {
-          font-size: 10px;
-        }
+        .name-cell small { font-size: 10px; }
 
         /* ================= STATUS BADGE ================= */
-
         .status-badge {
           display: inline-flex;
           align-items: center;
@@ -1885,15 +1296,8 @@ function MasterTypeDetails() {
           font-weight: 600;
         }
 
-        .status-badge.active {
-          background: #ecfdf3;
-          color: #15803d;
-        }
-
-        .status-badge.inactive {
-          background: #f1f5f9;
-          color: #64748b;
-        }
+        .status-badge.active { background: #ecfdf3; color: #15803d; }
+        .status-badge.inactive { background: #f1f5f9; color: #64748b; }
 
         .status-dot {
           width: 6px;
@@ -1903,7 +1307,6 @@ function MasterTypeDetails() {
         }
 
         /* ================= ACTIONS ================= */
-
         .action-buttons {
           display: flex;
           justify-content: center;
@@ -1921,31 +1324,13 @@ function MasterTypeDetails() {
           transition: all .2s ease;
         }
 
-        .action-btn.edit {
-          color: #4154f1;
-          background: #eef2ff;
-        }
-
-        .action-btn.edit:hover {
-          color: #fff;
-          background: #4154f1;
-        }
-
-        .action-btn.delete {
-          color: #dc2626;
-          background: #fef2f2;
-        }
-
-        .action-btn.delete:hover {
-          color: #fff;
-          background: #dc2626;
-        }
+        .action-btn.edit { color: #4154f1; background: #eef2ff; }
+        .action-btn.edit:hover { color: #fff; background: #4154f1; }
+        .action-btn.delete { color: #dc2626; background: #fef2f2; }
+        .action-btn.delete:hover { color: #fff; background: #dc2626; }
 
         /* ================= EMPTY ================= */
-
-        .empty-state {
-          padding: 20px;
-        }
+        .empty-state { padding: 20px; }
 
         .empty-icon {
           width: 65px;
@@ -1961,7 +1346,6 @@ function MasterTypeDetails() {
         }
 
         /* ================= PAGINATION ================= */
-
         .pagination-wrapper {
           display: flex;
           justify-content: space-between;
@@ -1969,10 +1353,7 @@ function MasterTypeDetails() {
           gap: 12px;
         }
 
-        .page-numbers {
-          display: flex;
-          gap: 5px;
-        }
+        .page-numbers { display: flex; gap: 5px; }
 
         .pagination-btn,
         .page-number {
@@ -1998,38 +1379,23 @@ function MasterTypeDetails() {
           color: #4154f1;
         }
 
-        .pagination-btn:disabled {
-          opacity: .45;
-          cursor: not-allowed;
-        }
-
-        .page-number {
-          width: 36px;
-        }
-
-        .page-number:hover {
-          border-color: #4154f1;
-          color: #4154f1;
-        }
+        .pagination-btn:disabled { opacity: .45; cursor: not-allowed; }
+        .page-number { width: 36px; }
+        .page-number:hover { border-color: #4154f1; color: #4154f1; }
 
         .page-number.active {
           color: #fff;
           background: #4154f1;
           border-color: #4154f1;
-          box-shadow:
-            0 5px 12px
-            rgba(65, 84, 241, .18);
+          box-shadow: 0 5px 12px rgba(65, 84, 241, .18);
         }
 
         /* ================= DELETE MODAL ================= */
-
         .delete-modal {
           border: 0;
           border-radius: 18px;
           overflow: hidden;
-          box-shadow:
-            0 25px 60px
-            rgba(15, 23, 42, .25);
+          box-shadow: 0 25px 60px rgba(15, 23, 42, .25);
         }
 
         .delete-modal-top {
@@ -2132,9 +1498,7 @@ function MasterTypeDetails() {
         }
 
         /* ================= RESPONSIVE ================= */
-
         @media (max-width: 768px) {
-
           .page-header {
             flex-direction: column;
             align-items: flex-start;
@@ -2145,58 +1509,34 @@ function MasterTypeDetails() {
             align-items: stretch;
           }
 
-          .search-wrapper {
-            width: 100%;
-          }
+          .search-wrapper { width: 100%; }
 
-          .card-header-modern {
-            padding: 16px;
-          }
+          .card-header-modern { padding: 16px; }
 
-          .card-body > .p-4 {
-            padding: 16px !important;
-          }
+          .card-body > .p-4 { padding: 16px !important; }
 
-          .pagination-wrapper {
-            flex-direction: column;
-          }
-
-          .page-numbers {
-            order: -1;
-          }
+          .pagination-wrapper { flex-direction: column; }
+          .page-numbers { order: -1; }
 
           .pagination-btn {
             width: 100%;
             justify-content: center;
           }
 
-          .record-count {
-            display: none;
-          }
-
-          .form-actions {
-            flex-direction: column;
-          }
+          .record-count { display: none; }
+          .form-actions { flex-direction: column; }
 
           .modern-primary-btn,
-          .modern-reset-btn {
-            width: 100%;
-          }
+          .modern-reset-btn { width: 100%; }
 
-          .delete-modal-footer {
-            flex-direction: column;
-          }
+          .delete-modal-footer { flex-direction: column; }
 
           .cancel-delete-btn,
-          .confirm-delete-btn {
-            width: 100%;
-          }
+          .confirm-delete-btn { width: 100%; }
         }
-
       `}</style>
-    </>
+    </div>
   );
 }
 
 export default MasterTypeDetails;
-

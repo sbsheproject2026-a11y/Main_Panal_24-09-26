@@ -34,6 +34,7 @@ import NewStudentRegistration from './components/WebsiteForms/NewStudentRegistra
 import RegistrationModeSelect from './components/WebsiteForms/RegistrationModeSelect'
 import REGPrint from './components/DocumentPrintFiles/AllDocumentsPrint/REGPrint'
 import NOCPrint from './components/DocumentPrintFiles/AllDocumentsPrint/NOCPrint'
+import NeedHelp from './components/EmployeeArea/EmployeePage/NeedHelp'
 
 
 
@@ -90,6 +91,7 @@ function App() {
                     <Route path="/id-card/:id" element={<IdCard />} />
                     <Route path="/noc-print/:id" element={<NOCPrint />} />
                     <Route path="/reg-print/:id" element={<REGPrint />} />
+                   
                    
                 </Route>
 

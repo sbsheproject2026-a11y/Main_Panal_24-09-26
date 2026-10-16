@@ -15,7 +15,7 @@ function MasterType() {
     id: 0,
     code: "",
     name: "",
-    isActive: 0,
+    isActive: 1,
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,7 +54,7 @@ function MasterType() {
       id: 0,
       code: "",
       name: "",
-      isActive: 0,
+      isActive: 1,
     });
   };
 

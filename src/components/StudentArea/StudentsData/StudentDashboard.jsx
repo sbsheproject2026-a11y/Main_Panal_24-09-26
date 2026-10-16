@@ -6,14 +6,11 @@ import {
     FaFileAlt,
     FaBookOpen,
     FaMoneyBillWave,
-    FaCertificate,
-    FaClipboardCheck,
-    FaCalendarAlt,
+     
     FaBell,
     FaArrowRight,
-    FaTrophy,
-    FaReceipt,
-    FaBook,
+    
+     
     FaUser,
     FaPhone,
     FaEnvelope,
@@ -38,6 +35,7 @@ const StudentDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [student, setStudent] = useState({
         id: 0,
+        courseId: 0,
         enrollmentNo: "",
         rollno: "",
         rollNo1: "",
@@ -91,6 +89,7 @@ const StudentDashboard = () => {
 
             setStudent({
                 id: data.id || 0,
+                courseId: data.courseId || 0,
                 enrollmentNo: data.enrollmentNo || "-",
                 rollno: data.rollno || "",
                 rollNo1: data.rollNo1 || "",
@@ -130,140 +129,69 @@ const StudentDashboard = () => {
     // =========================================================
     // QUICK ACTIONS
     // =========================================================
-    const quickActions = [
-        {
-            title: "My Profile",
-            desc: "View & update your personal details",
-            icon: <FaUserCircle />,
-            color: "#4f46e5",
-            bg: "#eef2ff",
-            path: `/student-view-profile/${userId}`
-        },
-        {
-            title: "ID Card",
-            desc: "Download your student ID card",
-            icon: <FaIdCard />,
-            color: "#0891b2",
-            bg: "#ecfeff",
-            path: `/id-card/${userId}`
-        },
-        {
-            title: "Admit Card (1st Year)",
-            desc: "Download 1st year exam admit card",
-            icon: <FaFileAlt />,
-            color: "#d97706",
-            bg: "#fffbeb",
-            path: student.rollno ? `/admit-card-print/${student.rollno}` : null,
-            disabled: !student.rollno
-        },
-        {
-            title: "Admit Card (2nd Year)",
-            desc: "Download 2nd year exam admit card",
-            icon: <FaFileAlt />,
-            color: "#c2410c",
-            bg: "#fff7ed",
-            path: student.rollNo1 ? `/admit-card-print/${student.rollNo1}` : null,
-            disabled: !student.rollNo1
-        },
-        {
-            title: "Course Details",
-            desc: "View your enrolled courses",
-            icon: <FaBookOpen />,
-            color: "#16a34a",
-            bg: "#f0fdf4",
-            path: "/student-courses"
-        },
-        {
-            title: "Payment Details",
-            desc: "Fee payment history & receipts",
-            icon: <FaMoneyBillWave />,
-            color: "#dc2626",
-            bg: "#fef2f2",
-            path: "/student-payments"
-        },
-        {
-            title: "Certificates",
-            desc: "Download your certificates",
-            icon: <FaCertificate />,
-            color: "#7c3aed",
-            bg: "#f5f3ff",
-            path: "/student-certificates"
-        },
-        {
-            title: "Attendance",
-            desc: "View your attendance record",
-            icon: <FaClipboardCheck />,
-            color: "#0284c7",
-            bg: "#f0f9ff",
-            path: "/student-attendance"
-        },
-        {
-            title: "Study Material",
-            desc: "Access notes & study materials",
-            icon: <FaBook />,
-            color: "#ea580c",
-            bg: "#fff7ed",
-            path: "/student-material"
-        },
-        {
-            title: "Time Table",
-            desc: "View your class schedule",
-            icon: <FaCalendarAlt />,
-            color: "#059669",
-            bg: "#ecfdf5",
-            path: "/student-timetable"
-        },
-        {
-            title: "Exam Results",
-            desc: "Check your exam results",
-            icon: <FaTrophy />,
-            color: "#ca8a04",
-            bg: "#fefce8",
-            path: "/student-results"
-        },
-        {
-            title: "Fee Receipts",
-            desc: "Download fee payment receipts",
-            icon: <FaReceipt />,
-            color: "#0891b2",
-            bg: "#ecfeff",
-            path: "/student-receipts"
-        }
-    ];
-
-    // =========================================================
-    // STATS
-    // =========================================================
-    const stats = [
-        {
-            title: "My Courses",
-            value: "1",
-            icon: <FaBookOpen />,
-            color: "#4f46e5",
-            bg: "#eef2ff"
-        },
-        {
-            title: "Attendance",
-            value: "87%",
-            icon: <FaClipboardCheck />,
-            color: "#0891b2",
-            bg: "#ecfeff"
-        },
-        {
-            title: "Pending Fees",
-            value: "₹4,500",
-            icon: <FaMoneyBillWave />,
-            color: "#d97706",
-            bg: "#fffbeb"
-        },
-        {
-            title: "Certificates",
-            value: "2",
-            icon: <FaCertificate />,
-            color: "#16a34a",
-            bg: "#f0fdf4"
-        }
-    ];
+ const quickActions = [
+  {
+    title: "My Profile",
+    desc: "View & update your personal details",
+    icon: <FaUserCircle />,
+    color: "#4f46e5",
+    bg: "#eef2ff",
+    path: `/student-view-profile/${userId}`,
+    state: { id: userId },
+  },
+  {
+    title: "ID Card",
+    desc: "Download your student ID card",
+    icon: <FaIdCard />,
+    color: "#0891b2",
+    bg: "#ecfeff",
+    path: `/id-card/${userId}`,
+    state: { id: userId },
+  },
+  {
+    title: "Course Details",
+    desc: "View your enrolled courses",
+    icon: <FaBookOpen />,
+    color: "#16a34a",
+    bg: "#f0fdf4",
+    path: `/student-courses/${student.courseId}`,   // ✅ ID URL me bhi
+     state: { id: student.courseId },
+    disabled: !student.courseId,      // ✅ Agar courseId nahi hai to disable
+  },
+  {
+    title: "Admit Card (1st Year)",
+    desc: "Download 1st year exam admit card",
+    icon: <FaFileAlt />,
+    color: "#d97706",
+    bg: "#fffbeb",
+    path: student.rollno ? `/admit-card-print/${student.rollno}` : null,
+    state: { rollNo: student.rollno },
+    disabled: !student.rollno,
+  },
+  {
+    title: "Admit Card (2nd Year)",
+    desc: "Download 2nd year exam admit card",
+    icon: <FaFileAlt />,
+    color: "#c2410c",
+    bg: "#fff7ed",
+    path: student.rollNo1 ? `/admit-card-print/${student.rollNo1}` : null,
+    state: { rollNo: student.rollNo1 },
+    disabled: !student.rollNo1,
+  },
+  
+  {
+    title: "Payment Details",
+    desc: "Fee payment history & receipts",
+    icon: <FaMoneyBillWave />,
+    color: "#dc2626",
+    bg: "#fef2f2",
+    path: `/student-payments-view/${student.id }`,
+    state: { studentId: student.id },
+  },
+   
+   
+];
+   
 
     // =========================================================
     // LOADING UI
@@ -677,7 +605,7 @@ const StudentDashboard = () => {
                 ============================================================ */
                 .sd-actions-grid {
                     display: grid;
-                    grid-template-columns: repeat(4, 1fr);
+                    grid-template-columns: repeat(3, 1fr);
                     gap: 16px;
                     margin-bottom: 30px;
                 }
@@ -869,13 +797,7 @@ const StudentDashboard = () => {
                         </div>
 
                         <div className="sd-header-actions">
-                            <button
-                                className="sd-notif-btn"
-                                onClick={() => navigate("/student-notices")}
-                            >
-                                <FaBell />
-                                <span className="sd-notif-badge">4</span>
-                            </button>
+                           
 
                             <button
                                 className="btn btn-primary"
@@ -895,6 +817,7 @@ const StudentDashboard = () => {
                                 <FaUserCircle />
                                 My Profile
                             </button>
+                            
                         </div>
                     </div>
 
@@ -1054,26 +977,7 @@ const StudentDashboard = () => {
 
                     </div>
 
-                    {/* =========================================================
-                        STATS
-                    ========================================================= */}
-                    <div className="sd-stats-grid">
-                        {stats.map((item, i) => (
-                            <div className="sd-stat-card" key={i}>
-                                <div>
-                                    <p className="sd-stat-label">{item.title}</p>
-                                    <h3 className="sd-stat-value">{item.value}</h3>
-                                </div>
-
-                                <div
-                                    className="sd-stat-icon"
-                                    style={{ background: item.bg, color: item.color }}
-                                >
-                                    {item.icon}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                   
 
                     {/* =========================================================
                         QUICK ACTIONS

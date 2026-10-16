@@ -15,10 +15,6 @@ function CourseMaterial() {
 
     const fileInputRefs = useRef({});
 
-    // =========================================================
-    // STATES
-    // =========================================================
-
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -33,32 +29,14 @@ function CourseMaterial() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
-    // =========================================================
-    // PAGINATION
-    // =========================================================
-
     const [currentPage, setCurrentPage] = useState(1);
     const recordsPerPage = 10;
 
     const totalRecords = data.length;
-
-    const totalPages = Math.max(
-        1,
-        Math.ceil(totalRecords / recordsPerPage)
-    );
-
+    const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
     const startIndex = (currentPage - 1) * recordsPerPage;
-
-    const endIndex = Math.min(
-        startIndex + recordsPerPage,
-        totalRecords
-    );
-
+    const endIndex = Math.min(startIndex + recordsPerPage, totalRecords);
     const paginatedData = data.slice(startIndex, endIndex);
-
-    // =========================================================
-    // EMPTY MATERIAL
-    // =========================================================
 
     const getEmptyMaterial = (srNo = 0) => ({
         id: 0,
@@ -72,22 +50,12 @@ function CourseMaterial() {
         fileupload: "",
     });
 
-    // =========================================================
-    // CREATE FORM
-    // =========================================================
-
     const [formData, setFormData] = useState(getEmptyMaterial(0));
-
-    // =========================================================
-    // INITIAL LOAD
-    // =========================================================
 
     useEffect(() => {
         loadDocumentTypes();
         loadDocumentExtensionTypes();
-
         setCurrentPage(1);
-
         if (productId > 0) {
             loadCourseMaterials(productId);
         } else {
@@ -95,34 +63,16 @@ function CourseMaterial() {
         }
     }, [productId]);
 
-    // =========================================================
-    // KEEP PAGINATION VALID
-    // =========================================================
-
     useEffect(() => {
-        const pages = Math.max(
-            1,
-            Math.ceil(data.length / recordsPerPage)
-        );
-
-        if (currentPage > pages) {
-            setCurrentPage(pages);
-        }
+        const pages = Math.max(1, Math.ceil(data.length / recordsPerPage));
+        if (currentPage > pages) setCurrentPage(pages);
     }, [data.length, currentPage]);
-
-    // =========================================================
-    // LOAD DOCUMENT TYPES
-    // =========================================================
 
     const loadDocumentTypes = async () => {
         try {
             setDocumentTypeLoading(true);
-
             const result = await getDuration(34);
-
-            setDocumentTypes(
-                Array.isArray(result?.data) ? result.data : []
-            );
+            setDocumentTypes(Array.isArray(result?.data) ? result.data : []);
         } catch (error) {
             console.error("Document Type Error:", error);
             setDocumentTypes([]);
@@ -131,19 +81,11 @@ function CourseMaterial() {
         }
     };
 
-    // =========================================================
-    // LOAD DOCUMENT EXTENSION TYPES
-    // =========================================================
-
     const loadDocumentExtensionTypes = async () => {
         try {
             setDocumentExtensionLoading(true);
-
             const result = await getDuration(38);
-
-            setDocumentExtensionTypes(
-                Array.isArray(result?.data) ? result.data : []
-            );
+            setDocumentExtensionTypes(Array.isArray(result?.data) ? result.data : []);
         } catch (error) {
             console.error("Document Extension Type Error:", error);
             setDocumentExtensionTypes([]);
@@ -152,19 +94,11 @@ function CourseMaterial() {
         }
     };
 
-    // =========================================================
-    // LOAD COURSE MATERIALS
-    // =========================================================
-
     const loadCourseMaterials = async (courseProductId) => {
         try {
             setLoading(true);
-
             const result = await getCoursematerial(courseProductId);
-
-            setData(
-                Array.isArray(result?.data) ? result.data : []
-            );
+            setData(Array.isArray(result?.data) ? result.data : []);
         } catch (error) {
             console.error("Load Course Material Error:", error);
             setData([]);
@@ -173,118 +107,51 @@ function CourseMaterial() {
         }
     };
 
-    // =========================================================
-    // CREATE FIELD CHANGE
-    // =========================================================
-
     const handleMaterialChange = (field, value) => {
-        setFormData((prev) => ({
-            ...prev,
-            [field]: value,
-            productId,
-        }));
+        setFormData((prev) => ({ ...prev, [field]: value, productId }));
     };
-
-    // =========================================================
-    // CREATE FILE CHANGE
-    // =========================================================
 
     const handleFileChange = (file) => {
         if (!file) return;
-
-        setFormData((prev) => ({
-            ...prev,
-            fileupload1: file,
-            productId,
-        }));
+        setFormData((prev) => ({ ...prev, fileupload1: file, productId }));
     };
-
-    // =========================================================
-    // REMOVE CREATE FILE
-    // =========================================================
 
     const removeFile = () => {
-        setFormData((prev) => ({
-            ...prev,
-            fileupload1: null,
-        }));
-
-        if (fileInputRefs.current.create) {
-            fileInputRefs.current.create.value = "";
-        }
+        setFormData((prev) => ({ ...prev, fileupload1: null }));
+        if (fileInputRefs.current.create) fileInputRefs.current.create.value = "";
     };
-
-    // =========================================================
-    // OPEN CREATE
-    // =========================================================
 
     const openCreate = () => {
         if (productId <= 0) {
             alert("Invalid Product ID.");
             return;
         }
-
         setFormData(getEmptyMaterial(0));
         setShowForm(true);
     };
 
-    // =========================================================
-    // CLOSE FORM
-    // =========================================================
-
     const closeForm = () => {
         if (loading) return;
-
         setShowForm(false);
         setFormData(getEmptyMaterial(0));
         fileInputRefs.current = {};
     };
 
-    // =========================================================
-    // VALIDATE CREATE
-    // =========================================================
-
     const validateCreate = () => {
-        if (!formData.name?.trim()) {
-            alert("Please enter Material Name.");
-            return false;
-        }
-
-        if (!Number(formData.documentTypeId)) {
-            alert("Please select Document Type.");
-            return false;
-        }
-
-        if (!Number(formData.docExtensionId)) {
-            alert("Please select Document Extension Type.");
-            return false;
-        }
-
-        if (!(formData.fileupload1 instanceof File)) {
-            alert("Please upload file.");
-            return false;
-        }
-
+        if (!formData.name?.trim()) { alert("Please enter Material Name."); return false; }
+        if (!Number(formData.documentTypeId)) { alert("Please select Document Type."); return false; }
+        if (!Number(formData.docExtensionId)) { alert("Please select Document Extension Type."); return false; }
+        if (!(formData.fileupload1 instanceof File)) { alert("Please upload file."); return false; }
         return true;
     };
 
-    // =========================================================
-    // CREATE MATERIAL
-    // =========================================================
-
     const handleCreate = async (e) => {
         e.preventDefault();
-
         if (!validateCreate()) return;
-
-        if (!productId || productId <= 0) {
-            alert("Invalid Product ID.");
-            return;
-        }
+        if (!productId || productId <= 0) { alert("Invalid Product ID."); return; }
 
         try {
             setLoading(true);
-
             const material = {
                 id: 0,
                 name: formData.name?.trim() || "",
@@ -297,147 +164,84 @@ function CourseMaterial() {
                 fileupload: "",
             };
 
-            console.log("CREATE MATERIAL DATA:", material);
-
             await createCourseMaterial(material);
-
             alert("Course Material created successfully.");
-
             setShowForm(false);
             setFormData(getEmptyMaterial(0));
-
             await loadCourseMaterials(productId);
-
         } catch (error) {
             console.error("Create Course Material Error:", error);
-            showApiError(
-                error,
-                "Something went wrong while creating Course Material."
-            );
+            showApiError(error, "Something went wrong while creating Course Material.");
         } finally {
             setLoading(false);
         }
     };
 
-    // =========================================================
-    // DELETE
-    // =========================================================
-
     const openDelete = (materialId) => {
         if (!materialId) return;
-
         setDeleteId(Number(materialId));
         setShowDeleteModal(true);
     };
 
     const closeDeleteModal = () => {
         if (deleteLoading) return;
-
         setShowDeleteModal(false);
         setDeleteId(0);
     };
 
     const confirmDelete = async () => {
         if (!deleteId) return;
-
         try {
             setDeleteLoading(true);
-
             await deleteCourseMetrial(deleteId);
-
             alert("Course Material deleted successfully.");
-
             setShowDeleteModal(false);
             setDeleteId(0);
-
             await loadCourseMaterials(productId);
-
         } catch (error) {
             console.error("Delete Course Material Error:", error);
-            showApiError(
-                error,
-                "Something went wrong while deleting Course Material."
-            );
+            showApiError(error, "Something went wrong while deleting Course Material.");
         } finally {
             setDeleteLoading(false);
         }
     };
 
-    // =========================================================
-    // API ERROR
-    // =========================================================
-
     const showApiError = (error, defaultMessage) => {
         const apiError = error?.response?.data;
-
         let message = defaultMessage;
-
         if (apiError?.errors) {
             const messages = Object.entries(apiError.errors).map(
-                ([field, values]) =>
-                    `${field}: ${
-                        Array.isArray(values) ? values.join(", ") : values
-                    }`
+                ([field, values]) => `${field}: ${Array.isArray(values) ? values.join(", ") : values}`
             );
             message = messages.join("\n");
-        } else if (typeof apiError === "string") {
-            message = apiError;
-        } else if (apiError?.message) {
-            message = apiError.message;
-        } else if (apiError?.title) {
-            message = apiError.title;
-        } else if (error?.message) {
-            message = error.message;
-        }
-
+        } else if (typeof apiError === "string") message = apiError;
+        else if (apiError?.message) message = apiError.message;
+        else if (apiError?.title) message = apiError.title;
+        else if (error?.message) message = error.message;
         alert(message);
     };
 
-    // =========================================================
-    // HELPERS
-    // =========================================================
-
     const getDocumentTypeName = (documentTypeId, documentType) => {
         if (documentType) return documentType;
-
-        const found = documentTypes.find(
-            (item) => Number(item.id) === Number(documentTypeId)
-        );
-
+        const found = documentTypes.find((item) => Number(item.id) === Number(documentTypeId));
         return found?.name || "-";
     };
 
     const getDocumentExtensionName = (docExtensionId, docExtension) => {
         if (docExtension) return docExtension;
-
-        const found = documentExtensionTypes.find(
-            (item) => Number(item.id) === Number(docExtensionId)
-        );
-
+        const found = documentExtensionTypes.find((item) => Number(item.id) === Number(docExtensionId));
         return found?.name || "-";
     };
 
     const getFileValue = (item) =>
-        item?.fileupload ||
-        item?.fileupload1 ||
-        item?.Fileupload1 ||
-        item?.fileUpload1 ||
-        item?.fileName ||
-        "";
+        item?.fileupload || item?.fileupload1 || item?.Fileupload1 ||
+        item?.fileUpload1 || item?.fileName || "";
 
     const formatFileName = (file) => {
         if (!file) return "";
-
-        if (typeof file === "string") {
-            return file.split("/").pop().split("\\").pop();
-        }
-
+        if (typeof file === "string") return file.split("/").pop().split("\\").pop();
         return file.name || "";
     };
-
-    // =========================================================
-    // RENDER
-    // =========================================================
 
     return (
         <div className="course-material-page">
@@ -458,20 +262,14 @@ function CourseMaterial() {
                     {!showForm && (
                         <div className="material-header-right">
                             <div className="material-total">
-                                <span>
-                                    <i className="bi bi-collection"></i>
-                                </span>
+                                <span><i className="bi bi-collection"></i></span>
                                 <div>
                                     <strong>{data.length}</strong>
                                     <small>Materials</small>
                                 </div>
                             </div>
 
-                            <button
-                                type="button"
-                                className="material-primary-btn"
-                                onClick={openCreate}
-                            >
+                            <button type="button" className="material-primary-btn" onClick={openCreate}>
                                 <i className="bi bi-plus-lg"></i>
                                 Add Course Material
                             </button>
@@ -479,14 +277,10 @@ function CourseMaterial() {
                     )}
                 </div>
 
-                {/* ✅ REDESIGNED CREATE FORM */}
+                {/* CREATE FORM */}
                 {showForm && (
                     <form onSubmit={handleCreate}>
                         <div className="material-form-wrapper">
-
-                            {/* ============================================
-                                FORM HERO / BANNER
-                            ============================================ */}
                             <div className="material-form-hero">
                                 <div className="hero-left">
                                     <div className="hero-icon">
@@ -494,22 +288,15 @@ function CourseMaterial() {
                                     </div>
                                     <div>
                                         <h3>Add New Course Material</h3>
-                                        <p>
-                                            Fill in the details below to upload a new
-                                            study material for this course
-                                        </p>
+                                        <p>Fill in the details below to upload a new study material for this course</p>
                                     </div>
                                 </div>
-
                                 <div className="hero-badge">
                                     <i className="bi bi-hash"></i>
                                     <span>Product ID: <strong>{productId}</strong></span>
                                 </div>
                             </div>
 
-                            {/* ============================================
-                                SECTION 1 — BASIC INFORMATION
-                            ============================================ */}
                             <div className="material-form-card">
                                 <div className="material-card-header">
                                     <div className="header-icon-wrap blue">
@@ -523,76 +310,48 @@ function CourseMaterial() {
 
                                 <div className="material-card-body">
                                     <div className="row g-4">
-
-                                        {/* Document Type */}
                                         <div className="col-lg-4 col-md-6">
-                                            <label className="material-field-label">
-                                                Document Type <span>*</span>
-                                            </label>
+                                            <label className="material-field-label">Document Type <span>*</span></label>
                                             <div className="material-input-wrap">
                                                 <i className="bi bi-file-earmark-text input-prefix"></i>
                                                 <select
                                                     className="material-input with-icon"
                                                     value={formData.documentTypeId}
-                                                    onChange={(e) =>
-                                                        handleMaterialChange(
-                                                            "documentTypeId",
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                    onChange={(e) => handleMaterialChange("documentTypeId", e.target.value)}
                                                     disabled={documentTypeLoading}
                                                 >
                                                     <option value="0">
-                                                        {documentTypeLoading
-                                                            ? "Loading..."
-                                                            : "Select Document Type"}
+                                                        {documentTypeLoading ? "Loading..." : "Select Document Type"}
                                                     </option>
                                                     {documentTypes.map((type) => (
-                                                        <option key={type.id} value={type.id}>
-                                                            {type.name}
-                                                        </option>
+                                                        <option key={type.id} value={type.id}>{type.name}</option>
                                                     ))}
                                                 </select>
                                             </div>
                                         </div>
 
-                                        {/* Document Extension Type */}
                                         <div className="col-lg-4 col-md-6">
-                                            <label className="material-field-label">
-                                                Document Extension Type <span>*</span>
-                                            </label>
+                                            <label className="material-field-label">Document Extension Type <span>*</span></label>
                                             <div className="material-input-wrap">
                                                 <i className="bi bi-filetype-pdf input-prefix"></i>
                                                 <select
                                                     className="material-input with-icon"
                                                     value={formData.docExtensionId}
-                                                    onChange={(e) =>
-                                                        handleMaterialChange(
-                                                            "docExtensionId",
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                    onChange={(e) => handleMaterialChange("docExtensionId", e.target.value)}
                                                     disabled={documentExtensionLoading}
                                                 >
                                                     <option value="0">
-                                                        {documentExtensionLoading
-                                                            ? "Loading..."
-                                                            : "Select Document Extension"}
+                                                        {documentExtensionLoading ? "Loading..." : "Select Document Extension"}
                                                     </option>
                                                     {documentExtensionTypes.map((type) => (
-                                                        <option key={type.id} value={type.id}>
-                                                            {type.name}
-                                                        </option>
+                                                        <option key={type.id} value={type.id}>{type.name}</option>
                                                     ))}
                                                 </select>
                                             </div>
                                         </div>
 
-                                        {/* Sr No */}
                                         <div className="col-lg-4 col-md-6">
-                                            <label className="material-field-label">
-                                                Sr No
-                                            </label>
+                                            <label className="material-field-label">Sr No</label>
                                             <div className="material-input-wrap">
                                                 <i className="bi bi-123 input-prefix"></i>
                                                 <input
@@ -600,68 +359,43 @@ function CourseMaterial() {
                                                     min="0"
                                                     className="material-input with-icon"
                                                     value={formData.srNo}
-                                                    onChange={(e) =>
-                                                        handleMaterialChange(
-                                                            "srNo",
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                    onChange={(e) => handleMaterialChange("srNo", e.target.value)}
                                                     placeholder="Enter serial number"
                                                 />
                                             </div>
                                         </div>
 
-                                        {/* Material Name */}
                                         <div className="col-lg-6 col-md-6">
-                                            <label className="material-field-label">
-                                                Material Name <span>*</span>
-                                            </label>
+                                            <label className="material-field-label">Material Name <span>*</span></label>
                                             <div className="material-input-wrap">
                                                 <i className="bi bi-type input-prefix"></i>
                                                 <input
                                                     type="text"
                                                     className="material-input with-icon"
                                                     value={formData.name}
-                                                    onChange={(e) =>
-                                                        handleMaterialChange(
-                                                            "name",
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                    onChange={(e) => handleMaterialChange("name", e.target.value)}
                                                     placeholder="e.g. Chapter 1 - Introduction"
                                                 />
                                             </div>
                                         </div>
 
-                                        {/* Alt Tag */}
                                         <div className="col-lg-6 col-md-6">
-                                            <label className="material-field-label">
-                                                Alt Tag
-                                            </label>
+                                            <label className="material-field-label">Alt Tag</label>
                                             <div className="material-input-wrap">
                                                 <i className="bi bi-tag input-prefix"></i>
                                                 <input
                                                     type="text"
                                                     className="material-input with-icon"
                                                     value={formData.altTag}
-                                                    onChange={(e) =>
-                                                        handleMaterialChange(
-                                                            "altTag",
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                    onChange={(e) => handleMaterialChange("altTag", e.target.value)}
                                                     placeholder="Enter alt tag for SEO"
                                                 />
                                             </div>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
 
-                            {/* ============================================
-                                SECTION 2 — FILE UPLOAD
-                            ============================================ */}
                             <div className="material-form-card">
                                 <div className="material-card-header">
                                     <div className="header-icon-wrap green">
@@ -677,35 +411,18 @@ function CourseMaterial() {
                                     <input
                                         type="file"
                                         className="d-none"
-                                        ref={(el) =>
-                                            (fileInputRefs.current.create = el)
-                                        }
-                                        onChange={(e) =>
-                                            handleFileChange(
-                                                e.target.files?.[0]
-                                            )
-                                        }
+                                        ref={(el) => (fileInputRefs.current.create = el)}
+                                        onChange={(e) => handleFileChange(e.target.files?.[0])}
                                     />
 
                                     {!formData.fileupload1 ? (
-                                        <div
-                                            className="material-upload-zone"
-                                            onClick={() =>
-                                                fileInputRefs.current.create?.click()
-                                            }
-                                        >
+                                        <div className="material-upload-zone" onClick={() => fileInputRefs.current.create?.click()}>
                                             <div className="upload-zone-icon">
                                                 <i className="bi bi-cloud-arrow-up"></i>
                                             </div>
                                             <h5>Click to upload or drag & drop</h5>
-                                            <p>
-                                                Supported formats: PDF, DOC, DOCX,
-                                                XLS, XLSX, JPG, PNG
-                                            </p>
-                                            <button
-                                                type="button"
-                                                className="upload-zone-btn"
-                                            >
+                                            <p>Supported formats: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG</p>
+                                            <button type="button" className="upload-zone-btn">
                                                 <i className="bi bi-folder2-open"></i>
                                                 Browse Files
                                             </button>
@@ -715,26 +432,12 @@ function CourseMaterial() {
                                             <div className="file-preview-icon">
                                                 <i className="bi bi-file-earmark-check-fill"></i>
                                             </div>
-
                                             <div className="file-preview-info">
-                                                <span className="file-preview-tag">
-                                                    Ready to upload
-                                                </span>
+                                                <span className="file-preview-tag">Ready to upload</span>
                                                 <strong>{formData.fileupload1.name}</strong>
-                                                <small>
-                                                    {(
-                                                        formData.fileupload1.size / 1024
-                                                    ).toFixed(1)}{" "}
-                                                    KB
-                                                </small>
+                                                <small>{(formData.fileupload1.size / 1024).toFixed(1)} KB</small>
                                             </div>
-
-                                            <button
-                                                type="button"
-                                                className="file-preview-remove"
-                                                onClick={removeFile}
-                                                title="Remove file"
-                                            >
+                                            <button type="button" className="file-preview-remove" onClick={removeFile} title="Remove file">
                                                 <i className="bi bi-trash3"></i>
                                                 Remove
                                             </button>
@@ -743,32 +446,18 @@ function CourseMaterial() {
                                 </div>
                             </div>
 
-                            {/* ============================================
-                                FOOTER ACTIONS
-                            ============================================ */}
                             <div className="material-form-footer">
                                 <div className="footer-note">
                                     <i className="bi bi-info-circle"></i>
-                                    <span>
-                                        Fields marked with <b>*</b> are required
-                                    </span>
+                                    <span>Fields marked with <b>*</b> are required</span>
                                 </div>
 
                                 <div className="material-footer-actions">
-                                    <button
-                                        type="button"
-                                        className="material-cancel-btn"
-                                        onClick={closeForm}
-                                        disabled={loading}
-                                    >
+                                    <button type="button" className="material-cancel-btn" onClick={closeForm} disabled={loading}>
                                         <i className="bi bi-x-lg"></i>
                                         Cancel
                                     </button>
-                                    <button
-                                        type="submit"
-                                        className="material-save-btn"
-                                        disabled={loading}
-                                    >
+                                    <button type="submit" className="material-save-btn" disabled={loading}>
                                         {loading ? (
                                             <>
                                                 <span className="spinner-border spinner-border-sm"></span>
@@ -815,25 +504,21 @@ function CourseMaterial() {
                                 <tbody>
                                     {loading ? (
                                         <tr>
-                                            <td colSpan="7" className="material-table-loading">
+                                            <td colSpan="8" className="material-table-loading">
                                                 <span className="spinner-border spinner-border-sm"></span>
                                                 Loading Course Materials...
                                             </td>
                                         </tr>
                                     ) : data.length === 0 ? (
                                         <tr>
-                                            <td colSpan="7" className="material-empty-cell">
+                                            <td colSpan="8" className="material-empty-cell">
                                                 <div className="material-empty-state">
                                                     <div className="material-empty-icon">
                                                         <i className="bi bi-journal-x"></i>
                                                     </div>
                                                     <h4>No Course Material Found</h4>
                                                     <p>Start by adding your first course material.</p>
-                                                    <button
-                                                        type="button"
-                                                        className="material-primary-btn"
-                                                        onClick={openCreate}
-                                                    >
+                                                    <button type="button" className="material-primary-btn" onClick={openCreate}>
                                                         <i className="bi bi-plus-lg"></i>
                                                         Add Course Material
                                                     </button>
@@ -843,7 +528,6 @@ function CourseMaterial() {
                                     ) : (
                                         paginatedData.map((item, index) => {
                                             const file = getFileValue(item);
-
                                             return (
                                                 <tr key={item.id || index}>
                                                     <td>
@@ -854,19 +538,13 @@ function CourseMaterial() {
 
                                                     <td>
                                                         <span className="document-type-badge">
-                                                            {getDocumentTypeName(
-                                                                item.documentTypeId,
-                                                                item.documentType || item.documentTypeName
-                                                            )}
+                                                            {getDocumentTypeName(item.documentTypeId, item.documentType || item.documentTypeName)}
                                                         </span>
                                                     </td>
 
                                                     <td>
                                                         <span className="document-type-badge extension-badge">
-                                                            {getDocumentExtensionName(
-                                                                item.docExtensionId,
-                                                                item.docExtension || item.docExtensionName
-                                                            )}
+                                                            {getDocumentExtensionName(item.docExtensionId, item.docExtension || item.docExtensionName)}
                                                         </span>
                                                     </td>
 
@@ -877,9 +555,7 @@ function CourseMaterial() {
                                                     </td>
 
                                                     <td>
-                                                        <span className="table-text">
-                                                            {item.altTag || "-"}
-                                                        </span>
+                                                        <span className="table-text">{item.altTag || "-"}</span>
                                                     </td>
 
                                                     <td>
@@ -894,27 +570,22 @@ function CourseMaterial() {
                                                             <span className="no-file">No File</span>
                                                         )}
                                                     </td>
+
                                                     <td>
-    {file ? (
-        <button
-            type="button"
-            className="table-view-btn"
-            onClick={() =>
-                window.open(
-                    `${FILE_URL}${file}`,
-                    "_blank",
-                    "noopener,noreferrer"
-                )
-            }
-            title="View File"
-        >
-            <i className="bi bi-file-earmark-text"></i>
-            <span>View</span>
-        </button>
-    ) : (
-        <span className="no-file">No File</span>
-    )}
-</td>
+                                                        {file ? (
+                                                            <button
+                                                                type="button"
+                                                                className="table-view-btn"
+                                                                onClick={() => window.open(`${FILE_URL}${file}`, "_blank", "noopener,noreferrer")}
+                                                                title="View File"
+                                                            >
+                                                                <i className="bi bi-file-earmark-text"></i>
+                                                                <span>View</span>
+                                                            </button>
+                                                        ) : (
+                                                            <span className="no-file">No File</span>
+                                                        )}
+                                                    </td>
 
                                                     <td>
                                                         <div className="table-actions">
@@ -939,18 +610,14 @@ function CourseMaterial() {
                         {totalRecords > 0 && (
                             <div className="material-pagination">
                                 <div className="material-pagination-info">
-                                    Showing <strong>{startIndex + 1}</strong> to{" "}
-                                    <strong>{endIndex}</strong> of{" "}
-                                    <strong>{totalRecords}</strong> materials
+                                    Showing <strong>{startIndex + 1}</strong> to <strong>{endIndex}</strong> of <strong>{totalRecords}</strong> materials
                                 </div>
 
                                 <div className="material-pagination-controls">
                                     <button
                                         type="button"
                                         className="material-pagination-btn"
-                                        onClick={() =>
-                                            setCurrentPage((prev) => Math.max(1, prev - 1))
-                                        }
+                                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                                         disabled={currentPage === 1}
                                     >
                                         <i className="bi bi-chevron-left"></i>
@@ -958,18 +625,13 @@ function CourseMaterial() {
                                     </button>
 
                                     <span className="material-pagination-page">
-                                        Page <strong>{currentPage}</strong> of{" "}
-                                        <strong>{totalPages}</strong>
+                                        Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
                                     </span>
 
                                     <button
                                         type="button"
                                         className="material-pagination-btn"
-                                        onClick={() =>
-                                            setCurrentPage((prev) =>
-                                                Math.min(totalPages, prev + 1)
-                                            )
-                                        }
+                                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                                         disabled={currentPage === totalPages}
                                     >
                                         Next
@@ -996,12 +658,7 @@ function CourseMaterial() {
                                     <span>This action requires confirmation</span>
                                 </div>
                             </div>
-                            <button
-                                type="button"
-                                className="delete-modal-close"
-                                onClick={closeDeleteModal}
-                                disabled={deleteLoading}
-                            >
+                            <button type="button" className="delete-modal-close" onClick={closeDeleteModal} disabled={deleteLoading}>
                                 <i className="bi bi-x-lg"></i>
                             </button>
                         </div>
@@ -1011,27 +668,14 @@ function CourseMaterial() {
                                 <i className="bi bi-exclamation-triangle"></i>
                             </div>
                             <h5>Are you sure?</h5>
-                            <p>
-                                This Course Material will be permanently deleted.
-                                This action cannot be undone.
-                            </p>
+                            <p>This Course Material will be permanently deleted. This action cannot be undone.</p>
                         </div>
 
                         <div className="delete-modal-footer">
-                            <button
-                                type="button"
-                                className="material-cancel-btn"
-                                onClick={closeDeleteModal}
-                                disabled={deleteLoading}
-                            >
+                            <button type="button" className="material-cancel-btn" onClick={closeDeleteModal} disabled={deleteLoading}>
                                 Cancel
                             </button>
-                            <button
-                                type="button"
-                                className="material-delete-confirm-btn"
-                                onClick={confirmDelete}
-                                disabled={deleteLoading}
-                            >
+                            <button type="button" className="material-delete-confirm-btn" onClick={confirmDelete} disabled={deleteLoading}>
                                 {deleteLoading ? (
                                     <>
                                         <span className="spinner-border spinner-border-sm"></span>
@@ -1051,7 +695,22 @@ function CourseMaterial() {
 
             {/* STYLE */}
             <style>{`
+                /* ============================================
+                   ✅ PAGE — NO HORIZONTAL SCROLL
+                ============================================ */
+                html, body, #root {
+                    width: 100%;
+                    max-width: 100%;
+                    overflow-x: hidden !important;
+                    box-sizing: border-box;
+                }
+
                 .course-material-page {
+                    width: 100%;
+                    max-width: 100%;
+                    min-width: 0;
+                    overflow-x: hidden;
+                    box-sizing: border-box;
                     min-height: 100vh;
                     padding: 24px;
                     background: #f6f8fb;
@@ -1060,7 +719,10 @@ function CourseMaterial() {
                 .course-material-container {
                     width: 100%;
                     max-width: 1800px;
+                    min-width: 0;
                     margin: 0 auto;
+                    overflow-x: hidden;
+                    box-sizing: border-box;
                 }
 
                 /* ============================================
@@ -1177,14 +839,9 @@ function CourseMaterial() {
                     cursor: not-allowed;
                 }
 
-                /* ============================================
-                   ✅ NEW FORM DESIGN
-                ============================================ */
-                .material-form-wrapper {
-                    width: 100%;
-                }
+                /* FORM */
+                .material-form-wrapper { width: 100%; }
 
-                /* ---- HERO / BANNER ---- */
                 .material-form-hero {
                     display: flex;
                     align-items: center;
@@ -1272,11 +929,8 @@ function CourseMaterial() {
                     white-space: nowrap;
                 }
 
-                .hero-badge strong {
-                    color: #fff;
-                }
+                .hero-badge strong { color: #fff; }
 
-                /* ---- FORM CARD ---- */
                 .material-form-card {
                     overflow: hidden;
                     margin-bottom: 16px;
@@ -1311,15 +965,8 @@ function CourseMaterial() {
                     font-size: 19px;
                 }
 
-                .header-icon-wrap.blue {
-                    background: #eef4ff;
-                    color: #2563eb;
-                }
-
-                .header-icon-wrap.green {
-                    background: #ecfdf3;
-                    color: #16a34a;
-                }
+                .header-icon-wrap.blue { background: #eef4ff; color: #2563eb; }
+                .header-icon-wrap.green { background: #ecfdf3; color: #16a34a; }
 
                 .header-text h4 {
                     margin: 0 0 2px;
@@ -1333,11 +980,8 @@ function CourseMaterial() {
                     font-size: 11.5px;
                 }
 
-                .material-card-body {
-                    padding: 22px;
-                }
+                .material-card-body { padding: 22px; }
 
-                /* ---- FIELD LABEL ---- */
                 .material-field-label {
                     display: block;
                     margin-bottom: 8px;
@@ -1352,7 +996,6 @@ function CourseMaterial() {
                     color: #ef4444;
                 }
 
-                /* ---- INPUT WRAP (with icon prefix) ---- */
                 .material-input-wrap {
                     position: relative;
                     display: flex;
@@ -1371,9 +1014,7 @@ function CourseMaterial() {
                     z-index: 2;
                 }
 
-                .material-input-wrap:focus-within .input-prefix {
-                    color: #ff6600;
-                }
+                .material-input-wrap:focus-within .input-prefix { color: #ff6600; }
 
                 .material-input {
                     width: 100%;
@@ -1389,17 +1030,11 @@ function CourseMaterial() {
                     font-family: inherit;
                 }
 
-                .material-input.with-icon {
-                    padding-left: 42px;
-                }
+                .material-input.with-icon { padding-left: 42px; }
 
-                .material-input::placeholder {
-                    color: #a0a8b5;
-                }
+                .material-input::placeholder { color: #a0a8b5; }
 
-                .material-input:hover:not(:disabled) {
-                    border-color: #cbd5e1;
-                }
+                .material-input:hover:not(:disabled) { border-color: #cbd5e1; }
 
                 .material-input:focus {
                     border-color: #ff6600;
@@ -1413,9 +1048,6 @@ function CourseMaterial() {
                     color: #98a2b3;
                 }
 
-                /* ============================================
-                   ✅ NEW UPLOAD ZONE
-                ============================================ */
                 .material-upload-zone {
                     width: 100%;
                     min-height: 220px;
@@ -1492,7 +1124,6 @@ function CourseMaterial() {
                     color: #fff;
                 }
 
-                /* ---- FILE PREVIEW ---- */
                 .material-file-preview {
                     display: flex;
                     align-items: center;
@@ -1581,9 +1212,6 @@ function CourseMaterial() {
                     border-color: #dc2626;
                 }
 
-                /* ============================================
-                   FORM FOOTER
-                ============================================ */
                 .material-form-footer {
                     min-height: 74px;
                     padding: 16px 22px;
@@ -1606,15 +1234,8 @@ function CourseMaterial() {
                     font-size: 12px;
                 }
 
-                .footer-note i {
-                    color: #ff6600;
-                    font-size: 15px;
-                }
-
-                .footer-note b {
-                    color: #ef4444;
-                    font-weight: 700;
-                }
+                .footer-note i { color: #ff6600; font-size: 15px; }
+                .footer-note b { color: #ef4444; font-weight: 700; }
 
                 .material-footer-actions {
                     display: flex;
@@ -1669,14 +1290,18 @@ function CourseMaterial() {
                 }
 
                 /* ============================================
-                   LIST
+                   ✅ TABLE WRAPPER — VISIBLE SCROLLBAR
                 ============================================ */
                 .material-list-card {
+                    width: 100%;
+                    max-width: 100%;
+                    min-width: 0;
                     overflow: hidden;
                     background: #fff;
                     border: 1px solid #e4e9f0;
                     border-radius: 15px;
                     box-shadow: 0 4px 18px rgba(25,45,75,.045);
+                    box-sizing: border-box;
                 }
 
                 .material-list-header {
@@ -1699,16 +1324,46 @@ function CourseMaterial() {
                     font-size: 11px;
                 }
 
+                /* ✅ FIX: Employee style scrollbar */
                 .material-table-wrapper {
-                    width: 100%;
-                    overflow-x: auto;
+                    display: block !important;
+                    width: 0 !important;
+                    min-width: 100% !important;
+                    max-width: 100% !important;
+                    overflow-x: auto !important;
+                    overflow-y: hidden !important;
+                    box-sizing: border-box !important;
+                    -webkit-overflow-scrolling: touch;
+                    scrollbar-width: thin;
+                    scrollbar-color: #c9ced8 #eef1f5;
+                }
+
+                .material-table-wrapper::-webkit-scrollbar {
+                    height: 9px;
+                }
+
+                .material-table-wrapper::-webkit-scrollbar-track {
+                    background: #eef1f5;
+                    border-radius: 10px;
+                }
+
+                .material-table-wrapper::-webkit-scrollbar-thumb {
+                    background: #c9ced8;
+                    border-radius: 10px;
+                }
+
+                .material-table-wrapper::-webkit-scrollbar-thumb:hover {
+                    background: #aeb5c2;
                 }
 
                 .material-table {
-                    width: 100%;
-                    min-width: 950px;
-                    border-collapse: separate;
-                    border-spacing: 0;
+                    width: auto !important;
+                    min-width: 100% !important;
+                    max-width: none !important;
+                    table-layout: auto !important;
+                    border-collapse: separate !important;
+                    border-spacing: 0 !important;
+                    margin: 0 !important;
                     font-size: 12px;
                 }
 
@@ -1728,15 +1383,12 @@ function CourseMaterial() {
                     border-bottom: 1px solid #edf0f4;
                     color: #475467;
                     vertical-align: middle;
+                    white-space: nowrap;
                 }
 
-                .material-table tbody tr:hover {
-                    background: #fffaf6;
-                }
+                .material-table tbody tr:hover { background: #fffaf6; }
 
-                .material-table tbody tr:last-child td {
-                    border-bottom: 0;
-                }
+                .material-table tbody tr:last-child td { border-bottom: 0; }
 
                 .sr-badge {
                     width: 27px;
@@ -1769,9 +1421,7 @@ function CourseMaterial() {
                     color: #4338ca;
                 }
 
-                .material-name-cell {
-                    max-width: 280px;
-                }
+                .material-name-cell { max-width: 280px; }
 
                 .material-name-cell strong {
                     display: block;
@@ -1811,8 +1461,9 @@ function CourseMaterial() {
                 }
 
                 .no-file {
-                    color: #98a2b3;
+                    color: #9aa3b2;
                     font-size: 11px;
+                    font-style: italic;
                 }
 
                 .action-column {
@@ -1851,13 +1502,9 @@ function CourseMaterial() {
                     text-align: center;
                 }
 
-                .material-table-loading .spinner-border {
-                    margin-right: 8px;
-                }
+                .material-table-loading .spinner-border { margin-right: 8px; }
 
-                .material-empty-cell {
-                    padding: 0 !important;
-                }
+                .material-empty-cell { padding: 0 !important; }
 
                 .material-empty-state {
                     min-height: 350px;
@@ -1909,9 +1556,7 @@ function CourseMaterial() {
                     font-size: 12px;
                 }
 
-                .material-pagination-info strong {
-                    color: #344054;
-                }
+                .material-pagination-info strong { color: #344054; }
 
                 .material-pagination-controls {
                     display: flex;
@@ -1954,9 +1599,7 @@ function CourseMaterial() {
                     font-size: 12px;
                 }
 
-                .material-pagination-page strong {
-                    color: #344054;
-                }
+                .material-pagination-page strong { color: #344054; }
 
                 .material-modal-overlay {
                     position: fixed;
@@ -1981,14 +1624,8 @@ function CourseMaterial() {
                 }
 
                 @keyframes materialModalIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(8px) scale(.98);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0) scale(1);
-                    }
+                    from { opacity: 0; transform: translateY(8px) scale(.98); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
                 }
 
                 .delete-modal-header {
@@ -2095,27 +1732,40 @@ function CourseMaterial() {
                     cursor: not-allowed;
                 }
 
-                .material-table-wrapper::-webkit-scrollbar {
-                    height: 7px;
+                /* TABLE VIEW BUTTON */
+                .table-view-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 6px 12px;
+                    border-radius: 7px;
+                    border: 1px solid #dce2ea;
+                    background: #fff;
+                    color: #f56600;
+                    font-size: 11px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
                 }
 
-                .material-table-wrapper::-webkit-scrollbar-track {
-                    background: #f1f3f6;
-                    border-radius: 10px;
+                .table-view-btn > i { font-size: 13px; }
+
+                .table-view-btn:hover {
+                    background: #f56600;
+                    border-color: #f56600;
+                    color: #fff;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(245, 102, 0, 0.22);
                 }
 
-                .material-table-wrapper::-webkit-scrollbar-thumb {
-                    background: #cbd2dc;
-                    border-radius: 10px;
+                .table-view-btn:active {
+                    transform: translateY(0) scale(0.98);
                 }
 
-                /* ============================================
-                   RESPONSIVE
-                ============================================ */
+                /* RESPONSIVE */
                 @media (max-width: 900px) {
-                    .course-material-page {
-                        padding: 15px;
-                    }
+                    .course-material-page { padding: 15px; }
 
                     .material-page-header {
                         align-items: flex-start;
@@ -2133,24 +1783,18 @@ function CourseMaterial() {
                         padding: 20px;
                     }
 
-                    .material-card-body {
-                        padding: 18px;
-                    }
+                    .material-card-body { padding: 18px; }
                 }
 
                 @media (max-width: 600px) {
-                    .course-material-page {
-                        padding: 10px;
-                    }
+                    .course-material-page { padding: 10px; }
 
                     .material-page-header {
                         padding: 16px;
                         border-radius: 12px;
                     }
 
-                    .material-header-left {
-                        align-items: flex-start;
-                    }
+                    .material-header-left { align-items: flex-start; }
 
                     .material-header-icon {
                         width: 43px;
@@ -2158,26 +1802,16 @@ function CourseMaterial() {
                         font-size: 20px;
                     }
 
-                    .material-header-left h2 {
-                        font-size: 18px;
-                    }
+                    .material-header-left h2 { font-size: 18px; }
 
                     .material-header-right {
                         flex-direction: column;
                         align-items: stretch;
                     }
 
-                    .material-total {
-                        width: 100%;
-                    }
-
-                    .material-primary-btn {
-                        width: 100%;
-                    }
-
-                    .material-form-hero h3 {
-                        font-size: 17px;
-                    }
+                    .material-total { width: 100%; }
+                    .material-primary-btn { width: 100%; }
+                    .material-form-hero h3 { font-size: 17px; }
 
                     .hero-icon {
                         width: 48px;
@@ -2185,22 +1819,16 @@ function CourseMaterial() {
                         font-size: 22px;
                     }
 
-                    .material-card-body {
-                        padding: 15px;
-                    }
+                    .material-card-body { padding: 15px; }
 
                     .material-form-footer {
                         flex-direction: column;
                         align-items: stretch;
                     }
 
-                    .material-footer-actions {
-                        width: 100%;
-                    }
+                    .material-footer-actions { width: 100%; }
 
-                    .material-footer-actions button {
-                        flex: 1;
-                    }
+                    .material-footer-actions button { flex: 1; }
 
                     .material-file-preview {
                         flex-direction: column;
@@ -2208,9 +1836,7 @@ function CourseMaterial() {
                         text-align: left;
                     }
 
-                    .file-preview-remove {
-                        align-self: flex-end;
-                    }
+                    .file-preview-remove { align-self: flex-end; }
 
                     .material-pagination {
                         align-items: flex-start;
@@ -2222,44 +1848,6 @@ function CourseMaterial() {
                         justify-content: space-between;
                     }
                 }
-                        /* ✅ TABLE VIEW BUTTON */
-    .table-view-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        border-radius: 7px;
-        border: 1px solid #dce2ea;
-        background: #fff;
-        color: #f56600;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .table-view-btn > i {
-        font-size: 13px;
-    }
-
-    .table-view-btn:hover {
-        background: #f56600;
-        border-color: #f56600;
-        color: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(245, 102, 0, 0.22);
-    }
-
-    .table-view-btn:active {
-        transform: translateY(0) scale(0.98);
-    }
-
-    .no-file {
-        color: #9aa3b2;
-        font-size: 11px;
-        font-style: italic;
-    }
             `}</style>
         </div>
     );
