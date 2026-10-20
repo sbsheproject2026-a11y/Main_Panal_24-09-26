@@ -3,11 +3,11 @@ import api from "../api";
  
 
  
-export const getStudents = (userId,pageNo, pageSize, search) => {
+export const getStudents = (userId,pageNo, pageSize, search,studyModeId) => {
     const token = localStorage.getItem("token");
 
     return api.get(
-        `/Student/student-getall?referenceId=${userId}&pageNo=${pageNo}&pageSize=${pageSize}&search=${search}`,
+        `/Student/student-getall?referenceId=${userId}&pageNo=${pageNo}&pageSize=${pageSize}&search=${search}&studyModeId=${studyModeId}`,
         {
             headers: {
                 Authorization: `Bearer ${token}`

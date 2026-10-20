@@ -1205,7 +1205,7 @@ function SendToConfirmStudent() {
                         onClick={handleSendToConfirm}
                     >
                         <i className="bi bi-send-check-fill"></i>
-                        Send to Confirm ({selectedIds.length})
+                        Send to Verify ({selectedIds.length})
                     </button>
                 </div>
 
@@ -1371,6 +1371,7 @@ function SendToConfirmStudent() {
                                                                     <i className="bi bi-printer-fill"></i>
                                                                     <span>Print</span>
                                                                 </button>
+                                                             
 
                                                                 <button
                                                                     type="button"
@@ -1381,7 +1382,7 @@ function SendToConfirmStudent() {
                                                                     <i className="bi bi-eye-fill"></i>
                                                                     <span>View</span>
                                                                 </button>
-
+ 
                                                                 <button
                                                                     type="button"
                                                                     className="student-action edit"
@@ -1392,12 +1393,14 @@ function SendToConfirmStudent() {
                                                                     <span>Edit</span>
                                                                 </button>
 
-                                                                <button
-                                                                    className="list-btn"
-                                                                    onClick={() => handleFeeClick(item)}
-                                                                >
-                                                                    Fee
-                                                                </button>
+  {studyModeId === 88 && (
+    <button
+        className="list-btn"
+        onClick={() => handleFeeClick(item)}
+    >
+        Fee
+    </button>
+)}
                                                             </div>
                                                         </td>
 

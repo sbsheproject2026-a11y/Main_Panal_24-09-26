@@ -680,7 +680,7 @@ function Dashboard() {
 
           <div className="row g-3 mb-4">
             {stats.map((item, index) => (
-              <div className="col-xl-3 col-md-6" key={index}>
+              <div className="col-xl-4 col-md-6" key={index}>
                 <div className="stat-card">
                   <div className="stat-top">
                     <div className={`stat-icon ${item.type}`}>

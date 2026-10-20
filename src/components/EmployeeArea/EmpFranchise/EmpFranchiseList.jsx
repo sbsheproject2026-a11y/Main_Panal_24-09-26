@@ -153,8 +153,10 @@ function EmpFranchiseList() {
     };
 
     // STUDENT
-    const handleStudentAdd = () => goTo("/student-create");
-    const handleStudentList = () => goTo("/student-list");
+    //const handleStudentAdd = () => goTo("/student-create");
+    const handleStudentAdd = () => goTo("/select-registration-mode");
+    const handleStudentList = () => goTo("/student-list?studyModeId=88");
+    const handleStudentoffLineList = () => goTo("/student-list?studyModeId=89");
     const handleStudentSendToConfirm = () => goTo("/student-to-confirm");
 
     // WALLET
@@ -623,8 +625,21 @@ function EmpFranchiseList() {
                                     <i className="bi bi-list-ul"></i>
                                 </div>
                                 <div className="action-item-content">
-                                    <strong>Student List</strong>
-                                    <small>View all students</small>
+                                    <strong>Online Student List</strong>
+                                    <small>View all online students</small>
+                                </div>
+                            </button>
+                            <button
+                                type="button"
+                                className="action-item student-item"
+                                onClick={handleStudentoffLineList}
+                            >
+                                <div className="action-item-icon">
+                                    <i className="bi bi-list-ul"></i>
+                                </div>
+                                <div className="action-item-content">
+                                    <strong>Offline Student List</strong>
+                                    <small>View all offline students</small>
                                 </div>
                             </button>
 

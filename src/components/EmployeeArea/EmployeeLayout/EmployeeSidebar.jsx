@@ -50,7 +50,7 @@ function EmployeeSidebar({ sidebarOpen }) {
             </a>
             <ul id="charts-nav" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 
- <li>
+              <li>
                 <Link to="/confirm-addmissions?studyModeId=88">
                   <i className="bi bi-circle"></i>
                   <span>Student Confirm & Print Online</span>
@@ -62,7 +62,7 @@ function EmployeeSidebar({ sidebarOpen }) {
                   <span>Student Confirm & Print Offline</span>
                 </Link>
               </li>
-              
+
               <li>
                 <Link to="/set-marks">
                   <i className="bi bi-circle"></i><span>Set Marks</span>

@@ -16,6 +16,10 @@ import SetMarksStudent from "./Students/SetMarksStudent";
 import ConfirmStudent from "./Students/ConfirmStudent";
 import ViewDetails from "./Students/ViewDetails";
 import WalletRechargeOnline from "./WalletWorking/WalletRechargeOnline";
+import RegistrationModeSelect from "./Students/RegistrationModeSelect";
+import NewStudentRegistrationStudent from "./Students/NewStudentRegistrationStudent";
+import StudentFeeCard from "./Students/StudentFeeCard";
+ 
  
  
 
@@ -23,7 +27,10 @@ import WalletRechargeOnline from "./WalletWorking/WalletRechargeOnline";
 const employeeRoutes = [
     // ===== Common Routes (6, 90, 33 sab ke liye) =====
     { path: "/employee-dashboard", element: <EmployeeDashboard />, role: ["6", "90", "33"] },
+    { path: "/select-registration-mode", element: <RegistrationModeSelect />, role: ["6", "90", "33"] },
     { path: "/student-create", element: <StudentCreate />, role: ["6", "90", "33"] },
+    { path: "/new-student-create", element: <NewStudentRegistrationStudent />, role: ["6", "90", "33"] },
+    { path: "/student-fee", element: <StudentFeeCard />, role: ["6", "90", "33"] },
     { path: "/student-list", element: <StudentList />, role: ["6", "90", "33"] },
     { path: "/student-to-confirm", element: <SendToConfirm />, role: ["6", "90", "33"] },
     { path: "/profile", element: <Profile />, role: ["6", "90", "33"] },

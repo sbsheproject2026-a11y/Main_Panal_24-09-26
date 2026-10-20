@@ -129,7 +129,7 @@ function Sidebar({ sidebarOpen }) {
 
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#charts-nav-online" data-bs-toggle="collapse" href="#">
-              <i className="bi bi-bar-chart"></i><span>Student Management Online</span><i className="bi bi-chevron-down ms-auto"></i>
+              <i className="bi bi-bar-chart"></i><span>Online Student </span><i className="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="charts-nav-online" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 
@@ -157,7 +157,7 @@ function Sidebar({ sidebarOpen }) {
 
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#charts-nav-offline" data-bs-toggle="collapse" href="#">
-              <i className="bi bi-bar-chart"></i><span>Student Management Offline</span><i className="bi bi-chevron-down ms-auto"></i>
+              <i className="bi bi-bar-chart"></i><span>Offline Student   </span><i className="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="charts-nav-offline" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 
@@ -239,6 +239,11 @@ function Sidebar({ sidebarOpen }) {
             <ul id="forms-nav-website" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 
 
+              <li>
+                <Link to="/menu">
+                  <i className="bi bi-circle"></i><span>Menu</span>
+                </Link>
+              </li>
               <li>
                 <Link to="/website-content">
                   <i className="bi bi-circle"></i><span>Website Content</span>

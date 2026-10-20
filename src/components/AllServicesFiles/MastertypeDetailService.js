@@ -23,6 +23,7 @@ export const getMasterTypeDetails = async () => {
   // Main Website Content
   // =========================
 
+  data.append("SrNo", formData.srNo || "");
   data.append("Code", formData.code || "");
   data.append("Name", formData.name || "");
  if (formData.file instanceof File) {
@@ -71,6 +72,7 @@ export const getMasterTypeDetailById = async (id) => {
   // =========================
 
   data.append("Id", formData.id || "");
+    data.append("SrNo", formData.srNo || "");
   data.append("Code", formData.code || "");
   data.append("Name", formData.name || "");
  if (formData.file instanceof File) {

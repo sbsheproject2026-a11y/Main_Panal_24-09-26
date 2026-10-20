@@ -1,6 +1,6 @@
  import React, { useEffect, useState } from "react";
 import { getStudentDelete, getStudents } from "../../AllServicesFiles/StudentService";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { FILE_URL } from "../../api";
 
 function StudentList() {
@@ -11,6 +11,8 @@ function StudentList() {
 
   // ✅ Role 33 → referenceId, warna loginUserId
   const userId = roleId === "33" ? referenceId : loginUserId;
+ const [searchParams] = useSearchParams();
+  const studyModeId = Number(searchParams.get("studyModeId")) || 0;
 
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
@@ -44,12 +46,12 @@ function StudentList() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [userId, pageNo, pageSize, search]);
+  }, [userId, pageNo, pageSize, search,studyModeId]);
 
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const result = await getStudents(userId, pageNo, pageSize, search);
+      const result = await getStudents(userId, pageNo, pageSize, search,studyModeId);
 
       // ✅ DEBUG — API response structure dekhne ke liye
       console.log("Student API Response:", result);

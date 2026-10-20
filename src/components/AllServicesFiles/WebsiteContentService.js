@@ -17,6 +17,7 @@ export const getWebsiteContents = async () => {
 
   data.append("ProductTypeId", formData.productTypeId || "");
   data.append("SrNo", formData.srNo1 || "");
+  data.append("Date", formData.date || "");
   data.append("Title", formData.title || "");
   data.append("ShortDescription", formData.shortDesc || "");
   data.append("Descrption", formData.desc || "");
@@ -107,6 +108,7 @@ export const getWebsiteContents = async () => {
   data.append("ShortDescription", formData.shortDesc || "");
   data.append("Descrption", formData.desc || "");
   data.append("SEOTitle", formData.seoTitle || "");
+  data.append("SrNo", formData.srNo1 || "");
 
   // int? => 0 / 1
   data.append(
@@ -189,6 +191,14 @@ export const getWebsiteContents = async () => {
 export const getWebsiteContentById = async (id) => {
     const response = await api.get(
         `/WebsiteContent/website-content-getbyid/${id}`
+    );
+
+    return response.data;
+};
+
+export const deleteWebsiteContent = async (id) => {
+    const response = await api.delete(
+        `/WebsiteContent/delete/${id}`
     );
 
     return response.data;

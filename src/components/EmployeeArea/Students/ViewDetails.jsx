@@ -1,15 +1,15 @@
- import React, { useEffect, useState } from "react";
+  import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
   getStudentById,
   getStudentAcademicDetails,
   getStudentData,
-  getDepartmentData,
-  getStudyCentreSelectedCourse,
   getState,
   getDistrict,
   getCity,
+  getCourseCategory,
+  getCourse,
   getMasterSession,
 } from "../../AllServicesFiles/StudentService";
 import { FILE_URL } from "../../api";
@@ -17,9 +17,6 @@ import { FILE_URL } from "../../api";
 function ViewDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  // ✅ Logged-in user ID
-  const loginUserId = String(localStorage.getItem("UserId") || 0).trim();
 
   const [student, setStudent] = useState(null);
   const [academicDetails, setAcademicDetails] = useState([]);
@@ -32,6 +29,7 @@ function ViewDetails() {
   const [genders, setGenders] = useState([]);
   const [casteCategories, setCasteCategories] = useState([]);
   const [courseTypes, setCourseTypes] = useState([]);
+  const [courseCategories, setCourseCategories] = useState([]);
   const [courses, setCourses] = useState([]);
   const [sessions, setSessions] = useState([]);
 
@@ -59,7 +57,7 @@ function ViewDetails() {
         loadStates(),
         loadGenders(),
         loadCasteCategories(),
-        loadCourseTypes(loginUserId),     // ✅ loginUserId pass
+        loadCourseTypes(),
         loadSessions(),
       ]);
 
@@ -71,9 +69,12 @@ function ViewDetails() {
         await loadCities(data.districtId);
       }
 
-      // ✅ Course Type select hone par courses load karo
       if (data.courseTypeId > 0) {
-        await loadCourse(data.courseTypeId);
+        await loadCourseCategories(data.courseTypeId);
+      }
+
+      if (data.courseCategoryId > 0) {
+        await loadCourse(data.courseCategoryId,data.courseTypeId);
       }
     } catch (error) {
       console.log("Student Details Error:", error);
@@ -127,11 +128,10 @@ function ViewDetails() {
     }
   };
 
-  // ✅ Programme list — getDepartmentData(loginUserId)
-  const loadCourseTypes = async (userId) => {
+  const loadCourseTypes = async () => {
     try {
-      const result = await getDepartmentData(userId);
-      setCourseTypes(result?.data || []);
+      const result = await getStudentData(13);
+      setCourseTypes(result.data || []);
     } catch (error) {
       console.log(error);
     }
@@ -146,19 +146,26 @@ function ViewDetails() {
     }
   };
 
-  // ✅ Course list — getStudyCentreSelectedCourse(loginUserId, courseTypeId)
-  const loadCourse = async (courseTypeId) => {
+  const loadCourseCategories = async (courseTypeId) => {
     try {
-      const result = await getStudyCentreSelectedCourse(
-        loginUserId,
-        courseTypeId
-      );
-      setCourses(result?.data || []);
+      const result = await getCourseCategory(courseTypeId);
+      setCourseCategories(result.data || []);
     } catch (error) {
-      console.error("Course Error:", error);
-      setCourses([]);
+      console.log(error);
     }
   };
+
+  
+
+   const loadCourse = async (courseCategoryId,courseTypeId) => {
+            try {
+                const result = await getCourse(courseCategoryId,courseTypeId);
+                setCourses(result?.data || []);
+            } catch (error) {
+                console.error("Course Error:", error);
+                setCourses([]);
+            }
+        };
 
   const getName = (list, id) => {
     const item = list.find(
@@ -346,6 +353,8 @@ function ViewDetails() {
 
           </div>
 
+        
+
         </div>
 
       </div>
@@ -390,7 +399,7 @@ function ViewDetails() {
                   {student.selfImageShow ? (
 
                     <img
-                      src={`${FILE_URL}${student.selfImageShow}`}
+                         src={`${FILE_URL}${student.selfImageShow}`} 
                       alt="Student"
                       style={{
                         width: "125px",
@@ -479,7 +488,7 @@ function ViewDetails() {
 
           </div>
 
-          {/* ✅ Course Details — Category removed */}
+          {/* Course Details */}
           <Section
             icon="bi-book"
             title="Course Details"
@@ -493,6 +502,14 @@ function ViewDetails() {
                 value={getName(
                   courseTypes,
                   student.courseTypeId
+                )}
+              />
+
+              <DetailItem
+                label="Course Category"
+                value={getName(
+                  courseCategories,
+                  student.courseCategoryId
                 )}
               />
 
@@ -511,6 +528,8 @@ function ViewDetails() {
                   student.examSessionId
                 )}
               />
+
+              
 
             </div>
 
@@ -685,6 +704,7 @@ function ViewDetails() {
                     }}
                   >
 
+ 
                     <tr>
 
                       <th
@@ -781,9 +801,9 @@ function ViewDetails() {
                               <button
                                 type="button"
                                 className="btn btn-sm btn-outline-danger"
-                                onClick={() => {
-                                  window.open(`${FILE_URL}${item.fileName}`, "_blank", "noopener,noreferrer");
-                                }}
+                               onClick={() => {
+    window.open(`${FILE_URL}${item.fileName}`, "_blank", "noopener,noreferrer");
+}}
                               >
                                 <i className="bi bi-file-earmark-pdf me-1"></i>
                                 View PDF
@@ -880,7 +900,8 @@ function ViewDetails() {
                   {student.selfImageShow ? (
 
                     <img
-                      src={`${FILE_URL}${student.selfImageShow}`}
+                     src={`${FILE_URL}${student.selfImageShow}`}
+                   
                       alt="Student"
                       className="img-fluid"
                       style={{
@@ -920,7 +941,8 @@ function ViewDetails() {
                   {student.signatureImageShow ? (
 
                     <img
-                      src={`${FILE_URL}${student.signatureImageShow}`}
+                     
+                        src={`${FILE_URL}${student.signatureImageShow}`}
                       alt="Signature"
                       className="img-fluid"
                       style={{
@@ -960,7 +982,8 @@ function ViewDetails() {
                   {student.aadhaarCardFrantShow ? (
 
                     <img
-                      src={`${FILE_URL}${student.aadhaarCardFrantShow}`}
+                   
+                       src={`${FILE_URL}${student.aadhaarCardFrantShow}`}
                       alt="Aadhaar Front"
                       className="img-fluid"
                       style={{
@@ -1000,7 +1023,8 @@ function ViewDetails() {
                   {student.aadhaarCardBackShow ? (
 
                     <img
-                      src={`${FILE_URL}${student.aadhaarCardBackShow}`}
+                    
+                        src={`${FILE_URL}${student.aadhaarCardBackShow}`}
                       alt="Aadhaar Back"
                       className="img-fluid"
                       style={{
@@ -1026,6 +1050,8 @@ function ViewDetails() {
             </div>
 
           </Section>
+
+          
 
         </div>
 

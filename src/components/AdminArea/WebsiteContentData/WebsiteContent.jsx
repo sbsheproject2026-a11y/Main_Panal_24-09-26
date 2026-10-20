@@ -1,10 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+ import React, { useEffect, useMemo, useState } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
-
-
-import { updateWebsiteContent, getWebsiteContentById, getWebsiteContents, createWebsiteContent, } from "../../AllServicesFiles/WebsiteContentService";
+import { updateWebsiteContent, getWebsiteContentById, getWebsiteContents, createWebsiteContent, deleteWebsiteContent, } from "../../AllServicesFiles/WebsiteContentService";
 import { getDepartment } from "../../AllServicesFiles/EmployeeService";
 
 const WebsiteContent = () => {
@@ -26,6 +24,14 @@ const WebsiteContent = () => {
     const [editId, setEditId] = useState(0);
 
     // =========================================================
+    // DELETE MODAL STATE
+    // =========================================================
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteId, setDeleteId] = useState(0);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+
+    // =========================================================
     // SEARCH + PAGINATION
     // =========================================================
 
@@ -42,6 +48,7 @@ const WebsiteContent = () => {
         productTypeId: "",
         srNo1: null,
         title: "",
+        date: "",
         subTitle: "",
         shortDesc: "",
         desc: "",
@@ -153,6 +160,8 @@ const WebsiteContent = () => {
 
         return listData.filter((item) => {
 
+            const productType =
+                item?.productType || "";
             const title =
                 item?.title || "";
 
@@ -163,6 +172,10 @@ const WebsiteContent = () => {
                 item?.descrption || "";
 
             return (
+                productType
+                    .toString()
+                    .toLowerCase()
+                    .includes(search) ||
                 title
                     .toString()
                     .toLowerCase()
@@ -321,7 +334,8 @@ const WebsiteContent = () => {
         setFormData({
             id: 0,
             productTypeId: "",
-            srNo: null,
+            srNo1: null,
+            date: "",
             title: "",
             subTitle: "",
             shortDesc: "",
@@ -427,45 +441,24 @@ const WebsiteContent = () => {
                         0
                     ),
 
-                productTypeId:
-                    data.productTypeId ??
-                    "",
+                productTypeId:  data.productTypeId ??  "",
+                srNo1:  data.srNo1 ??  null,
 
-                srNo:
-                    data.srNo ??
-                    null,
+                title: data.title ??  "",
 
-                title:
-                    data.title ??
-                    "",
+                subTitle:  data.subTitle ??  "",
 
-                subTitle:
-                    data.subTitle ??
-                    "",
+                shortDesc:  data.shortDescription ??  "",
 
-                shortDesc:
-                    data.shortDescription ??
-                    "",
+                desc: data.descrption ??  "",
 
-                desc:
-                    data.descrption ??
-                    "",
+                seoTitle:  data.seoTitle ?? "",
 
-                seoTitle:
-                    data.seoTitle ??
-                    "",
+                isActive:  data.isActive === 1 || data.isActive === true,
 
-                isActive:
-                    data.isActive === 1 ||
-                    data.isActive === true,
+                isHighlight:  data.isHighlight === 1 ||  data.isHighlight === true,
 
-                isHighlight:
-                    data.isHighlight === 1 ||
-                    data.isHighlight === true,
-
-                isDelete:
-                    data.isDelete ??
-                    1,
+                isDelete: data.isDelete ?? 1,
             });
 
             // =================================================
@@ -576,6 +569,71 @@ const WebsiteContent = () => {
             top: 0,
             behavior: "smooth",
         });
+    };
+
+    // =========================================================
+    // OPEN DELETE MODAL
+    // =========================================================
+
+    const openDeleteModal = (id) => {
+        setDeleteId(id);
+        setShowDeleteModal(true);
+    };
+
+    // =========================================================
+    // CLOSE DELETE MODAL
+    // =========================================================
+
+    const closeDeleteModal = () => {
+
+        if (deleteLoading) {
+            return;
+        }
+
+        setShowDeleteModal(false);
+        setDeleteId(0);
+    };
+
+    // =========================================================
+    // CONFIRM DELETE
+    // =========================================================
+
+    const confirmDelete = async () => {
+
+        if (!deleteId) {
+            return;
+        }
+
+        try {
+
+            setDeleteLoading(true);
+
+            const result = await deleteWebsiteContent(deleteId);
+
+            alert(
+                result?.message ||
+                result?.data?.message ||
+                "Website content deleted successfully."
+            );
+
+            setShowDeleteModal(false);
+            setDeleteId(0);
+
+            await loadWebsiteContent();
+
+        } catch (error) {
+
+            console.error("Delete Error:", error);
+
+            alert(
+                error?.response?.data?.message ||
+                "Unable to delete website content."
+            );
+
+        } finally {
+
+            setDeleteLoading(false);
+        }
     };
 
     // =========================================================
@@ -759,8 +817,8 @@ const WebsiteContent = () => {
                             formData.productTypeId
                         ),
 
-                    srNo:
-                        formData.srNo,
+                    srNo1:  formData.srNo1,
+                    date:  formData.date,
 
                     title:
                         formData.title,
@@ -815,8 +873,8 @@ const WebsiteContent = () => {
                             formData.productTypeId
                         ),
 
-                    srNo:
-                        formData.srNo,
+                    srNo1:  formData.srNo1,
+                    date:  formData.date,
 
                     title:
                         formData.title,
@@ -1072,7 +1130,7 @@ const WebsiteContent = () => {
                     .website-content-page {
                         min-height: 100vh;
                         background: #f5f7fb;
-                        padding: 28px;
+                        padding: 5px;
                         font-family:
                             Inter,
                             Arial,
@@ -1304,15 +1362,48 @@ const WebsiteContent = () => {
                         border-color: #ff6600;
                     }
 
+                    /* ============================================
+                       TABLE RESPONSIVE - EXACT FROM EMPLOYEE LIST
+                    ============================================ */
                     .table-wrapper {
-                        width: 100%;
-                        overflow-x: auto;
+                        display: block !important;
+                        width: 0 !important;
+                        min-width: 100% !important;
+                        max-width: 100% !important;
+                        overflow-x: auto !important;
+                        overflow-y: hidden !important;
+                        box-sizing: border-box !important;
+                        -webkit-overflow-scrolling: touch;
+                        scrollbar-width: thin;
+                        scrollbar-color: #c9ced8 #eef1f5;
+                    }
+
+                    .table-wrapper::-webkit-scrollbar {
+                        height: 9px;
+                    }
+
+                    .table-wrapper::-webkit-scrollbar-track {
+                        background: #eef1f5;
+                        border-radius: 10px;
+                    }
+
+                    .table-wrapper::-webkit-scrollbar-thumb {
+                        background: #c9ced8;
+                        border-radius: 10px;
+                    }
+
+                    .table-wrapper::-webkit-scrollbar-thumb:hover {
+                        background: #aeb5c2;
                     }
 
                     .list-table {
-                        width: 100%;
-                        border-collapse:
-                            collapse;
+                        width: auto !important;
+                        min-width: 100% !important;
+                        max-width: none !important;
+                        table-layout: auto !important;
+                        border-collapse: separate !important;
+                        border-spacing: 0 !important;
+                        margin: 0 !important;
                     }
 
                     .list-table th {
@@ -1391,6 +1482,32 @@ const WebsiteContent = () => {
                         background: #ffedd5;
                     }
 
+                    /* ============================================
+                       DELETE BUTTON
+                    ============================================ */
+
+                    .delete-btn {
+                        border: 1px solid #fecaca;
+                        background: #fff1f2;
+                        color: #dc2626;
+                        min-width: 40px;
+                        height: 36px;
+                        padding: 0 10px;
+                        border-radius: 7px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: 700;
+                        transition: .2s;
+                        margin-left: 6px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .delete-btn:hover {
+                        background: #fee2e2;
+                    }
+
                     .empty-state {
                         padding: 60px 20px;
                         text-align: center;
@@ -1421,6 +1538,7 @@ const WebsiteContent = () => {
                             space-between;
                         gap: 15px;
                         flex-wrap: wrap;
+                        background: #fff;
                     }
 
                     .pagination-info {
@@ -1471,6 +1589,130 @@ const WebsiteContent = () => {
                         min-width: 25px;
                         text-align: center;
                         color: #94a3b8;
+                    }
+
+                    /* ============================================
+                       DELETE MODAL
+                    ============================================ */
+
+                    .delete-modal-overlay {
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(15, 23, 42, .55);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 1050;
+                        padding: 20px;
+                        animation: deleteFadeIn .2s ease;
+                    }
+
+                    .delete-modal-box {
+                        background: #fff;
+                        border-radius: 16px;
+                        width: 100%;
+                        max-width: 420px;
+                        box-shadow:
+                            0 20px 60px
+                            rgba(15, 23, 42, .25);
+                        overflow: hidden;
+                        animation: deletePopIn .25s ease;
+                    }
+
+                    .delete-modal-icon {
+                        width: 56px;
+                        height: 56px;
+                        margin: 24px auto 0;
+                        border-radius: 50%;
+                        background: #fee2e2;
+                        color: #dc2626;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 26px;
+                    }
+
+                    .delete-modal-body {
+                        padding: 16px 26px 20px;
+                        text-align: center;
+                    }
+
+                    .delete-modal-title {
+                        margin: 0 0 8px;
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #111827;
+                    }
+
+                    .delete-modal-text {
+                        margin: 0;
+                        font-size: 13.5px;
+                        color: #64748b;
+                        line-height: 1.55;
+                    }
+
+                    .delete-modal-actions {
+                        display: flex;
+                        gap: 10px;
+                        padding: 16px 22px 22px;
+                        border-top:
+                            1px solid #edf0f4;
+                        background: #fafbfc;
+                    }
+
+                    .delete-modal-actions .btn {
+                        flex: 1;
+                        min-width: 0;
+                        height: 42px;
+                        border-radius: 8px;
+                        border:
+                            1px solid #d9dee7;
+                        font-size: 14px;
+                        font-weight: 600;
+                        cursor: pointer;
+                    }
+
+                    .btn-cancel {
+                        background: #fff;
+                        color: #475569;
+                    }
+
+                    .btn-cancel:hover:not(:disabled) {
+                        background: #f1f5f9;
+                    }
+
+                    .btn-danger {
+                        background: #dc2626;
+                        color: #fff;
+                        border-color: #dc2626;
+                        box-shadow:
+                            0 5px 12px
+                            rgba(220, 38, 38, .20);
+                    }
+
+                    .btn-danger:hover:not(:disabled) {
+                        background: #b91c1c;
+                    }
+
+                    .delete-modal-actions .btn:disabled {
+                        opacity: .7;
+                        cursor: not-allowed;
+                    }
+
+                    @keyframes deleteFadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+
+                    @keyframes deletePopIn {
+                        from {
+                            opacity: 0;
+                            transform: scale(.94);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: scale(1);
+                        }
                     }
 
                     @media (max-width: 768px) {
@@ -1745,6 +1987,9 @@ const WebsiteContent = () => {
                                                     #
                                                 </th>
                                                 <th>
+                                                Type
+                                                </th>
+                                                <th>
                                                     Title
                                                 </th>
 
@@ -1790,6 +2035,14 @@ const WebsiteContent = () => {
                                                         </td>
                                                         {/* TITLE */}
 
+                                                        <td
+                                                            className="title-cell"
+                                                        >
+                                                            {
+                                                                item.productType ||
+                                                                "-"
+                                                            }
+                                                        </td>
                                                         <td
                                                             className="title-cell"
                                                         >
@@ -1886,7 +2139,21 @@ const WebsiteContent = () => {
                                                             >
                                                                 Edit
                                                             </button>
-
+  <button
+                                                                        type="button"
+                                                                        className="action-btn delete-btn"
+                                                                        title="Delete Course"
+                                                                        onClick={() => {
+                                                                            setDeleteId(
+                                                                                item.id
+                                                                            );
+                                                                            setShowDeleteModal(
+                                                                                true
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        <i className="bi bi-trash3"></i>
+                                                                    </button>
                                                         </td>
 
                                                     </tr>
@@ -2051,6 +2318,78 @@ const WebsiteContent = () => {
 
                         </div>
 
+                        {/* =================================================
+                            DELETE MODAL
+                        ================================================= */}
+
+                        {showDeleteModal && (
+
+                            <div
+                                className="delete-modal-overlay"
+                                onClick={closeDeleteModal}
+                            >
+
+                                <div
+                                    className="delete-modal-box"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+
+                                    <div
+                                        className="delete-modal-icon"
+                                    >
+                                        <i className="bi bi-trash3"></i>
+                                    </div>
+
+                                    <div
+                                        className="delete-modal-body"
+                                    >
+
+                                        <h3
+                                            className="delete-modal-title"
+                                        >
+                                            Delete Website Content
+                                        </h3>
+
+                                        <p
+                                            className="delete-modal-text"
+                                        >
+                                            Kya aap sach me ye website content delete karna chahte hain? Ye action undo nahi ho sakta.
+                                        </p>
+
+                                    </div>
+
+                                    <div
+                                        className="delete-modal-actions"
+                                    >
+
+                                        <button
+                                            type="button"
+                                            className="btn btn-cancel"
+                                            onClick={closeDeleteModal}
+                                            disabled={deleteLoading}
+                                        >
+                                            Cancel
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className="btn btn-danger"
+                                            onClick={confirmDelete}
+                                            disabled={deleteLoading}
+                                        >
+                                            {deleteLoading
+                                                ? "Deleting..."
+                                                : "Delete"}
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        )}
+
                     </div>
 
                 </div>
@@ -2141,7 +2480,7 @@ const WebsiteContent = () => {
                 .website-content-page {
                     min-height: 100vh;
                     background: #f5f7fb;
-                    padding: 28px;
+                    padding: 12px;
                     font-family:
                         Inter,
                         Arial,
@@ -2955,7 +3294,7 @@ const WebsiteContent = () => {
                                 <div className="row">
 
                                     <div
-                                        className="col-md-2 mb-3"
+                                        className="col-md-3 mb-3"
                                     >
 
                                         <label
@@ -2978,8 +3317,35 @@ const WebsiteContent = () => {
                                         />
 
                                     </div>
+                                  
                                     <div
-                                        className="col-md-4 mb-3"
+                                        className="col-md-3 mb-3"
+                                    >
+
+                                        <label
+                                            className="form-label"
+                                        >
+                                            Date
+                                        </label>
+
+                                        <input
+                                            type="date"
+                                            name="date"
+                                            value={
+                                                formData.date
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
+                                            className="form-control"
+                                             
+                                        />
+
+                                    </div>
+                                    
+
+                                    <div
+                                        className="col-md-6 mb-3"
                                     >
 
                                         <label
@@ -3004,7 +3370,7 @@ const WebsiteContent = () => {
                                     </div>
 
                                     <div
-                                        className="col-md-6 mb-3 short-desc-editor"
+                                        className="col-md-12 mb-3 short-desc-editor"
                                     >
 
                                         <label

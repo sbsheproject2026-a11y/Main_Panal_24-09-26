@@ -2,6 +2,8 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 function FranchiseSidebar({ sidebarOpen }) {
+  const roleId = String(localStorage.getItem("RoleId") || "").trim();
+ 
   return (
     <>
       {/* <!-- ======= Sidebar ======= --> */}
@@ -100,14 +102,41 @@ function FranchiseSidebar({ sidebarOpen }) {
             </a>
             <ul id="charts-nav" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 
-              <li>
+              {/* <li>
                 <Link to="/student-create">
                   <i className="bi bi-circle"></i><span>Add Student</span>
                 </Link>
+              </li> */}
+
+                  <li>
+  {roleId === "6" ? (
+    <>
+      <Link to="/student-create">
+        <i className="bi bi-circle"></i>
+        <span>Add Student</span>
+      </Link>
+
+      <Link to="/new-student-create">
+        <i className="bi bi-circle"></i>
+        <span>Add Online Student</span>
+      </Link>
+    </>
+  ) : (
+    <Link to="/select-registration-mode">
+      <i className="bi bi-circle"></i>
+      <span>Add Student</span>
+    </Link>
+  )}
+</li>
+
+              <li>
+                <Link to="/student-list?studyModeId=88">
+                  <i className="bi bi-circle"></i><span> Online Student List</span>
+                </Link>
               </li>
               <li>
-                <Link to="/student-list">
-                  <i className="bi bi-circle"></i><span>Student List</span>
+                <Link to="/student-list?studyModeId=89">
+                  <i className="bi bi-circle"></i><span>Offline Student List</span>
                 </Link>
               </li>
               <li>

@@ -46,6 +46,7 @@ import RTIList from "./Enquiries/RTIList";
 import OfflinePaymentList from "./CommanList/OfflinePaymentList";
 import StudentPaymentHistory from "./CommanList/StudentPaymentHistory";
 import AddFranchiseDepartment from "./Frenchise/AddFranchiseDepartment";
+import Menu from "./WebsiteContentData/Menu";
  
  
 
@@ -57,6 +58,7 @@ const adminRoutes = [
     { path: "/mastertypeDetails", element: <MasterTypeDetails />, role: ["5"] },
     { path: "/course-category", element: <CourseCategory />, role: ["5"] },
     { path: "/department", element: <Department />, role: ["5"] },
+    { path: "/menu", element: <Menu />, role: ["5"] },
     { path: "/mastersession", element: <MasterSession />, role: ["5"] },
     { path: "/course-create", element: <CourseCreate />, role: ["5"] },
     { path: "/course-list", element: <CourseList />, role: ["5"] },

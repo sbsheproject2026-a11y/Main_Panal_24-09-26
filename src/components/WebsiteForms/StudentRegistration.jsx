@@ -8,6 +8,7 @@ import {
     getCity,
     getCourse,
     getCourseCategory,
+    getDepartmentData,
     getDistrict,
     getMasterSession,
     getOnlineSession,
@@ -152,15 +153,10 @@ const StudentRegistration = () => {
         return () => document.removeEventListener("keydown", handleEsc);
     }, [showDeclarationModal]);
 
+
     // ✅ Debug log — verify selections
     useEffect(() => {
-        console.log("🎯 Registration Mode:", registrationMode);
-        console.log("📋 Selected Values:", {
-            studyModeId: formData.studyModeId,
-            referenceId: formData.referenceId,
-            franchiseName: formData.franchiseName,
-            stateId: formData.stateId,
-        });
+       
     }, [
         registrationMode,
         formData.studyModeId,
@@ -173,7 +169,7 @@ const StudentRegistration = () => {
         await Promise.all([
             loadState(),
             loadGender(),
-            loadCasteCategory(),
+            loadCasteCategory(formData.referenceId),
             loadCourseType(),
             loadEducationlevels(),
             loadMasterSession(),
@@ -201,9 +197,9 @@ const StudentRegistration = () => {
         }
     };
 
-    const loadCasteCategory = async () => {
+    const loadCasteCategory = async (referenceId) => {
         try {
-            const result = await getStudentData(21);
+            const result = await getDepartmentData(referenceId);
             setCasteCategories(result?.data || []);
         } catch (error) {
             console.error("Caste Category Error:", error);
