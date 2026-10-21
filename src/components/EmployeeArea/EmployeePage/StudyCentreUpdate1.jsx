@@ -500,7 +500,7 @@ const StudyCentreUpdate1 = () => {
                     "Study Centre updated successfully!"
                 );
 
-                navigate("/employee-dashboard");
+                navigate("/franchise-dashboard");
 
                 return;
             }

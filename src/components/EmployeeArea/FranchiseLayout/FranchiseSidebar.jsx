@@ -12,7 +12,7 @@ function FranchiseSidebar({ sidebarOpen }) {
         <ul className="sidebar-nav" id="sidebar-nav">
 
           <li className="nav-item">
-            <Link className="nav-link " to="/employee-dashboard">
+            <Link className="nav-link " to="/franchise-dashboard">
               <i className="bi bi-grid"></i>
               <span>Dashboard</span>
             </Link>

@@ -39,6 +39,18 @@ function MasterTypeDetails() {
   const [masterTypeLoading, setMasterTypeLoading] = useState(false);
   const [masterTypedLoading, setMasterTypedLoading] = useState(false);
 
+  // =========================================================
+  // ✅ TOAST STATE & FUNCTION
+  // =========================================================
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3000); // 3 seconds baad gayab ho jayega
+  };
+
   useEffect(() => {
     loadMasterTypes();
     loadMasterTypeDetails();
@@ -52,7 +64,7 @@ function MasterTypeDetails() {
       setMasterTypes(result?.data || []);
     } catch (error) {
       console.error(error);
-      alert("Unable to load Master Types.");
+      showToast("Unable to load Master Types.", "error");
     } finally {
       setMasterTypeLoading(false);
     }
@@ -65,7 +77,7 @@ function MasterTypeDetails() {
       setMasterTypesdetails(result?.data || []);
     } catch (error) {
       console.error(error);
-      alert("Unable to load Master Types Details.");
+      showToast("Unable to load Master Types Details.", "error");
     } finally {
       setMasterTypedLoading(false);
     }
@@ -79,7 +91,7 @@ function MasterTypeDetails() {
       setCurrentPage(1);
     } catch (error) {
       console.error(error);
-      alert("Unable to load Master Type Details.");
+      showToast("Unable to load Master Type Details.", "error");
     } finally {
       setLoading(false);
     }
@@ -115,7 +127,7 @@ function MasterTypeDetails() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       console.error(error);
-      alert("Unable to load Master Type Detail.");
+      showToast("Unable to load Master Type Detail.", "error");
     }
   };
 
@@ -135,12 +147,12 @@ function MasterTypeDetails() {
     try {
       if (!deleteId) return;
       const result = await getMasterTypeDetailDelete(deleteId);
-      alert(result?.message || result || "Master Type Detail deleted successfully");
+      showToast(result?.message || result || "Master Type Detail deleted successfully", "success");
       closeDeleteModal();
       await loadMasterTypeDetails();
     } catch (error) {
       console.error(error);
-      alert("Unable to delete Master Type Detail.");
+      showToast("Unable to delete Master Type Detail.", "error");
     }
   };
 
@@ -163,7 +175,7 @@ function MasterTypeDetails() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.masterTypeId) {
-      alert("Please select Master Type.");
+      showToast("Please select Master Type.", "error");
       return;
     }
     try {
@@ -174,17 +186,18 @@ function MasterTypeDetails() {
       } else {
         result = await createMasterTypeDetail(formData);
       }
-      alert(
+      showToast(
         result?.message ||
           (formData.id > 0
             ? "Master Type Detail updated successfully"
-            : "Master Type Detail created successfully")
+            : "Master Type Detail created successfully"),
+        "success"
       );
       await loadMasterTypeDetails();
       resetForm();
     } catch (error) {
       console.error(error);
-      alert("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setSaving(false);
     }
@@ -251,567 +264,609 @@ function MasterTypeDetails() {
   };
 
   return (
-    <div className="master-type-details-page">
-      {/* PAGE HEADER */}
-      <div className="page-header mb-4">
-        <div>
-          <div className="d-flex align-items-center gap-2 mb-2">
-            <div className="page-icon detail-icon">
-              <i className="bi bi-diagram-3-fill"></i>
-            </div>
-            <div>
-              <h1 className="page-title mb-0">Master Type Details</h1>
-              <p className="page-subtitle mb-0">Manage master type detail records</p>
-            </div>
+    <>
+      {/* ✅ TOAST UI */}
+      {toast.show && (
+        <div className="custom-toast-container">
+          <div className={`custom-toast ${toast.type}`}>
+            <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}`}></i>
+            {toast.message}
           </div>
         </div>
+      )}
 
-        <nav>
-          <ol className="breadcrumb custom-breadcrumb mb-0">
-            <li className="breadcrumb-item">
-              <a href="index.html">
-                <i className="bi bi-house-door me-1"></i>
-                Dashboard
-              </a>
-            </li>
-            <li className="breadcrumb-item">Master Detail</li>
-            <li className="breadcrumb-item active">Master Type Details</li>
-          </ol>
-        </nav>
-      </div>
-
-      <section className="section">
-        {/* FORM CARD */}
-        <div className="card modern-card border-0 mb-4">
-          <div className="card-body p-0">
-            <div className="card-header-modern">
-              <div className="d-flex align-items-center gap-3">
-                <div className="section-icon">
-                  <i className={formData.id > 0 ? "bi bi-pencil-square" : "bi bi-plus-lg"}></i>
-                </div>
-                <div>
-                  <h5 className="mb-1 fw-bold">
-                    {formData.id > 0 ? "Edit Master Type Detail" : "Add Master Type Detail"}
-                  </h5>
-                  <small className="text-muted">
-                    {formData.id > 0
-                      ? "Update master type detail information"
-                      : "Create a new master type detail"}
-                  </small>
-                </div>
+      <div className="master-type-details-page">
+        {/* PAGE HEADER */}
+        <div className="page-header mb-4">
+          <div>
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <div className="page-icon detail-icon">
+                <i className="bi bi-diagram-3-fill"></i>
               </div>
-
-              {formData.id > 0 && (
-                <button type="button" className="btn btn-light btn-sm reset-btn" onClick={resetForm}>
-                  <i className="bi bi-x-lg me-1"></i>
-                  Cancel Edit
-                </button>
-              )}
-            </div>
-
-            <div className="p-4">
-              <form onSubmit={handleSubmit}>
-                <div className="row g-4">
-                  <div className="col-md-6">
-                    <label className="form-label-modern">
-                      Master Type<span className="text-danger ms-1">*</span>
-                    </label>
-                    <div className="input-group-modern">
-                      <span className="input-icon"><i className="bi bi-diagram-3"></i></span>
-                      <select
-                        className="form-select modern-input modern-select"
-                        required
-                        value={formData.masterTypeId}
-                        onChange={handleMasterTypeChange}
-                        disabled={masterTypeLoading}
-                      >
-                        <option value={0}>
-                          {masterTypeLoading ? "Loading Master Types..." : "Select Master Type"}
-                        </option>
-                        {masterTypes.map((item) => (
-                          <option key={item.id} value={item.id}>{item.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <small className="field-help">Select the parent master type</small>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label-modern">Parent</label>
-                    <div className="input-group-modern">
-                      <span className="input-icon"><i className="bi bi-diagram-3"></i></span>
-                      <select
-                        className="form-select modern-input modern-select"
-                        value={formData.parentId}
-                        onChange={handleMasterTypedChange}
-                        disabled={masterTypedLoading}
-                      >
-                        <option value={0}>
-                          {masterTypedLoading ? "Loading Master Types..." : "Select Master Type"}
-                        </option>
-                        {masterTypesdetsils.map((item) => (
-                          <option key={item.id} value={item.id}>{item.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="col-md-2">
-                    <label className="form-label-modern">SrNo</label>
-                    <div className="input-group-modern">
-                      <span className="input-icon"><i className="bi bi-hash"></i></span>
-                      <input
-                        type="number"
-                        name="srNo"
-                        className="form-control modern-input"
-                        placeholder="Enter srNo"
-                        value={formData.srNo}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-4">
-                    <label className="form-label-modern">Code</label>
-                    <div className="input-group-modern">
-                      <span className="input-icon"><i className="bi bi-hash"></i></span>
-                      <input
-                        type="text"
-                        name="code"
-                        className="form-control modern-input"
-                        placeholder="Enter detail code"
-                        value={formData.code}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <small className="field-help">Enter a unique code for this detail</small>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label-modern">
-                      Name<span className="text-danger ms-1">*</span>
-                    </label>
-                    <div className="input-group-modern">
-                      <span className="input-icon"><i className="bi bi-tag"></i></span>
-                      <input
-                        type="text"
-                        name="name"
-                        className="form-control modern-input"
-                        placeholder="Enter detail name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label-modern">File</label>
-                    <div className="input-group-modern">
-                      <span className="input-icon"><i className="bi bi-file-earmark"></i></span>
-                      <input
-                        type="file"
-                        name="file"
-                        className="form-control modern-input"
-                        accept="image/*,.pdf"
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    {formData.filePath && (
-                      <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "12px" }}>
-                        {/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(formData.filePath) ? (
-                          <a href={`${FILE_URL}${formData.filePath}`} target="_blank" rel="noopener noreferrer">
-                            <img
-                              src={`${FILE_URL}${formData.filePath}`}
-                              alt="File Preview"
-                              style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "6px", border: "1px solid #ddd", cursor: "pointer" }}
-                            />
-                          </a>
-                        ) : /\.pdf$/i.test(formData.filePath) ? (
-                          <a
-                            href={`${FILE_URL}${formData.filePath}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 14px", border: "1px solid #ddd", borderRadius: "6px", textDecoration: "none", color: "#d32f2f", background: "#fff", fontWeight: "600" }}
-                          >
-                            <i className="bi bi-file-earmark-pdf-fill" style={{ fontSize: "24px" }}></i>
-                            <span>View PDF</span>
-                          </a>
-                        ) : (
-                          <a
-                            href={`${FILE_URL}${formData.filePath}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ color: "#ff6600", fontWeight: "600", textDecoration: "none" }}
-                          >
-                            <i className="bi bi-file-earmark"></i> View File
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label-modern">Status</label>
-                    <div className="status-box">
-                      <div className="d-flex align-items-center justify-content-between">
-                        <div className="d-flex align-items-center gap-3">
-                          <div className={formData.isActive === 1 ? "status-icon active" : "status-icon inactive"}>
-                            <i className={formData.isActive === 1 ? "bi bi-check-lg" : "bi bi-pause-fill"}></i>
-                          </div>
-                          <div>
-                            <div className="fw-semibold">
-                              {formData.isActive === 1 ? "Active" : "Inactive"}
-                            </div>
-                            <small className="text-muted">
-                              {formData.isActive === 1 ? "This detail is active" : "This detail is inactive"}
-                            </small>
-                          </div>
-                        </div>
-                        <div className="form-check form-switch mb-0">
-                          <input
-                            className="form-check-input custom-switch"
-                            type="checkbox"
-                            checked={formData.isActive === 1}
-                            onChange={(e) =>
-                              setFormData((prev) => ({ ...prev, isActive: e.target.checked ? 1 : 0 }))
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="col-12">
-                    <div className="form-actions">
-                      <button type="submit" className="btn btn-primary modern-primary-btn" disabled={saving}>
-                        {saving ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <i className={formData.id > 0 ? "bi bi-check2-circle me-2" : "bi bi-plus-lg me-2"}></i>
-                            {formData.id > 0 ? "Update Detail" : "Create Detail"}
-                          </>
-                        )}
-                      </button>
-
-                      <button type="button" className="btn btn-light modern-reset-btn" onClick={resetForm}>
-                        <i className="bi bi-arrow-counterclockwise me-2"></i>
-                        Reset
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </form>
+              <div>
+                <h1 className="page-title mb-0">Master Type Details</h1>
+                <p className="page-subtitle mb-0">Manage master type detail records</p>
+              </div>
             </div>
           </div>
+
+          <nav>
+            <ol className="breadcrumb custom-breadcrumb mb-0">
+              <li className="breadcrumb-item">
+                <a href="index.html">
+                  <i className="bi bi-house-door me-1"></i>
+                  Dashboard
+                </a>
+              </li>
+              <li className="breadcrumb-item">Master Detail</li>
+              <li className="breadcrumb-item active">Master Type Details</li>
+            </ol>
+          </nav>
         </div>
 
-        {/* LIST CARD */}
-        <div className="card modern-card border-0">
-          <div className="card-body p-0">
-            <div className="card-header-modern">
-              <div className="d-flex align-items-center gap-3">
-                <div className="section-icon purple">
-                  <i className="bi bi-list-ul"></i>
-                </div>
-                <div>
-                  <h5 className="mb-1 fw-bold">Master Type Details List</h5>
-                  <small className="text-muted">View and manage all detail records</small>
-                </div>
-              </div>
-              <div className="record-count">
-                <span>{filteredData.length}</span>
-                <small>Records</small>
-              </div>
-            </div>
-
-            <div className="p-4">
-              <div className="table-toolbar mb-4">
-                <div className="entries-control">
-                  <span className="text-muted">Show</span>
-                  <select className="form-select entries-select" value={itemsPerPage} onChange={handleItemsPerPageChange}>
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                  <span className="text-muted">entries</span>
+        <section className="section">
+          {/* FORM CARD */}
+          <div className="card modern-card border-0 mb-4">
+            <div className="card-body p-0">
+              <div className="card-header-modern">
+                <div className="d-flex align-items-center gap-3">
+                  <div className="section-icon">
+                    <i className={formData.id > 0 ? "bi bi-pencil-square" : "bi bi-plus-lg"}></i>
+                  </div>
+                  <div>
+                    <h5 className="mb-1 fw-bold">
+                      {formData.id > 0 ? "Edit Master Type Detail" : "Add Master Type Detail"}
+                    </h5>
+                    <small className="text-muted">
+                      {formData.id > 0
+                        ? "Update master type detail information"
+                        : "Create a new master type detail"}
+                    </small>
+                  </div>
                 </div>
 
-                <div className="search-wrapper">
-                  <i className="bi bi-search"></i>
-                  <input
-                    type="text"
-                    className="form-control search-input"
-                    placeholder="Search type, code or name..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                  />
-                  {searchTerm && (
-                    <button
-                      type="button"
-                      className="search-clear"
-                      onClick={() => {
-                        setSearchTerm("");
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <i className="bi bi-x-circle-fill"></i>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <div className="showing-text">
-                  {filteredData.length > 0 ? (
-                    <>
-                      Showing <strong>{startIndex + 1}</strong> to{" "}
-                      <strong>{Math.min(endIndex, filteredData.length)}</strong>{" "}
-                      of <strong>{filteredData.length}</strong> records
-                    </>
-                  ) : (
-                    "No records available"
-                  )}
-                </div>
-                {searchTerm && (
-                  <span className="search-result-label">
-                    <i className="bi bi-funnel me-1"></i>
-                    Filtered
-                  </span>
+                {formData.id > 0 && (
+                  <button type="button" className="btn btn-light btn-sm reset-btn" onClick={resetForm}>
+                    <i className="bi bi-x-lg me-1"></i>
+                    Cancel Edit
+                  </button>
                 )}
               </div>
 
-              {/* ✅ TABLE — Visible Scrollbar */}
-              <div className="modern-table-responsive">
-                <table className="table modern-table align-middle mb-0">
-                  <thead>
-                    <tr>
-                      <th style={{ width: "65px" }}>#</th>
-                      <th>Code</th>
-                      <th>Detail Name</th>
-                      <th>Master Type</th>
-                      <th style={{ width: "130px" }}>Status</th>
-                      <th style={{ width: "200px" }}>File</th>
-                      <th className="text-center" style={{ width: "120px" }}>Action</th>
-                    </tr>
-                  </thead>
+              <div className="p-4">
+                <form onSubmit={handleSubmit}>
+                  <div className="row g-4">
+                    <div className="col-md-6">
+                      <label className="form-label-modern">
+                        Master Type<span className="text-danger ms-1">*</span>
+                      </label>
+                      <div className="input-group-modern">
+                        <span className="input-icon"><i className="bi bi-diagram-3"></i></span>
+                        <select
+                          className="form-select modern-input modern-select"
+                          required
+                          value={formData.masterTypeId}
+                          onChange={handleMasterTypeChange}
+                          disabled={masterTypeLoading}
+                        >
+                          <option value={0}>
+                            {masterTypeLoading ? "Loading Master Types..." : "Select Master Type"}
+                          </option>
+                          {masterTypes.map((item) => (
+                            <option key={item.id} value={item.id}>{item.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <small className="field-help">Select the parent master type</small>
+                    </div>
 
-                  <tbody>
-                    {loading ? (
-                      <tr>
-                        <td colSpan="7" className="text-center py-5">
-                          <div className="spinner-border text-primary" role="status"></div>
-                          <div className="mt-2 text-muted">Loading details...</div>
-                        </td>
-                      </tr>
-                    ) : currentData.length > 0 ? (
-                      currentData.map((item, index) => {
-                        const masterTypeName = getMasterTypeName(item);
-                        return (
-                          <tr key={item.id}>
-                            <td>
-                              <span className="row-number">{startIndex + index + 1}</span>
-                            </td>
+                    <div className="col-md-6">
+                      <label className="form-label-modern">Parent</label>
+                      <div className="input-group-modern">
+                        <span className="input-icon"><i className="bi bi-diagram-3"></i></span>
+                        <select
+                          className="form-select modern-input modern-select"
+                          value={formData.parentId}
+                          onChange={handleMasterTypedChange}
+                          disabled={masterTypedLoading}
+                        >
+                          <option value={0}>
+                            {masterTypedLoading ? "Loading Master Types..." : "Select Master Type"}
+                          </option>
+                          {masterTypesdetsils.map((item) => (
+                            <option key={item.id} value={item.id}>{item.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
 
-                            <td>
-                              <span className="code-badge">{item.code || "—"}</span>
-                            </td>
+                    <div className="col-md-2">
+                      <label className="form-label-modern">SrNo</label>
+                      <div className="input-group-modern">
+                        <span className="input-icon"><i className="bi bi-hash"></i></span>
+                        <input
+                          type="number"
+                          name="srNo"
+                          className="form-control modern-input"
+                          placeholder="Enter srNo"
+                          value={formData.srNo}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    </div>
 
-                            <td>
-                              <div className="name-cell">
-                                <div className="name-avatar detail-avatar">
-                                  {item.name?.charAt(0)?.toUpperCase() || "D"}
-                                </div>
-                                <div>
-                                  <div className="fw-semibold">{item.name}</div>
-                                  <small className="text-muted">Master Detail</small>
-                                </div>
-                              </div>
-                            </td>
+                    <div className="col-md-4">
+                      <label className="form-label-modern">Code</label>
+                      <div className="input-group-modern">
+                        <span className="input-icon"><i className="bi bi-hash"></i></span>
+                        <input
+                          type="text"
+                          name="code"
+                          className="form-control modern-input"
+                          placeholder="Enter detail code"
+                          value={formData.code}
+                          onChange={handleChange}
+                        />
+                      </div>
+                      <small className="field-help">Enter a unique code for this detail</small>
+                    </div>
 
-                            <td>
-                              <div className="master-type-cell">
-                                <div className="master-type-icon">
-                                  <i className="bi bi-diagram-3"></i>
-                                </div>
-                                <div>
-                                  <div className="fw-semibold">{masterTypeName}</div>
-                                  <small className="text-muted">Parent Type</small>
-                                </div>
-                              </div>
-                            </td>
+                    <div className="col-md-6">
+                      <label className="form-label-modern">
+                        Name<span className="text-danger ms-1">*</span>
+                      </label>
+                      <div className="input-group-modern">
+                        <span className="input-icon"><i className="bi bi-tag"></i></span>
+                        <input
+                          type="text"
+                          name="name"
+                          className="form-control modern-input"
+                          placeholder="Enter detail name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                    </div>
 
-                            <td>
-                              {item.isActive === 1 ? (
-                                <span className="status-badge active">
-                                  <span className="status-dot"></span>
-                                  Active
-                                </span>
-                              ) : (
-                                <span className="status-badge inactive">
-                                  <span className="status-dot"></span>
-                                  Inactive
-                                </span>
-                              )}
-                            </td>
+                    <div className="col-md-6">
+                      <label className="form-label-modern">File</label>
+                      <div className="input-group-modern">
+                        <span className="input-icon"><i className="bi bi-file-earmark"></i></span>
+                        <input
+                          type="file"
+                          name="file"
+                          className="form-control modern-input"
+                          accept="image/*,.pdf"
+                          onChange={handleChange}
+                        />
+                      </div>
 
-                            <td>
-                              <span className="code-badge file-path-badge">
-                                {item.filePath || "—"}
-                              </span>
-                            </td>
+                      {formData.filePath && (
+                        <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "12px" }}>
+                          {/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(formData.filePath) ? (
+                            <a href={`${FILE_URL}${formData.filePath}`} target="_blank" rel="noopener noreferrer">
+                              <img
+                                src={`${FILE_URL}${formData.filePath}`}
+                                alt="File Preview"
+                                style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "6px", border: "1px solid #ddd", cursor: "pointer" }}
+                              />
+                            </a>
+                          ) : /\.pdf$/i.test(formData.filePath) ? (
+                            <a
+                              href={`${FILE_URL}${formData.filePath}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 14px", border: "1px solid #ddd", borderRadius: "6px", textDecoration: "none", color: "#d32f2f", background: "#fff", fontWeight: "600" }}
+                            >
+                              <i className="bi bi-file-earmark-pdf-fill" style={{ fontSize: "24px" }}></i>
+                              <span>View PDF</span>
+                            </a>
+                          ) : (
+                            <a
+                              href={`${FILE_URL}${formData.filePath}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: "#ff6600", fontWeight: "600", textDecoration: "none" }}
+                            >
+                              <i className="bi bi-file-earmark"></i> View File
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
-                            <td>
-                              <div className="action-buttons">
-                                <button
-                                  type="button"
-                                  className="action-btn edit"
-                                  title="Edit"
-                                  onClick={() => handleEdit(item.id)}
-                                >
-                                  <i className="bi bi-pencil"></i>
-                                </button>
-                                <button
-                                  type="button"
-                                  className="action-btn delete"
-                                  title="Delete"
-                                  onClick={() => handleDelete(item.id, item.name)}
-                                >
-                                  <i className="bi bi-trash3"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan="7" className="text-center py-5">
-                          <div className="empty-state">
-                            <div className="empty-icon">
-                              <i className="bi bi-inbox"></i>
+                    <div className="col-md-6">
+                      <label className="form-label-modern">Status</label>
+                      <div className="status-box">
+                        <div className="d-flex align-items-center justify-content-between">
+                          <div className="d-flex align-items-center gap-3">
+                            <div className={formData.isActive === 1 ? "status-icon active" : "status-icon inactive"}>
+                              <i className={formData.isActive === 1 ? "bi bi-check-lg" : "bi bi-pause-fill"}></i>
                             </div>
-                            <h6 className="fw-bold mt-3">No Master Type Details Found</h6>
-                            <p className="text-muted mb-0">
-                              {searchTerm
-                                ? "Try changing your search keyword."
-                                : "There are no detail records available."}
-                            </p>
+                            <div>
+                              <div className="fw-semibold">
+                                {formData.isActive === 1 ? "Active" : "Inactive"}
+                              </div>
+                              <small className="text-muted">
+                                {formData.isActive === 1 ? "This detail is active" : "This detail is inactive"}
+                              </small>
+                            </div>
                           </div>
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                          <div className="form-check form-switch mb-0">
+                            <input
+                              className="form-check-input custom-switch"
+                              type="checkbox"
+                              checked={formData.isActive === 1}
+                              onChange={(e) =>
+                                setFormData((prev) => ({ ...prev, isActive: e.target.checked ? 1 : 0 }))
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-              {totalPages > 0 && (
-                <div className="pagination-wrapper mt-4">
-                  <button
-                    type="button"
-                    className="pagination-btn"
-                    onClick={handlePrevious}
-                    disabled={currentPage === 1}
-                  >
-                    <i className="bi bi-chevron-left"></i>
-                    <span>Previous</span>
-                  </button>
+                    <div className="col-12">
+                      <div className="form-actions">
+                        <button type="submit" className="btn btn-primary modern-primary-btn" disabled={saving}>
+                          {saving ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <i className={formData.id > 0 ? "bi bi-check2-circle me-2" : "bi bi-plus-lg me-2"}></i>
+                              {formData.id > 0 ? "Update Detail" : "Create Detail"}
+                            </>
+                          )}
+                        </button>
 
-                  <div className="page-numbers">
-                    {pageNumbers.map((page) => (
-                      <button
-                        type="button"
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={currentPage === page ? "page-number active" : "page-number"}
-                      >
-                        {page}
-                      </button>
-                    ))}
+                        <button type="button" className="btn btn-light modern-reset-btn" onClick={resetForm}>
+                          <i className="bi bi-arrow-counterclockwise me-2"></i>
+                          Reset
+                        </button>
+                      </div>
+                    </div>
                   </div>
-
-                  <button
-                    type="button"
-                    className="pagination-btn"
-                    onClick={handleNext}
-                    disabled={currentPage === totalPages}
-                  >
-                    <span>Next</span>
-                    <i className="bi bi-chevron-right"></i>
-                  </button>
-                </div>
-              )}
+                </form>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* DELETE MODAL */}
-      {deleteModal && (
-        <>
-          <div
-            className="modal fade show"
-            style={{
-              display: "block",
-              backgroundColor: "rgba(15, 23, 42, 0.65)",
-              backdropFilter: "blur(3px)",
-            }}
-            tabIndex="-1"
-          >
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content delete-modal">
-                <div className="delete-modal-top">
-                  <button type="button" className="delete-close-btn" onClick={closeDeleteModal}>
-                    <i className="bi bi-x-lg"></i>
-                  </button>
-                  <div className="delete-icon">
-                    <i className="bi bi-trash3-fill"></i>
-                  </div>
-                  <h4 className="fw-bold mt-3 mb-2">Delete Detail?</h4>
-                  <p className="text-muted mb-0">
-                    You are about to permanently delete this master type detail.
-                  </p>
-                </div>
-
-                <div className="delete-record">
-                  <div className="delete-record-icon">
-                    {deleteMasterTypeDetailName?.charAt(0)?.toUpperCase() || "D"}
+          {/* LIST CARD */}
+          <div className="card modern-card border-0">
+            <div className="card-body p-0">
+              <div className="card-header-modern">
+                <div className="d-flex align-items-center gap-3">
+                  <div className="section-icon purple">
+                    <i className="bi bi-list-ul"></i>
                   </div>
                   <div>
-                    <small className="text-muted">Master Type Detail</small>
-                    <div className="fw-bold">{deleteMasterTypeDetailName}</div>
+                    <h5 className="mb-1 fw-bold">Master Type Details List</h5>
+                    <small className="text-muted">View and manage all detail records</small>
+                  </div>
+                </div>
+                <div className="record-count">
+                  <span>{filteredData.length}</span>
+                  <small>Records</small>
+                </div>
+              </div>
+
+              <div className="p-4">
+                <div className="table-toolbar mb-4">
+                  <div className="entries-control">
+                    <span className="text-muted">Show</span>
+                    <select className="form-select entries-select" value={itemsPerPage} onChange={handleItemsPerPageChange}>
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                    <span className="text-muted">entries</span>
+                  </div>
+
+                  <div className="search-wrapper">
+                    <i className="bi bi-search"></i>
+                    <input
+                      type="text"
+                      className="form-control search-input"
+                      placeholder="Search type, code or name..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                    />
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        className="search-clear"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <i className="bi bi-x-circle-fill"></i>
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                <div className="delete-warning">
-                  <i className="bi bi-exclamation-triangle-fill"></i>
-                  <span>This action cannot be undone.</span>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div className="showing-text">
+                    {filteredData.length > 0 ? (
+                      <>
+                        Showing <strong>{startIndex + 1}</strong> to{" "}
+                        <strong>{Math.min(endIndex, filteredData.length)}</strong>{" "}
+                        of <strong>{filteredData.length}</strong> records
+                      </>
+                    ) : (
+                      "No records available"
+                    )}
+                  </div>
+                  {searchTerm && (
+                    <span className="search-result-label">
+                      <i className="bi bi-funnel me-1"></i>
+                      Filtered
+                    </span>
+                  )}
                 </div>
 
-                <div className="delete-modal-footer">
-                  <button type="button" className="btn btn-light cancel-delete-btn" onClick={closeDeleteModal}>
-                    Cancel
-                  </button>
-                  <button type="button" className="btn confirm-delete-btn" onClick={confirmDelete}>
-                    <i className="bi bi-trash3 me-2"></i>
-                    Delete Permanently
-                  </button>
+                {/* ✅ TABLE — Visible Scrollbar */}
+                <div className="modern-table-responsive">
+                  <table className="table modern-table align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th style={{ width: "65px" }}>#</th>
+                        <th>Code</th>
+                        <th>Detail Name</th>
+                        <th>Master Type</th>
+                        <th style={{ width: "130px" }}>Status</th>
+                        <th style={{ width: "200px" }}>File</th>
+                        <th className="text-center" style={{ width: "120px" }}>Action</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {loading ? (
+                        <tr>
+                          <td colSpan="7" className="text-center py-5">
+                            <div className="spinner-border text-primary" role="status"></div>
+                            <div className="mt-2 text-muted">Loading details...</div>
+                          </td>
+                        </tr>
+                      ) : currentData.length > 0 ? (
+                        currentData.map((item, index) => {
+                          const masterTypeName = getMasterTypeName(item);
+                          return (
+                            <tr key={item.id}>
+                              <td>
+                                <span className="row-number">{startIndex + index + 1}</span>
+                              </td>
+
+                              <td>
+                                <span className="code-badge">{item.code || "—"}</span>
+                              </td>
+
+                              <td>
+                                <div className="name-cell">
+                                  <div className="name-avatar detail-avatar">
+                                    {item.name?.charAt(0)?.toUpperCase() || "D"}
+                                  </div>
+                                  <div>
+                                    <div className="fw-semibold">{item.name}</div>
+                                    <small className="text-muted">Master Detail</small>
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td>
+                                <div className="master-type-cell">
+                                  <div className="master-type-icon">
+                                    <i className="bi bi-diagram-3"></i>
+                                  </div>
+                                  <div>
+                                    <div className="fw-semibold">{masterTypeName}</div>
+                                    <small className="text-muted">Parent Type</small>
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td>
+                                {item.isActive === 1 ? (
+                                  <span className="status-badge active">
+                                    <span className="status-dot"></span>
+                                    Active
+                                  </span>
+                                ) : (
+                                  <span className="status-badge inactive">
+                                    <span className="status-dot"></span>
+                                    Inactive
+                                  </span>
+                                )}
+                              </td>
+
+                              <td>
+                                <span className="code-badge file-path-badge">
+                                  {item.filePath || "—"}
+                                </span>
+                              </td>
+
+                              <td>
+                                <div className="action-buttons">
+                                  <button
+                                    type="button"
+                                    className="action-btn edit"
+                                    title="Edit"
+                                    onClick={() => handleEdit(item.id)}
+                                  >
+                                    <i className="bi bi-pencil"></i>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="action-btn delete"
+                                    title="Delete"
+                                    onClick={() => handleDelete(item.id, item.name)}
+                                  >
+                                    <i className="bi bi-trash3"></i>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan="7" className="text-center py-5">
+                            <div className="empty-state">
+                              <div className="empty-icon">
+                                <i className="bi bi-inbox"></i>
+                              </div>
+                              <h6 className="fw-bold mt-3">No Master Type Details Found</h6>
+                              <p className="text-muted mb-0">
+                                {searchTerm
+                                  ? "Try changing your search keyword."
+                                  : "There are no detail records available."}
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
+
+                {totalPages > 0 && (
+                  <div className="pagination-wrapper mt-4">
+                    <button
+                      type="button"
+                      className="pagination-btn"
+                      onClick={handlePrevious}
+                      disabled={currentPage === 1}
+                    >
+                      <i className="bi bi-chevron-left"></i>
+                      <span>Previous</span>
+                    </button>
+
+                    <div className="page-numbers">
+                      {pageNumbers.map((page) => (
+                        <button
+                          type="button"
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={currentPage === page ? "page-number active" : "page-number"}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="pagination-btn"
+                      onClick={handleNext}
+                      disabled={currentPage === totalPages}
+                    >
+                      <span>Next</span>
+                      <i className="bi bi-chevron-right"></i>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          <div className="modal-backdrop fade show"></div>
-        </>
-      )}
+        </section>
+
+        {/* DELETE MODAL */}
+        {deleteModal && (
+          <>
+            <div
+              className="modal fade show"
+              style={{
+                display: "block",
+                backgroundColor: "rgba(15, 23, 42, 0.65)",
+                backdropFilter: "blur(3px)",
+              }}
+              tabIndex="-1"
+            >
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content delete-modal">
+                  <div className="delete-modal-top">
+                    <button type="button" className="delete-close-btn" onClick={closeDeleteModal}>
+                      <i className="bi bi-x-lg"></i>
+                    </button>
+                    <div className="delete-icon">
+                      <i className="bi bi-trash3-fill"></i>
+                    </div>
+                    <h4 className="fw-bold mt-3 mb-2">Delete Detail?</h4>
+                    <p className="text-muted mb-0">
+                      You are about to permanently delete this master type detail.
+                    </p>
+                  </div>
+
+                  <div className="delete-record">
+                    <div className="delete-record-icon">
+                      {deleteMasterTypeDetailName?.charAt(0)?.toUpperCase() || "D"}
+                    </div>
+                    <div>
+                      <small className="text-muted">Master Type Detail</small>
+                      <div className="fw-bold">{deleteMasterTypeDetailName}</div>
+                    </div>
+                  </div>
+
+                  <div className="delete-warning">
+                    <i className="bi bi-exclamation-triangle-fill"></i>
+                    <span>This action cannot be undone.</span>
+                  </div>
+
+                  <div className="delete-modal-footer">
+                    <button type="button" className="btn btn-light cancel-delete-btn" onClick={closeDeleteModal}>
+                      Cancel
+                    </button>
+                    <button type="button" className="btn confirm-delete-btn" onClick={confirmDelete}>
+                      <i className="bi bi-trash3 me-2"></i>
+                      Delete Permanently
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-backdrop fade show"></div>
+          </>
+        )}
+      </div>
 
       {/* CUSTOM CSS */}
       <style>{`
+        /* ================= TOAST CSS ================= */
+        .custom-toast-container {
+          position: fixed;
+          top: 25px;
+          right: 25px;
+          z-index: 99999;
+          animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        .custom-toast {
+          min-width: 300px;
+          padding: 16px 20px;
+          border-radius: 10px;
+          color: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .custom-toast.success { background: #16a34a; }
+        .custom-toast.error { background: #dc2626; }
+
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
         /* ================= PAGE — NO HORIZONTAL SCROLL ================= */
         html, body, #root {
           width: 100%;
@@ -1535,7 +1590,7 @@ function MasterTypeDetails() {
           .confirm-delete-btn { width: 100%; }
         }
       `}</style>
-    </div>
+    </>
   );
 }
 

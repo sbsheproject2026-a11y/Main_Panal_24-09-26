@@ -445,6 +445,7 @@ const WebsiteContent = () => {
                 srNo1:  data.srNo1 ??  null,
 
                 title: data.title ??  "",
+              date: data.date ? data.date.split('T')[0] : "",
 
                 subTitle:  data.subTitle ??  "",
 
@@ -483,28 +484,17 @@ const WebsiteContent = () => {
                                 Date.now() +
                                 index,
 
-                            documentId:
-                                item.id ??
-                                0,
+                            documentId:  item.id ??  0,
 
-                            srNo:
-                                item.srNo ??
-                                null,
+                            srNo: item.srNo ??  null,
 
-                            name:
-                                item.title ??
-                                "",
+                            name:  item.title ??  "",
 
-                            file:
-                                null,
+                            file:  null,
 
-                            oldFile:
-                                item.path ??
-                                "",
+                            oldFile:  item.path ??  "",
 
-                            altTag:
-                                item.altTag ??
-                                "",
+                            altTag:  item.altTag ??  "",
 
                             isActive:
                                 item.isActive === 1 ||
@@ -575,10 +565,10 @@ const WebsiteContent = () => {
     // OPEN DELETE MODAL
     // =========================================================
 
-    const openDeleteModal = (id) => {
-        setDeleteId(id);
-        setShowDeleteModal(true);
-    };
+    // const openDeleteModal = (id) => {
+    //     setDeleteId(id);
+    //     setShowDeleteModal(true);
+    // };
 
     // =========================================================
     // CLOSE DELETE MODAL
@@ -802,6 +792,18 @@ const WebsiteContent = () => {
 
             let result;
 
+            // ✅ FIX: Old file path mapping
+            const formattedContentItems = contentItems.map(item => {
+                return {
+                    ...item,
+                    // Agar new file upload nahi hui hai, toh oldFile path ko 'file' aur 'path' property me bhejenge
+                    // Jisse backend purani image ka path save kar sake
+                    file: item.file ? item.file : item.oldFile,
+                    path: item.oldFile,
+                    title: item.name // Backend sometimes expects title instead of name
+                };
+            });
+
             // =================================================
             // CREATE
             // =================================================
@@ -812,43 +814,27 @@ const WebsiteContent = () => {
 
                 const payload = {
 
-                    productTypeId:
-                        Number(
-                            formData.productTypeId
-                        ),
+                    productTypeId: Number(formData.productTypeId),
 
                     srNo1:  formData.srNo1,
                     date:  formData.date,
 
-                    title:
-                        formData.title,
+                    title:  formData.title,
 
-                    subTitle:
-                        formData.subTitle,
+                    subTitle:  formData.subTitle,
 
-                    shortDesc:
-                        formData.shortDesc,
+                    shortDesc:  formData.shortDesc,
 
-                    desc:
-                        formData.desc,
+                    desc:  formData.desc,
 
-                    seoTitle:
-                        formData.seoTitle,
+                    seoTitle:  formData.seoTitle,
 
-                    isActive:
-                        formData.isActive,
+                    isActive:  formData.isActive,
 
-                    isHighlight:
-                        formData.isHighlight,
+                    isHighlight:  formData.isHighlight,
 
-                    contentItems:
-                        contentItems,
+                    contentItems: formattedContentItems, // 👈 Yahan updated items use kiye
                 };
-
-                console.log(
-                    "CREATE PAYLOAD:",
-                    payload
-                );
 
                 result =
                     await createWebsiteContent(
@@ -900,19 +886,10 @@ const WebsiteContent = () => {
                     isDelete:
                         formData.isDelete,
 
-                    contentItems:
-                        contentItems,
+                    contentItems: formattedContentItems, // 👈 Yahan updated items use kiye
                 };
 
-                console.log(
-                    "UPDATE PAYLOAD:",
-                    payload
-                );
-
-                result =
-                    await updateWebsiteContent(
-                        payload
-                    );
+                result =  await updateWebsiteContent(payload);
             }
 
             console.log(
@@ -1468,7 +1445,7 @@ const WebsiteContent = () => {
                             1px solid #fed7aa;
                         background: #fff7ed;
                         color: #ea580c;
-                        min-width: 72px;
+                        min-width: 30px;
                         height: 36px;
                         padding: 0 12px;
                         border-radius: 7px;
@@ -2137,7 +2114,7 @@ const WebsiteContent = () => {
                                                                     )
                                                                 }
                                                             >
-                                                                Edit
+                                                                 <i className="bi bi-pencil-square"></i>
                                                             </button>
   <button
                                                                         type="button"
@@ -3720,6 +3697,7 @@ const WebsiteContent = () => {
                                                                     className="file-input"
                                                                     accept="image/*,.pdf,.doc,.docx"
                                                                 />
+                                                                
 
                                                                 {item.oldFile && (
 
@@ -3862,24 +3840,7 @@ const WebsiteContent = () => {
                                                                 }}
                                                             >
 
-                                                                {item.file && (
-
-                                                                    <small
-                                                                        style={{
-                                                                            color:
-                                                                                "#15803d",
-                                                                            fontWeight:
-                                                                                600,
-                                                                        }}
-                                                                    >
-                                                                        Selected File:
-                                                                        {" "}
-                                                                        {
-                                                                            item.file.name
-                                                                        }
-                                                                    </small>
-
-                                                                )}
+                                                                 
 
                                                             </td>
 

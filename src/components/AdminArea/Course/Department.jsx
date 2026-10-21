@@ -39,6 +39,18 @@ function Department() {
   const [masterTypeLoading, setMasterTypeLoading] = useState(false);
   const [masterTypedLoading, setMasterTypedLoading] = useState(false);
 
+  // =========================================================
+  // ✅ TOAST STATE & FUNCTION
+  // =========================================================
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3000); // 3 seconds baad gayab ho jayega
+  };
+
   useEffect(() => {
     loadMasterTypes();
     loadMasterTypeDetails();
@@ -52,7 +64,7 @@ function Department() {
       setMasterTypes(result?.data || []);
     } catch (error) {
       console.error(error);
-      alert("Unable to load Master Types.");
+      showToast("Unable to load Master Types.", "error");
     } finally {
       setMasterTypeLoading(false);
     }
@@ -65,7 +77,7 @@ function Department() {
       setMasterTypesdetails(result?.data || []);
     } catch (error) {
       console.error(error);
-      alert("Unable to load Master Types Details.");
+      showToast("Unable to load Master Types Details.", "error");
     } finally {
       setMasterTypedLoading(false);
     }
@@ -82,7 +94,7 @@ function Department() {
       setCurrentPage(1);
     } catch (error) {
       console.error(error);
-      alert("Unable to load Departments.");
+      showToast("Unable to load Departments.", "error");
     } finally {
       setLoading(false);
     }
@@ -121,7 +133,7 @@ function Department() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       console.error(error);
-      alert("Unable to load Department.");
+      showToast("Unable to load Department.", "error");
     }
   };
 
@@ -141,12 +153,15 @@ function Department() {
     try {
       if (!deleteId) return;
       const result = await getMasterTypeDetailDelete(deleteId);
-      alert(result?.message || result || "Department deleted successfully");
+      
+      // ✅ ALERT KI JAGAH TOAST
+      showToast(result?.message || result || "Department deleted successfully", "success");
+      
       closeDeleteModal();
       await loadMasterTypeDetails();
     } catch (error) {
       console.error(error);
-      alert("Unable to delete Department.");
+      showToast("Unable to delete Department.", "error");
     }
   };
 
@@ -165,7 +180,7 @@ function Department() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.masterTypeId) {
-      alert("Please select Master Type.");
+      showToast("Please select Master Type.", "error");
       return;
     }
     try {
@@ -176,17 +191,21 @@ function Department() {
       } else {
         result = await createMasterTypeDetail(formData);
       }
-      alert(
+      
+      // ✅ ALERT KI JAGAH TOAST
+      showToast(
         result?.message ||
           (formData.id > 0
             ? "Department updated successfully"
-            : "Department created successfully")
+            : "Department created successfully"),
+        "success"
       );
+      
       await loadMasterTypeDetails();
       resetForm();
     } catch (error) {
       console.error(error);
-      alert("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setSaving(false);
     }
@@ -254,24 +273,48 @@ function Department() {
     return masterType?.name || "—";
   };
 
-  // ✅ Parent name — pehle API ka parentName, phir lookup
   const getParentName = (item) => {
-    // 1. API se parentName aaya hai to wahi use karo
     if (item?.parentName) return item.parentName;
-
-    // 2. Warna masterTypesdetsils me lookup karo
     if (!item?.parentId) return "—";
-
     const found = masterTypesdetsils.find(
       (x) => Number(x.id) === Number(item.parentId)
     );
-
     return found?.name || "—";
   };
 
   return (
     <>
       <style>{`
+        /* ================= TOAST CSS ================= */
+        .custom-toast-container {
+          position: fixed;
+          top: 25px;
+          right: 25px;
+          z-index: 99999;
+          animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        .custom-toast {
+          min-width: 300px;
+          padding: 16px 20px;
+          border-radius: 10px;
+          color: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .custom-toast.success { background: #16a34a; }
+        .custom-toast.error { background: #dc2626; }
+
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
         /* ================= PAGE ================= */
         html, body, #root {
           width: 100%;
@@ -972,6 +1015,16 @@ function Department() {
         }
       `}</style>
 
+      {/* ✅ TOAST UI */}
+      {toast.show && (
+        <div className="custom-toast-container">
+          <div className={`custom-toast ${toast.type}`}>
+            <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}`}></i>
+            {toast.message}
+          </div>
+        </div>
+      )}
+
       <div className="department-page">
         {/* PAGE HEADER */}
         <div className="page-header mb-4">
@@ -1347,7 +1400,6 @@ function Department() {
                                 </div>
                               </td>
 
-                              {/* ✅ Study Mode / Parent Name */}
                               <td>
                                 <span className="code-badge">
                                   {getParentName(item)}

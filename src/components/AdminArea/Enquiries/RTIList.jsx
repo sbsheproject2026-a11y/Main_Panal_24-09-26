@@ -37,6 +37,18 @@ function RTIList() {
   const [updateError, setUpdateError] = useState("");
 
   // =========================================================
+  // ✅ TOAST STATE & FUNCTION
+  // =========================================================
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3000); // 3 seconds baad gayab ho jayega
+  };
+
+  // =========================================================
   // LOAD DATA
   // =========================================================
   useEffect(() => {
@@ -94,12 +106,12 @@ function RTIList() {
       if (!deleteId) return;
       setDeleteLoading(true);
       const result = await deleteRTI(deleteId);
-      alert(result?.message || result || "RTI deleted successfully");
+      showToast(result?.message || result || "RTI deleted successfully", "success");
       closeDeleteModal();
       await loadRTIList();
     } catch (error) {
       console.log(error);
-      alert("Unable to delete RTI.");
+      showToast("Unable to delete RTI.", "error");
     } finally {
       setDeleteLoading(false);
     }
@@ -149,7 +161,7 @@ function RTIList() {
 
       const result = await updateRtiStatus(payload);
       console.log("Update Response:", result);
-      alert(result?.message || "RTI updated successfully");
+      showToast(result?.message || "RTI updated successfully", "success");
       closeUpdateModal();
       await loadRTIList();
     } catch (error) {
@@ -244,6 +256,36 @@ function RTIList() {
   return (
     <>
       <style>{`
+        /* ================= TOAST CSS ================= */
+        .custom-toast-container {
+          position: fixed;
+          top: 25px;
+          right: 25px;
+          z-index: 99999;
+          animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        .custom-toast {
+          min-width: 300px;
+          padding: 16px 20px;
+          border-radius: 10px;
+          color: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .custom-toast.success { background: #16a34a; }
+        .custom-toast.error { background: #dc2626; }
+
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
         html, body, #root {
           width: 100%; max-width: 100%;
           overflow-x: hidden !important;
@@ -722,6 +764,16 @@ function RTIList() {
           .rti-page-buttons { width: 100%; justify-content: center; }
         }
       `}</style>
+
+      {/* ✅ TOAST UI */}
+      {toast.show && (
+        <div className="custom-toast-container">
+          <div className={`custom-toast ${toast.type}`}>
+            <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}`}></i>
+            {toast.message}
+          </div>
+        </div>
+      )}
 
       <div className="rti-page">
         {/* HEADER */}

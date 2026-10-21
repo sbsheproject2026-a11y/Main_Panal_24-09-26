@@ -38,6 +38,18 @@ function CourseCategory() {
   const [masterTypeLoading, setMasterTypeLoading] = useState(false);
   const [masterTypedLoading, setMasterTypedLoading] = useState(false);
 
+  // =========================================================
+  // ✅ TOAST STATE & FUNCTION
+  // =========================================================
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3000); // 3 seconds baad gayab ho jayega
+  };
+
   useEffect(() => {
     loadMasterTypes();
     loadMasterTypeDetails();
@@ -51,7 +63,7 @@ function CourseCategory() {
       setMasterTypes(result?.data || []);
     } catch (error) {
       console.error(error);
-      alert("Unable to load Master Types.");
+      showToast("Unable to load Master Types.", "error");
     } finally {
       setMasterTypeLoading(false);
     }
@@ -64,7 +76,7 @@ function CourseCategory() {
       setMasterTypesdetails(result?.data || []);
     } catch (error) {
       console.error(error);
-      alert("Unable to load Master Types Details.");
+      showToast("Unable to load Master Types Details.", "error");
     } finally {
       setMasterTypedLoading(false);
     }
@@ -81,7 +93,7 @@ function CourseCategory() {
       setCurrentPage(1);
     } catch (error) {
       console.error(error);
-      alert("Unable to load Course Category.");
+      showToast("Unable to load Course Category.", "error");
     } finally {
       setLoading(false);
     }
@@ -115,7 +127,7 @@ function CourseCategory() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       console.error(error);
-      alert("Unable to load Course Category.");
+      showToast("Unable to load Course Category.", "error");
     }
   };
 
@@ -135,12 +147,12 @@ function CourseCategory() {
     try {
       if (!deleteId) return;
       const result = await getMasterTypeDetailDelete(deleteId);
-      alert(result?.message || result || "Course Category deleted successfully");
+      showToast(result?.message || result || "Course Category deleted successfully", "success");
       closeDeleteModal();
       await loadMasterTypeDetails();
     } catch (error) {
       console.error(error);
-      alert("Unable to delete Course Category.");
+      showToast("Unable to delete Course Category.", "error");
     }
   };
 
@@ -155,7 +167,7 @@ function CourseCategory() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.masterTypeId) {
-      alert("Please select Master Type.");
+      showToast("Please select Master Type.", "error");
       return;
     }
     try {
@@ -166,17 +178,18 @@ function CourseCategory() {
       } else {
         result = await createMasterTypeDetail(formData);
       }
-      alert(
+      showToast(
         result?.message ||
           (formData.id > 0
             ? "Course Category updated successfully"
-            : "Course Category created successfully")
+            : "Course Category created successfully"),
+        "success"
       );
       await loadMasterTypeDetails();
       resetForm();
     } catch (error) {
       console.error(error);
-      alert("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setSaving(false);
     }
@@ -245,6 +258,36 @@ function CourseCategory() {
   return (
     <>
       <style>{`
+        /* ================= TOAST CSS ================= */
+        .custom-toast-container {
+          position: fixed;
+          top: 25px;
+          right: 25px;
+          z-index: 99999;
+          animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        .custom-toast {
+          min-width: 300px;
+          padding: 16px 20px;
+          border-radius: 10px;
+          color: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .custom-toast.success { background: #16a34a; }
+        .custom-toast.error { background: #dc2626; }
+
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
         /* ================= PAGE ================= */
         html, body, #root {
           width: 100%;
@@ -944,6 +987,16 @@ function CourseCategory() {
           .confirm-delete-btn { width: 100%; }
         }
       `}</style>
+
+      {/* ✅ TOAST UI */}
+      {toast.show && (
+        <div className="custom-toast-container">
+          <div className={`custom-toast ${toast.type}`}>
+            <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}`}></i>
+            {toast.message}
+          </div>
+        </div>
+      )}
 
       <div className="course-category-page">
         {/* PAGE HEADER */}

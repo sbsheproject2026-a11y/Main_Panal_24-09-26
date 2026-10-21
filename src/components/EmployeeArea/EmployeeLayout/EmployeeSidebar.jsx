@@ -45,23 +45,44 @@ function EmployeeSidebar({ sidebarOpen }) {
           </li>
 
           <li className="nav-item">
-            <a className="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="#">
-              <i className="bi bi-bar-chart"></i><span>Student Management</span><i className="bi bi-chevron-down ms-auto"></i>
+            <a className="nav-link collapsed" data-bs-target="#charts-nav-online" data-bs-toggle="collapse" href="#">
+              <i className="bi bi-bar-chart"></i><span>Online/Offline Student  </span><i className="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="charts-nav" className="nav-content collapse " data-bs-parent="#sidebar-nav">
+            <ul id="charts-nav-online" className="nav-content collapse " data-bs-parent="#sidebar-nav">
+
+
+              {/* <li>
+                <Link to="/student-rollno?studyModeId=88">
+                  <i className="bi bi-circle"></i><span>Student RollNo  List Online</span>
+                </Link>
+              </li> */}
 
               <li>
-                <Link to="/confirm-addmissions?studyModeId=88">
+                <Link to="/student-print-list?studyModeId=88">
                   <i className="bi bi-circle"></i>
                   <span>Student Confirm & Print Online</span>
                 </Link>
               </li>
-              <li>
-                <Link to="/confirm-addmissions?studyModeId=89">
+
+  <li>
+                <Link to="/student-print-list?studyModeId=89">
                   <i className="bi bi-circle"></i>
                   <span>Student Confirm & Print Offline</span>
                 </Link>
               </li>
+            </ul>
+          </li>
+          {/* <!-- End Tables Nav --> */}
+
+        
+          {/* <!-- End Charts Nav --> */}
+
+          <li className="nav-item">
+            <a className="nav-link collapsed" data-bs-target="#charts-nav-req" data-bs-toggle="collapse" href="#">
+              <i className="bi bi-bar-chart"></i><span>Student  Request</span><i className="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="charts-nav-req" className="nav-content collapse " data-bs-parent="#sidebar-nav">
+
 
               <li>
                 <Link to="/set-marks">

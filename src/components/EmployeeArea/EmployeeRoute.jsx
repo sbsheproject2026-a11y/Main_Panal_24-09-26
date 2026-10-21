@@ -19,6 +19,8 @@ import WalletRechargeOnline from "./WalletWorking/WalletRechargeOnline";
 import RegistrationModeSelect from "./Students/RegistrationModeSelect";
 import NewStudentRegistrationStudent from "./Students/NewStudentRegistrationStudent";
 import StudentFeeCard from "./Students/StudentFeeCard";
+import RollNoList from "../AdminArea/AdminStudent/RollNoList";
+import FranchiseDashboard from "./FranchiseDashboard";
  
  
  
@@ -26,7 +28,8 @@ import StudentFeeCard from "./Students/StudentFeeCard";
 
 const employeeRoutes = [
     // ===== Common Routes (6, 90, 33 sab ke liye) =====
-    { path: "/employee-dashboard", element: <EmployeeDashboard />, role: ["6", "90", "33"] },
+    { path: "/employee-dashboard", element: <EmployeeDashboard />, role: ["33"] },
+    { path: "/franchise-dashboard", element: <FranchiseDashboard />, role: ["6", "90"] },
     { path: "/select-registration-mode", element: <RegistrationModeSelect />, role: ["6", "90", "33"] },
     { path: "/student-create", element: <StudentCreate />, role: ["6", "90", "33"] },
     { path: "/new-student-create", element: <NewStudentRegistrationStudent />, role: ["6", "90", "33"] },
@@ -50,6 +53,7 @@ const employeeRoutes = [
     { path: "/address-print", element: <AddressPrint  />, role: ["33"] },
     { path: "/set-marks", element: <SetMarksStudent  />, role: ["33"] },
     { path: "/student-print-list", element: <ConfirmStudent  />, role: ["33"] },
+    { path: "/student-rollno", element: <RollNoList  />, role: ["33"] },
     
 
      

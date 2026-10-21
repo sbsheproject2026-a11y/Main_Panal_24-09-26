@@ -231,7 +231,35 @@ function Sidebar({ sidebarOpen }) {
 
             </ul>
           </li>
+  <li className="nav-item">
+            <a className="nav-link collapsed" data-bs-target="#icons-navf" data-bs-toggle="collapse" href="#">
+              <i className="bi-bullseye"></i><span>Enquiry   Management</span><i className="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="icons-navf" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 
+              <li>
+                <Link to="/enquiries-list?type=student">
+                  <i className="bi bi-circle"></i>
+                  <span>Student Enquiries</span>
+                </Link>
+              </li>
+
+              <li>
+                <Link to="/enquiries-list?type=franchise">
+                  <i className="bi bi-circle"></i>
+                  <span>Franchise Enquiries</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="r-t-i-list">
+                  <i className="bi bi-circle"></i>
+                  <span>RTI List</span>
+                </Link>
+              </li>
+
+
+            </ul>
+          </li>
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#forms-nav-website" data-bs-toggle="collapse" href="#">
               <i className="bi bi-journal-text"></i><span>Website Content</span><i className="bi bi-chevron-down ms-auto"></i>
@@ -285,35 +313,7 @@ function Sidebar({ sidebarOpen }) {
             </ul>
           </li>
 
-          <li className="nav-item">
-            <a className="nav-link collapsed" data-bs-target="#icons-navf" data-bs-toggle="collapse" href="#">
-              <i className="bi-bullseye"></i><span>Enquiry   Management</span><i className="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <ul id="icons-navf" className="nav-content collapse " data-bs-parent="#sidebar-nav">
-
-              <li>
-                <Link to="/enquiries-list?type=student">
-                  <i className="bi bi-circle"></i>
-                  <span>Student Enquiries</span>
-                </Link>
-              </li>
-
-              <li>
-                <Link to="/enquiries-list?type=franchise">
-                  <i className="bi bi-circle"></i>
-                  <span>Franchise Enquiries</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="r-t-i-list">
-                  <i className="bi bi-circle"></i>
-                  <span>RTI List</span>
-                </Link>
-              </li>
-
-
-            </ul>
-          </li>
+        
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#icons-navl" data-bs-toggle="collapse" href="#">
               <i className="bi bi-pin-map"></i><span>Location</span><i className="bi bi-chevron-down ms-auto"></i>

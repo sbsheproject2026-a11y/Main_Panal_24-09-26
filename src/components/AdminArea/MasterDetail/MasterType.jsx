@@ -1,5 +1,4 @@
- 
-import React, { useEffect, useMemo, useState } from "react";
+ import React, { useEffect, useMemo, useState } from "react";
 import {
   getMasterTypes,
   createMasterType,
@@ -29,6 +28,18 @@ function MasterType() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // =========================================================
+  // ✅ TOAST STATE & FUNCTION
+  // =========================================================
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3000); // 3 seconds baad gayab ho jayega
+  };
+
   useEffect(() => {
     loadMasterTypes();
   }, []);
@@ -43,7 +54,7 @@ function MasterType() {
       setCurrentPage(1);
     } catch (error) {
       console.error(error);
-      alert("Unable to load Master Types.");
+      showToast("Unable to load Master Types.", "error");
     } finally {
       setLoading(false);
     }
@@ -75,7 +86,7 @@ function MasterType() {
       });
     } catch (error) {
       console.error(error);
-      alert("Unable to load Master Type.");
+      showToast("Unable to load Master Type.", "error");
     }
   };
 
@@ -97,17 +108,18 @@ function MasterType() {
 
       const result = await getMasterTypeDelete(deleteId);
 
-      alert(
+      showToast(
         result?.message ||
           result ||
-          "Master Type deleted successfully"
+          "Master Type deleted successfully",
+        "success"
       );
 
       closeDeleteModal();
       await loadMasterTypes();
     } catch (error) {
       console.error(error);
-      alert("Unable to delete Master Type.");
+      showToast("Unable to delete Master Type.", "error");
     }
   };
 
@@ -134,18 +146,19 @@ function MasterType() {
         result = await createMasterType(formData);
       }
 
-      alert(
+      showToast(
         result?.message ||
           (formData.id > 0
             ? "Master Type updated successfully"
-            : "Master Type created successfully")
+            : "Master Type created successfully"),
+        "success"
       );
 
       await loadMasterTypes();
       resetForm();
     } catch (error) {
       console.error(error);
-      alert("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setSaving(false);
     }
@@ -245,6 +258,16 @@ function MasterType() {
 
   return (
     <>
+      {/* ✅ TOAST UI */}
+      {toast.show && (
+        <div className="custom-toast-container">
+          <div className={`custom-toast ${toast.type}`}>
+            <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}`}></i>
+            {toast.message}
+          </div>
+        </div>
+      )}
+
       {/* ================= PAGE HEADER ================= */}
       <div className="page-header mb-4">
         <div>
@@ -905,6 +928,36 @@ function MasterType() {
 
       {/* ================= CUSTOM CSS ================= */}
       <style>{`
+        /* ================= TOAST CSS ================= */
+        .custom-toast-container {
+          position: fixed;
+          top: 25px;
+          right: 25px;
+          z-index: 99999;
+          animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        .custom-toast {
+          min-width: 300px;
+          padding: 16px 20px;
+          border-radius: 10px;
+          color: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .custom-toast.success { background: #16a34a; }
+        .custom-toast.error { background: #dc2626; }
+
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
         .page-header {
           display: flex;
           justify-content: space-between;
@@ -1602,4 +1655,3 @@ function MasterType() {
 }
 
 export default MasterType;
- 

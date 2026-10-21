@@ -66,3 +66,17 @@ export const getEmpDashboard = async () => {
 
   return response.data;
 };
+export const getFranchiseDashboard = async () => {
+  const token = localStorage.getItem("token");
+
+  const response = await api.get(
+    "/DropDownFranchise/franchise-dashboard",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data;
+};

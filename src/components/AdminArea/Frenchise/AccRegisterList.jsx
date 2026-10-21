@@ -377,16 +377,16 @@ function AccRegisterList() {
                       Contact Person
                     </th>
 
-                    <th>
+                    {/* <th>
                       Mobile No
                     </th>
 
                     <th>
                       Location
-                    </th>
+                    </th> */}
 
                     <th>
-                      Login Details
+                      Username/Password
                     </th>
 
                     <th className="action-column">
@@ -566,6 +566,36 @@ function AccRegisterList() {
                                 {item.name || "-"}
 
                               </div>
+                              <span>
+                                {item.mobileNo || "-"}
+                              </span>
+
+ 
+
+                              <div>
+
+                                <div className="city-name">
+
+                                  {item.cityName || "-"}
+
+                                </div>
+
+                                <div className="location-sub">
+
+                                  {item.districtName || ""}
+
+                                  {item.districtName &&
+                                    item.stateName
+                                    ? ", "
+                                    : ""}
+
+                                  {item.stateName || ""}
+
+                                </div>
+
+
+
+                              </div>
 
                               <div className="consultant-role">
 
@@ -595,7 +625,7 @@ function AccRegisterList() {
 
                         {/* ================= MOBILE ================= */}
 
-                        <td>
+                        {/* <td>
 
                           <div className="mobile-info">
 
@@ -605,18 +635,15 @@ function AccRegisterList() {
 
                             </div>
 
-                            <span>
-                              {item.mobileNo || "-"}
-                            </span>
-
+                           
                           </div>
 
-                        </td>
+                        </td> */}
 
 
                         {/* ================= LOCATION ================= */}
 
-                        <td>
+                        {/* <td>
 
                           <div className="location-info">
 
@@ -653,7 +680,7 @@ function AccRegisterList() {
 
                           </div>
 
-                        </td>
+                        </td> */}
 
 
                         {/* =================================================
@@ -669,13 +696,7 @@ function AccRegisterList() {
 
                             <div className="login-item">
 
-                              <div className="login-label">
-
-                                <i className="bi bi-person-circle"></i>
-
-                                Username
-
-                              </div>
+                              
 
                               <div className="login-value">
 
@@ -683,21 +704,7 @@ function AccRegisterList() {
 
                               </div>
 
-                            </div>
-
-
-                            {/* Password */}
-
-                            <div className="login-item">
-
-                              <div className="login-label password-label">
-
-                                <i className="bi bi-key-fill"></i>
-
-                                Password
-
-                              </div>
-
+                           
                               <div className="login-value password-value">
 
                                 {item.password || "-"}

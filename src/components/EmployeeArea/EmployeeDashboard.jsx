@@ -61,16 +61,16 @@ const EmployeeDashboard = () => {
       bg: "#eef2ff",
     },
     {
-      title: "New Admissions",
-      value: "",                                                    // ⏳ pending
+      title: "Total Study Centre",
+      value: dashboardData.totalFranchise.toLocaleString("en-IN"),                                                   // ⏳ pending
       change: "",
       icon: <FaUserPlus />,
       color: "#0891b2",
       bg: "#ecfeff",
     },
     {
-      title: "Pending Fees",
-      value: "₹",                                                   // ⏳ pending
+      title: "Total ACC Franchise",
+      value: dashboardData.totalAccFranchise.toLocaleString("en-IN"),                                                  // ⏳ pending
       change: "",
       icon: <FaMoneyBillWave />,
       color: "#d97706",
@@ -123,7 +123,7 @@ const EmployeeDashboard = () => {
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h3 className="fw-bold mb-1">Franchise Dashboard</h3>
+          <h3 className="fw-bold mb-1">Employee Dashboard</h3>
           <p className="text-muted mb-0">
             Welcome back! Here's what's happening at your centre.
           </p>

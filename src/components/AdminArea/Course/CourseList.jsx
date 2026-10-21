@@ -15,6 +15,16 @@ function CourseList() {
     // ✅ Dropdown state
     const [openDropdown, setOpenDropdown] = useState(null);
 
+    // ✅ TOAST STATE
+    const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+    const showToast = (message, type = "success") => {
+        setToast({ show: true, message, type });
+        setTimeout(() => {
+            setToast((prev) => ({ ...prev, show: false }));
+        }, 3000); // 3 seconds baad gayab ho jayega
+    };
+
     const navigate = useNavigate();
 
     const handleEdit = (id) => {
@@ -73,6 +83,10 @@ function CourseList() {
             (item) =>
                 (item.code || "").toLowerCase().includes(s) ||
                 (item.name || "").toLowerCase().includes(s) ||
+                (item.studyMode || "").toLowerCase().includes(s) ||
+                (item.departmentName || "").toLowerCase().includes(s) ||
+                (item.categoryName || "").toLowerCase().includes(s) ||
+                (item.durationName || "").toLowerCase().includes(s) ||
                 (item.nameHindi || "").toLowerCase().includes(s)
         );
     }, [data, search]);
@@ -111,7 +125,8 @@ function CourseList() {
 
             const result = await getCourseDelete(deleteId);
 
-            alert(result.message);
+            // ✅ ALERT KI JAGAH TOAST
+            showToast(result?.message || "Course deleted successfully", "success");
 
             setShowDeleteModal(false);
             setDeleteId(0);
@@ -119,7 +134,8 @@ function CourseList() {
             await loadCourses();
         } catch (error) {
             console.log(error);
-            alert("Unable to delete course.");
+            // ✅ ALERT KI JAGAH TOAST
+            showToast("Unable to delete course.", "error");
         } finally {
             setDeleteLoading(false);
         }
@@ -129,6 +145,36 @@ function CourseList() {
         <>
             <style>
                 {`
+                /* ================= TOAST CSS ================= */
+                .custom-toast-container {
+                    position: fixed;
+                    top: 25px;
+                    right: 25px;
+                    z-index: 99999;
+                    animation: slideInRight 0.3s ease-out forwards;
+                }
+
+                .custom-toast {
+                    min-width: 300px;
+                    padding: 16px 20px;
+                    border-radius: 10px;
+                    color: #fff;
+                    font-weight: 600;
+                    font-size: 14px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                }
+
+                .custom-toast.success { background: #16a34a; }
+                .custom-toast.error { background: #dc2626; }
+
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+
                 html,
                 body,
                 #root {
@@ -1010,6 +1056,16 @@ function CourseList() {
                 `}
             </style>
 
+            {/* ✅ TOAST UI */}
+            {toast.show && (
+                <div className="custom-toast-container">
+                    <div className={`custom-toast ${toast.type}`}>
+                        <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}`}></i>
+                        {toast.message}
+                    </div>
+                </div>
+            )}
+
             <div className="course-page">
 
                 <div className="course-page-header">
@@ -1083,7 +1139,7 @@ function CourseList() {
                                                 <option value={100}>100</option>
                                                 <option value={250}>250</option>
                                                 <option value={500}>500</option>
-                                                 
+
                                             </select>
 
                                             <span>entries</span>
@@ -1130,7 +1186,7 @@ function CourseList() {
                                                     <th className="text-center">#</th>
                                                     <th>Code</th>
                                                     <th>Course Name</th>
-                                                    <th>Hindi Name</th>
+
                                                     <th>Type</th>
                                                     <th>Duration</th>
                                                     <th>Category</th>
@@ -1221,21 +1277,19 @@ function CourseList() {
 
                                                                     <strong>
                                                                         {item.name || "-"}
+                                                                        <br />
+                                                                        {item.nameHindi || "-"}
                                                                     </strong>
 
                                                                 </div>
                                                             </td>
 
-                                                            <td>
-                                                                <span className="hindi-name">
-                                                                    {item.nameHindi || "-"}
-                                                                </span>
-                                                            </td>
+
 
                                                             <td>
                                                                 <span className="type-badge">
                                                                     {!item.parentId
-                                                                        ? "Course"
+                                                                        ? `Course - ${item.studyMode}`
                                                                         : "Class"}
                                                                 </span>
                                                             </td>
@@ -1444,7 +1498,7 @@ function CourseList() {
                                                 type="button"
                                                 disabled={
                                                     pageNo >=
-                                                        totalPages ||
+                                                    totalPages ||
                                                     loading
                                                 }
                                                 onClick={() =>

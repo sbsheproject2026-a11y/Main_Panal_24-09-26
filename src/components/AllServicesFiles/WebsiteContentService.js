@@ -49,7 +49,7 @@ export const getWebsiteContents = async () => {
 
       data.append(
         `ProductCategoryDocuments[${index}].SrNo`,
-        String(index + 1)
+        item.srNo || ""
       );
 
       data.append(
@@ -105,6 +105,7 @@ export const getWebsiteContents = async () => {
   data.append("Id", formData.id || "");
   data.append("ProductTypeId", formData.productTypeId || "");
   data.append("Title", formData.title || "");
+   data.append("Date", formData.date || "");
   data.append("ShortDescription", formData.shortDesc || "");
   data.append("Descrption", formData.desc || "");
   data.append("SEOTitle", formData.seoTitle || "");
@@ -136,7 +137,7 @@ export const getWebsiteContents = async () => {
 
       data.append(
         `ProductCategoryDocuments[${index}].SrNo`,
-        String(index + 1)
+        item.srNo || ""
       );
 
       data.append(
@@ -146,7 +147,7 @@ export const getWebsiteContents = async () => {
 
       data.append(
         `ProductCategoryDocuments[${index}].Path`,
-        item.path || ""
+        item.oldFile || ""
       );
       data.append(
         `ProductCategoryDocuments[${index}].AltTag`,
@@ -174,8 +175,8 @@ export const getWebsiteContents = async () => {
   // API
   // =========================
 
-  const response = await api.post(
-    "/WebsiteContent/website-content-create",
+  const response = await api.put(
+    "/WebsiteContent/website-content-update",
     data,
     {
       headers: {

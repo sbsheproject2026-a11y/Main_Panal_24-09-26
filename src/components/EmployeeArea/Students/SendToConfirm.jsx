@@ -1154,8 +1154,7 @@ function SendToConfirm() {
                                         <th>Contact Person</th>
                                         <th>Address</th>
                                         <th>Mobile No</th>
-                                        <th>Course Name</th>
-                                        <th>Amount</th>
+                                         
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -1233,17 +1232,23 @@ function SendToConfirm() {
                                                 </td>
 
                                                 <td>
-                                                    <div className="stc-name">{item.name || "-"}</div>
+                                                    <div className="stc-name">{item.name || "-"}
+                                                        <br/>
+                                                         <span className="stc-amount">
+
+{formatCurrency(item.amount)}
+<br/>
+{item.courseName || "-"}
+                                                         </span>
+
+
+
+                                                    </div>
                                                 </td>
                                                 <td>{item.fatherName || "-"}</td>
                                                 <td>{item.address || "-"}</td>
                                                 <td>{item.mobileNo || "-"}</td>
-                                                <td>{item.courseName || "-"}</td>
-                                                <td>
-                                                    <span className="stc-amount">
-                                                        {formatCurrency(item.amount)}
-                                                    </span>
-                                                </td>
+                                                
 
                                                 <td>
                                                     <button

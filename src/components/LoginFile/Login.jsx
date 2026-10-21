@@ -1,4 +1,4 @@
- import React, { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { toast, ToastContainer } from "react-toastify";
@@ -194,7 +194,7 @@ const Login = () => {
         user?.role ??
         user?.Role ??
         user?.[
-          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
         ];
 
       const userId =
@@ -205,7 +205,7 @@ const Login = () => {
         user?.Id ??
         user?.id ??
         user?.[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
         ];
 
       const loggedUsername =
@@ -216,7 +216,7 @@ const Login = () => {
         user?.UserName ??
         user?.userName ??
         user?.[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
         ];
 
       const name =
@@ -286,7 +286,13 @@ const Login = () => {
 
         if (
           currentRoleId === "6" ||
-          currentRoleId === "90" ||
+          currentRoleId === "90"
+        ) {
+          navigate("/franchise-dashboard", { replace: true });
+          return;
+        }
+        if (
+
           currentRoleId === "33"
         ) {
           navigate("/employee-dashboard", { replace: true });

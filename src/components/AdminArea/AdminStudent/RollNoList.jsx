@@ -7,7 +7,7 @@ import { FILE_URL } from "../../api";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 function RollNoList() {
-       const navigate = useNavigate();
+    const navigate = useNavigate();
     const [data, setData] = useState([]);
     const [search, setSearch] = useState("");
     const [pageNo, setPageNo] = useState(1);
@@ -20,19 +20,19 @@ function RollNoList() {
 
 
     // ✅ PRINT
-const handlePrint = (id) => {
-    navigate(`/admission-form-print/${id}`);
-};
+    const handlePrint = (id) => {
+        navigate(`/admission-form-print/${id}`);
+    };
 
-// ✅ VIEW
-const handleView = (id) => {
-    navigate(`/student-view1/${id}`);
-};
+    // ✅ VIEW
+    const handleView = (id) => {
+        navigate(`/student-view1/${id}`);
+    };
 
-// ✅ EDIT
-const handleEdit = (id) => {
-    navigate(`/student-update1/${id}`);
-};
+    // ✅ EDIT
+    const handleEdit = (id) => {
+        navigate(`/student-update1/${id}`);
+    };
 
     useEffect(() => {
         loadStudents();
@@ -362,10 +362,10 @@ const handleEdit = (id) => {
    Student Action Buttons (Print + View)
 ======================================== */
 .student-action-group {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+    gap: 8px; /* spacing between buttons */
+    justify-content: center;
 }
 
 .student-action {
@@ -713,10 +713,10 @@ const handleEdit = (id) => {
                                             <th> ENROLLMENT NO </th>
                                             <th> ROLL NO </th>
                                             <th> FATHER NAME </th>
-                                            <th> CONTACT </th>
+                                            
                                             <th> ADDRESS </th>
                                             <th>Franchise Name</th>
-                                            <th>Course Name</th>
+                                            
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -766,6 +766,10 @@ const handleEdit = (id) => {
 
                                                             <div className="rollno-student-name">
                                                                 {item.name || "-"}
+                                                                <br />
+                                                                {item.mobileNo || "-"}
+                                                                <br />
+                                                                {item.courseName || "-"}
                                                             </div>
                                                         </div>
                                                     </td>
@@ -796,11 +800,7 @@ const handleEdit = (id) => {
                                                         </div>
                                                     </td>
 
-                                                    <td>
-                                                        <span className="rollno-mobile">
-                                                            {item.mobileNo || "-"}
-                                                        </span>
-                                                    </td>
+
 
                                                     <td>
                                                         <span className="rollno-address">
@@ -809,44 +809,44 @@ const handleEdit = (id) => {
                                                     </td>
 
                                                     <td>{item.instituteName || "-"}</td>
-                                                    <td>{item.courseName || "-"}</td>
 
-                                                   <td>
-    <div className="student-action-group">
-        {/* Print */}
-        <button
-            type="button"
-            className="student-action print"
-            onClick={() => handlePrint(item.id)}
-            title="Print Form"
-        >
-            <i className="bi bi-printer-fill"></i>
-            <span>Print</span>
-        </button>
 
-        {/* View */}
-        <button
-            type="button"
-            className="student-action view"
-            onClick={() => handleView(item.id)}
-            title="View Student"
-        >
-            <i className="bi bi-eye-fill"></i>
-            <span>View</span>
-        </button>
+                                                    <td>
+                                                        <div className="student-action-group">
+                                                            {/* Print */}
+                                                            <button
+                                                                type="button"
+                                                                className="student-action print"
+                                                                onClick={() => handlePrint(item.id)}
+                                                                title="Print Form"
+                                                            >
+                                                                <i className="bi bi-printer-fill"></i>
+                                                                <span>Print</span>
+                                                            </button>
 
-        {/* Edit */}
-        <button
-            type="button"
-            className="student-action edit"
-            onClick={() => handleEdit(item.id)}
-            title="Edit Student"
-        >
-            <i className="bi bi-pencil-square"></i>
-            <span>Edit</span>
-        </button>
-    </div>
-</td>
+                                                            {/* View */}
+                                                            <button
+                                                                type="button"
+                                                                className="student-action view"
+                                                                onClick={() => handleView(item.id)}
+                                                                title="View Student"
+                                                            >
+                                                                <i className="bi bi-eye-fill"></i>
+                                                                <span>View</span>
+                                                            </button>
+
+                                                            {/* Edit */}
+                                                            <button
+                                                                type="button"
+                                                                className="student-action edit"
+                                                                onClick={() => handleEdit(item.id)}
+                                                                title="Edit Student"
+                                                            >
+                                                                <i className="bi bi-pencil-square"></i>
+                                                                <span>Edit</span>
+                                                            </button>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             ))
                                         ) : (

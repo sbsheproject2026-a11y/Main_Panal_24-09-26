@@ -561,9 +561,7 @@ function ConfirmStudent() {
                         FATHER NAME
                       </th>
 
-                      <th className="py-3 text-muted small fw-bold">
-                        CONTACT
-                      </th>
+                       
 
                       <th className="py-3 text-muted small fw-bold">
                         ADDRESS
@@ -572,9 +570,7 @@ function ConfirmStudent() {
                       <th className="py-3 pe-4 text-muted small fw-bold">
                         Franchise Name
                       </th>
-                      <th className="py-3 pe-4 text-muted small fw-bold">
-                        Course Name
-                      </th>
+                      
                     </tr>
                   </thead>
 
@@ -660,6 +656,10 @@ function ConfirmStudent() {
                             >
                               <div className="confirm-cell fw-semibold text-dark">
                                 {item.name || "-"}
+                                <br/>
+                                {item.mobileNo || "-"}
+                                <br/>
+                                {item.courseName || "-"}
                               </div>
                             </div>
                           </td>
@@ -700,11 +700,7 @@ function ConfirmStudent() {
                             </div>
                           </td>
 
-                          <td>
-                            <div className="confirm-cell fw-semibold text-dark">
-                              {item.mobileNo || "-"}
-                            </div>
-                          </td>
+                           
 
                           <td>
                             <div className="confirm-cell text-dark">
@@ -725,19 +721,7 @@ function ConfirmStudent() {
                               {item.instituteName || "-"}
                             </span>
                           </td>
-                          <td className="pe-4">
-                            <span
-
-                              style={{
-                                background: "#f1f8f5",
-                                color: "#198754",
-                                fontWeight: "600"
-                              }}
-                            >
-                              <i className="bi bi-building me-1"></i>
-                              {item.courseName || "-"}
-                            </span>
-                          </td>
+                           
                         </tr>
                       ))
                     ) : (
@@ -983,17 +967,18 @@ function ConfirmStudent() {
                             Roll 1:{" "}
                             {selectedStudent.rollno || "-"}
                           </span>
-
-                          <span
-                            className="badge rounded-pill"
-                            style={{
-                              background: "#fff4df",
-                              color: "#997404"
-                            }}
-                          >
-                            Roll 2:{" "}
-                            {selectedStudent.rollNo1 || "-"}
-                          </span>
+                          {selectedStudent?.rollNo1?.toString().trim() && (
+                            <span
+                              className="badge rounded-pill"
+                              style={{
+                                background: "#fff4df",
+                                color: "#997404"
+                              }}
+                            >
+                              Roll 2:{" "}
+                              {selectedStudent.rollNo1 || "-"}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1078,25 +1063,26 @@ function ConfirmStudent() {
                         }
                       />
                     </div>
-
-                    <div className="col-md-4">
-                      <DocumentButton
-                        icon="bi-card-text"
-                        title="Admit Card 2nd"
-                        subtitle={
-                          selectedStudent.rollNo1
-                            ? `Roll No: ${selectedStudent.rollNo1}`
-                            : "Roll No not available"
-                        }
-                        color="#997404"
-                        bg="#fffdf5"
-                        onClick={() =>
-                          openDocument(
-                            `/admit-card-print/${selectedStudent.rollNo1}`
-                          )
-                        }
-                      />
-                    </div>
+                    {selectedStudent?.rollNo1?.toString().trim() && (
+                      <div className="col-md-4">
+                        <DocumentButton
+                          icon="bi-card-text"
+                          title="Admit Card 2nd"
+                          subtitle={
+                            selectedStudent.rollNo1
+                              ? `Roll No: ${selectedStudent.rollNo1}`
+                              : "Roll No not available"
+                          }
+                          color="#997404"
+                          bg="#fffdf5"
+                          onClick={() =>
+                            openDocument(
+                              `/admit-card-print/${selectedStudent.rollNo1}`
+                            )
+                          }
+                        />
+                      </div>
+                    )}
                     <div className="col-md-4">
                       <DocumentButton
                         icon="bi-person-badge-fill"
@@ -1129,25 +1115,26 @@ function ConfirmStudent() {
                         }
                       />
                     </div>
-
-                    <div className="col-md-4">
-                      <DocumentButton
-                        icon="bi-file-earmark-bar-graph-fill"
-                        title="Marksheet 2nd"
-                        subtitle={
-                          selectedStudent.rollNo1
-                            ? `Roll No: ${selectedStudent.rollNo1}`
-                            : "Roll No not available"
-                        }
-                        color="#fd7e14"
-                        bg="#fff8f2"
-                        onClick={() =>
-                          openDocument(
-                            `/marksheet-print/${selectedStudent.rollNo1}`
-                          )
-                        }
-                      />
-                    </div>
+                    {selectedStudent?.rollNo1?.toString().trim() && (
+                      <div className="col-md-4">
+                        <DocumentButton
+                          icon="bi-file-earmark-bar-graph-fill"
+                          title="Marksheet 2nd"
+                          subtitle={
+                            selectedStudent.rollNo1
+                              ? `Roll No: ${selectedStudent.rollNo1}`
+                              : "Roll No not available"
+                          }
+                          color="#fd7e14"
+                          bg="#fff8f2"
+                          onClick={() =>
+                            openDocument(
+                              `/marksheet-print/${selectedStudent.rollNo1}`
+                            )
+                          }
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 

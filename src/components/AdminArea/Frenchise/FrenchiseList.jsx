@@ -1,4 +1,4 @@
- import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getFrenchises, getFrenchiseDelete } from "../../AllServicesFiles/FrenchiseService";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -1137,20 +1137,20 @@ function FrenchiseList() {
                                         Contact Person
                                     </th>
 
-                                    <th>
+                                    {/* <th>
                                         Address
-                                    </th>
+                                    </th> */}
 
-                                    <th>
+                                    {/* <th>
                                         Mobile No
-                                    </th>
+                                    </th> */}
+
+                                    {/* <th>
+                                        Email/Username
+                                    </th> */}
 
                                     <th>
-                                        Username
-                                    </th>
-
-                                    <th>
-                                        Password
+                                        Username/Password
                                     </th>
 
                                     <th>
@@ -1242,42 +1242,42 @@ function FrenchiseList() {
                                                 ===================== */}
 
                                             <td>
-                          <div className="d-flex flex-column gap-2 align-items-center">
+                                                <div className="d-flex flex-column gap-2 align-items-center">
 
-                            {/* ================= ID CARD VIEW ================= */}
-                            <div className="authority-letter">
-                              <a
-                                href="#"
-                                className="authority-view-btn"
-                                title="View ID Card"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  navigate(`/id-card-print/${item.id}`);
-                                }}
-                              >
-                                <i className="bi bi-person-vcard me-1"></i>
-                                <span>ID Card View</span>
-                              </a>
-                            </div>
+                                                    {/* ================= ID CARD VIEW ================= */}
+                                                    <div className="authority-letter">
+                                                        <a
+                                                            href="#"
+                                                            className="authority-view-btn"
+                                                            title="View ID Card"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                navigate(`/id-card-print/${item.id}`);
+                                                            }}
+                                                        >
+                                                            <i className="bi bi-person-vcard me-1"></i>
+                                                            <span>ID Card View</span>
+                                                        </a>
+                                                    </div>
 
-                            {/* ================= AUTHORITY LETTER VIEW ================= */}
-                            <div className="authority-letter">
-                              <a
-                                href="#"
-                                className="authority-view-btn"
-                                title="View Authority Letter"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  navigate(`/authority-letterPrint-print/${item.id}`);
-                                }}
-                              >
-                                <i className="bi bi-file-earmark-text me-1"></i>
-                                <span>Authority Letter</span>
-                              </a>
-                            </div>
+                                                    {/* ================= AUTHORITY LETTER VIEW ================= */}
+                                                    <div className="authority-letter">
+                                                        <a
+                                                            href="#"
+                                                            className="authority-view-btn"
+                                                            title="View Authority Letter"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                navigate(`/authority-letterPrint-print/${item.id}`);
+                                                            }}
+                                                        >
+                                                            <i className="bi bi-file-earmark-text me-1"></i>
+                                                            <span>Authority Letter</span>
+                                                        </a>
+                                                    </div>
 
-                          </div>
-                        </td>
+                                                </div>
+                                            </td>
 
                                             <td>
 
@@ -1301,6 +1301,12 @@ function FrenchiseList() {
                                                     {item.name || "-"}
 
                                                 </span>
+                                                 {item.mobileNo || "-"}
+                                                 <span className="franchise-muted">
+
+                                                    {item.address || "-"}
+
+                                                </span>
 
                                             </td>
 
@@ -1319,38 +1325,13 @@ function FrenchiseList() {
 
                                             </td>
 
-
-                                            {/* =====================
-                                                ADDRESS
-                                                ===================== */}
-
-                                            <td>
-
-                                                <span className="franchise-muted">
-
-                                                    {item.address || "-"}
-
-                                                </span>
-
-                                            </td>
-
-
-                                            {/* =====================
-                                                MOBILE
-                                                ===================== */}
-
-                                            <td>
-
-                                                {item.mobileNo || "-"}
-
-                                            </td>
-
+ 
 
                                             {/* =====================
                                                 USERNAME
                                                 ===================== */}
 
-                                            <td>
+                                            {/* <td>
 
                                                 <span className="franchise-login">
 
@@ -1358,7 +1339,7 @@ function FrenchiseList() {
 
                                                 </span>
 
-                                            </td>
+                                            </td> */}
 
 
                                             {/* =====================
@@ -1367,6 +1348,12 @@ function FrenchiseList() {
 
                                             <td>
 
+                                                <span className="franchise-password mb-2">
+                                                    {item.userName || "-"}
+
+
+                                                </span>
+                                                <br />
                                                 <span className="franchise-password">
 
                                                     {item.password || "-"}

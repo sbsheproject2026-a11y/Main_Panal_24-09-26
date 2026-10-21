@@ -23,6 +23,18 @@ function MasterSession() {
 
   const [saving, setSaving] = useState(false);
 
+  // =========================================================
+  // ✅ TOAST STATE & FUNCTION
+  // =========================================================
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3000); // 3 seconds baad gayab ho jayega
+  };
+
   const [formData, setFormData] = useState({
     id: 0,
     shortName: "",
@@ -107,11 +119,12 @@ function MasterSession() {
       if (!deleteId) return;
       setDeleteLoading(true);
       const result = await getMasterSessionDelete(deleteId);
-      alert(result?.message || result || "Master Session deleted successfully");
+      showToast(result?.message || result || "Master Session deleted successfully", "success");
       closeDeleteModal();
       await loadMasterSessions();
     } catch (error) {
       console.log(error);
+      showToast("Unable to delete session.", "error");
     } finally {
       setDeleteLoading(false);
     }
@@ -132,11 +145,12 @@ function MasterSession() {
       } else {
         result = await createMasterSession(formData);
       }
-      alert(result.message);
+      showToast(result.message || "Master Session saved successfully", "success");
       await loadMasterSessions();
       resetForm();
     } catch (error) {
       console.log(error);
+      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setSaving(false);
     }
@@ -193,7 +207,47 @@ function MasterSession() {
 
   return (
     <div className="ms-page">
+      {/* ✅ TOAST UI */}
+      {toast.show && (
+        <div className="custom-toast-container">
+          <div className={`custom-toast ${toast.type}`}>
+            <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}`}></i>
+            {toast.message}
+          </div>
+        </div>
+      )}
+
       <style>{`
+        /* ================= TOAST CSS ================= */
+        .custom-toast-container {
+          position: fixed;
+          top: 25px;
+          right: 25px;
+          z-index: 99999;
+          animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        .custom-toast {
+          min-width: 300px;
+          padding: 16px 20px;
+          border-radius: 10px;
+          color: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .custom-toast.success { background: #16a34a; }
+        .custom-toast.error { background: #dc2626; }
+
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
         /* ================= PAGE ================= */
         html, body, #root {
           width: 100%;

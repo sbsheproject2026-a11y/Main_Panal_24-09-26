@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate,  useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { GetConfirmToAdmin, sendToConfirmStatus } from '../../AllServicesFiles/AdminStudentService';
 import { FILE_URL } from '../../api';
 import { getStudentFeeDetails } from '../../AllServicesFiles/PaymentService';
@@ -23,8 +23,8 @@ function SendToConfirmStudent() {
     const [feeDetails, setFeeDetails] = useState(null);
     const [feeLoading, setFeeLoading] = useState(false);
     const [feeError, setFeeError] = useState("");
-     const [searchParams] = useSearchParams();
-  const studyModeId = Number(searchParams.get("studyModeId")) || 0;
+    const [searchParams] = useSearchParams();
+    const studyModeId = Number(searchParams.get("studyModeId")) || 0;
     const navigate = useNavigate();
 
     // ✅ PRINT
@@ -81,12 +81,12 @@ function SendToConfirmStudent() {
 
     useEffect(() => {
         loadStudents();
-    }, [pageNo, pageSize, search,studyModeId]);
+    }, [pageNo, pageSize, search, studyModeId]);
 
     const loadStudents = async () => {
         try {
             setLoading(true);
-            const result = await GetConfirmToAdmin(pageNo, pageSize, search,studyModeId);
+            const result = await GetConfirmToAdmin(pageNo, pageSize, search, studyModeId);
 
             setData(result.data.data);
             setTotalRecords(result.data.totalRecords);
@@ -711,12 +711,13 @@ function SendToConfirmStudent() {
                     }
                 }
 
-                .student-action-group {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    flex-wrap: nowrap;
-                }
+                 
+                    .student-action-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+    gap: 8px; /* spacing between buttons */
+    justify-content: center;
+}
 
                 .student-action {
                     display: inline-flex;
@@ -1286,9 +1287,9 @@ function SendToConfirmStudent() {
                                                 <th>Name</th>
                                                 <th>Father Name</th>
                                                 <th>Address</th>
-                                                <th>Mobile No</th>
+
                                                 <th>Franchise Name</th>
-                                                <th>Course Name</th>
+
 
                                                 <th>Action</th>
                                             </tr>
@@ -1353,12 +1354,19 @@ function SendToConfirmStudent() {
                                                             />
                                                         </td>
 
-                                                        <td>{item.name || "-"}</td>
+                                                        <td>{item.name || "-"}
+                                                            <br />
+                                                            {item.mobileNo || "-"}
+                                                            <br />
+                                                            {item.courseName || "-"}
+
+
+                                                        </td>
                                                         <td>{item.fatherName || "-"}</td>
                                                         <td>{item.address || "-"}</td>
-                                                        <td>{item.mobileNo || "-"}</td>
+
                                                         <td>{item.instituteName || "-"}</td>
-                                                        <td>{item.courseName || "-"}</td>
+
 
                                                         <td>
                                                             <div className="student-action-group">
@@ -1371,7 +1379,7 @@ function SendToConfirmStudent() {
                                                                     <i className="bi bi-printer-fill"></i>
                                                                     <span>Print</span>
                                                                 </button>
-                                                             
+
 
                                                                 <button
                                                                     type="button"
@@ -1382,7 +1390,7 @@ function SendToConfirmStudent() {
                                                                     <i className="bi bi-eye-fill"></i>
                                                                     <span>View</span>
                                                                 </button>
- 
+
                                                                 <button
                                                                     type="button"
                                                                     className="student-action edit"
@@ -1393,14 +1401,14 @@ function SendToConfirmStudent() {
                                                                     <span>Edit</span>
                                                                 </button>
 
-  {studyModeId === 88 && (
-    <button
-        className="list-btn"
-        onClick={() => handleFeeClick(item)}
-    >
-        Fee
-    </button>
-)}
+                                                                {studyModeId === 88 && (
+                                                                    <button
+                                                                        className="list-btn"
+                                                                        onClick={() => handleFeeClick(item)}
+                                                                    >
+                                                                        Fee
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         </td>
 
@@ -1528,20 +1536,20 @@ function SendToConfirmStudent() {
 
                                         <div
                                             className={`receipt-status ${feeDetails.payStatus?.toLowerCase() === "pending"
-                                                    ? "status-pending"
-                                                    : feeDetails.payStatus?.toLowerCase() === "paid" ||
-                                                        feeDetails.payStatus?.toLowerCase() === "success"
-                                                        ? "status-paid"
-                                                        : "status-failed"
+                                                ? "status-pending"
+                                                : feeDetails.payStatus?.toLowerCase() === "paid" ||
+                                                    feeDetails.payStatus?.toLowerCase() === "success"
+                                                    ? "status-paid"
+                                                    : "status-failed"
                                                 }`}
                                         >
                                             <i
                                                 className={`bi ${feeDetails.payStatus?.toLowerCase() === "pending"
-                                                        ? "bi-clock-history"
-                                                        : feeDetails.payStatus?.toLowerCase() === "paid" ||
-                                                            feeDetails.payStatus?.toLowerCase() === "success"
-                                                            ? "bi-check-circle-fill"
-                                                            : "bi-x-circle-fill"
+                                                    ? "bi-clock-history"
+                                                    : feeDetails.payStatus?.toLowerCase() === "paid" ||
+                                                        feeDetails.payStatus?.toLowerCase() === "success"
+                                                        ? "bi-check-circle-fill"
+                                                        : "bi-x-circle-fill"
                                                     }`}
                                             ></i>
                                             {feeDetails.payStatus || "Unknown"}

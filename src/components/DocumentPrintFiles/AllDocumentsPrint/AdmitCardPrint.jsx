@@ -26,14 +26,10 @@ const AdmitCardPrint = () => {
     // ✅ GO BACK TO PREVIOUS PAGE (jahan se aaya tha)
     // =========================================================
     const goBackToPreviousPage = () => {
-        // Agar history me previous entry hai to back karo
         if (window.history.length > 1) {
             navigate(-1);
         } else {
-            // Fallback — direct open hone pe role-based path
-            const roleId = String(
-                localStorage.getItem("RoleId") || ""
-            ).trim();
+            const roleId = String(localStorage.getItem("RoleId") || "").trim();
 
             if (roleId === "5") {
                 navigate("/confirm-addmissions", { replace: true });
@@ -47,7 +43,6 @@ const AdmitCardPrint = () => {
 
     useEffect(() => {
         if (!id || printedId.current === id) return;
-
         printedId.current = id;
         printDiploma(id);
     }, [id]);
@@ -55,43 +50,23 @@ const AdmitCardPrint = () => {
     const loadImage = (src) => {
         return new Promise((resolve, reject) => {
             if (!src) {
-                reject(
-                    new Error("Image URL/Base64 empty hai.")
-                );
+                reject(new Error("Image URL/Base64 empty hai."));
                 return;
             }
-
             const image = new Image();
             image.crossOrigin = "anonymous";
-
             image.onload = () => resolve(image);
-
-            image.onerror = () => {
-                reject(
-                    new Error(
-                        `Image load nahi hui: ${String(src).substring(0, 100)}`
-                    )
-                );
-            };
-
+            image.onerror = () => reject(new Error(`Image load nahi hui: ${String(src).substring(0, 100)}`));
             image.src = src;
         });
     };
 
     const getImageFormat = (src) => {
         if (!src) return "PNG";
-
         const value = String(src).toLowerCase();
-
-        if (
-            value.startsWith("data:image/jpeg") ||
-            value.startsWith("data:image/jpg") ||
-            value.includes(".jpg") ||
-            value.includes(".jpeg")
-        ) {
+        if (value.startsWith("data:image/jpeg") || value.startsWith("data:image/jpg") || value.includes(".jpg") || value.includes(".jpeg")) {
             return "JPEG";
         }
-
         return "PNG";
     };
 
@@ -103,107 +78,128 @@ const AdmitCardPrint = () => {
 
         try {
             const image = await loadImage(field.image);
-
-            // ✅ margin ke saath calculate
             const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
             const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
-
             const width = field.width || 25;
             const height = field.height || 25;
 
-            pdf.addImage(
-                image,
-                getImageFormat(field.image),
-                x - width / 2,
-                y - height / 2,
-                width,
-                height,
-                undefined,
-                "FAST"
-            );
+            pdf.addImage(image, getImageFormat(field.image), x - width / 2, y - height / 2, width, height, undefined, "FAST");
         } catch (error) {
-            console.error(
-                `${imageName} PDF mein add nahi hui:`,
-                error
-            );
+            console.error(`${imageName} PDF mein add nahi hui:`, error);
         }
     };
 
+    // =========================================================
+    // ✅ CREATE TEXT IMAGE (Supports Word Wrap)
+    // =========================================================
     const createTextImage = (field) => {
         const text = String(field?.text ?? "").trim();
-
         if (!text) return null;
 
         const scale = 4;
-
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
-
         if (!ctx) return null;
 
         let currentFontSize = (field.fontSize || 13) * scale;
-
         const fontFamily = field.fontFamily || "Arial";
         const fontWeight = field.fontWeight || "normal";
         const fontStyle = field.fontStyle || "normal";
         const fontColor = field.fontColor || field.color || FONT_COLOR;
+        const align = field.align || "center";
 
         const maxWidthMm = field.maxWidth || 100;
         const maxWidthPx = maxWidthMm * 3.78 * scale;
 
-        let textWidth = 0;
-
-        while (true) {
+        // ✅ WORD WRAP LOGIC
+        if (field.wordWrap) {
             ctx.font = `${fontStyle} ${fontWeight} ${currentFontSize}px "${fontFamily}"`;
-            textWidth = ctx.measureText(text).width;
+            let words = text.split(" ");
+            let lines = [];
+            let currentLine = words[0];
 
-            if (textWidth <= maxWidthPx) break;
+            for (let i = 1; i < words.length; i++) {
+                let word = words[i];
+                let width = ctx.measureText(currentLine + " " + word).width;
+                if (width < maxWidthPx) {
+                    currentLine += " " + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
 
-            currentFontSize -= 0.25 * scale;
+            const horizontalPadding = 8 * scale;
+            const verticalPadding = 5 * scale;
+            const lineHeight = currentFontSize * 1.3; 
 
-            if (currentFontSize <= MIN_FONT_SIZE * scale) {
-                currentFontSize = MIN_FONT_SIZE * scale;
+            let maxLineWidth = 0;
+            lines.forEach(line => {
+                let w = ctx.measureText(line).width;
+                if (w > maxLineWidth) maxLineWidth = w;
+            });
 
+            const finalWidth = Math.min(maxLineWidth + horizontalPadding, maxWidthPx + horizontalPadding);
+            const finalHeight = (lines.length * lineHeight) + verticalPadding;
+
+            canvas.width = Math.ceil(finalWidth);
+            canvas.height = Math.ceil(finalHeight);
+
+            ctx.font = `${fontStyle} ${fontWeight} ${currentFontSize}px "${fontFamily}"`;
+            ctx.fillStyle = fontColor;
+            ctx.textBaseline = "top";
+            ctx.textAlign = align;
+
+            let startY = verticalPadding / 2;
+
+            lines.forEach((line, index) => {
+                let drawX;
+                if (align === "left") drawX = horizontalPadding / 2;
+                else if (align === "right") drawX = canvas.width - horizontalPadding / 2;
+                else drawX = canvas.width / 2;
+
+                ctx.fillText(line, drawX, startY + (index * lineHeight));
+            });
+
+        } else {
+            // ✅ NORMAL SINGLE LINE LOGIC (Auto Shrink)
+            let textWidth = 0;
+            while (true) {
                 ctx.font = `${fontStyle} ${fontWeight} ${currentFontSize}px "${fontFamily}"`;
                 textWidth = ctx.measureText(text).width;
-                break;
+
+                if (textWidth <= maxWidthPx) break;
+
+                currentFontSize -= 0.25 * scale;
+                if (currentFontSize <= MIN_FONT_SIZE * scale) {
+                    currentFontSize = MIN_FONT_SIZE * scale;
+                    ctx.font = `${fontStyle} ${fontWeight} ${currentFontSize}px "${fontFamily}"`;
+                    textWidth = ctx.measureText(text).width;
+                    break;
+                }
             }
+
+            const horizontalPadding = 8 * scale;
+            const verticalPadding = 5 * scale;
+            const finalWidth = Math.min(textWidth + horizontalPadding, maxWidthPx + horizontalPadding);
+            const finalHeight = currentFontSize * 1.8 + verticalPadding;
+
+            canvas.width = Math.ceil(finalWidth);
+            canvas.height = Math.ceil(finalHeight);
+
+            ctx.font = `${fontStyle} ${fontWeight} ${currentFontSize}px "${fontFamily}"`;
+            ctx.fillStyle = fontColor;
+            ctx.textBaseline = "middle";
+            ctx.textAlign = align;
+
+            let drawX;
+            if (align === "left") drawX = horizontalPadding / 2;
+            else if (align === "right") drawX = canvas.width - horizontalPadding / 2;
+            else drawX = canvas.width / 2;
+
+            ctx.fillText(text, drawX, canvas.height / 2);
         }
-
-        const horizontalPadding = 8 * scale;
-        const verticalPadding = 5 * scale;
-
-        const finalWidth = Math.min(
-            textWidth + horizontalPadding,
-            maxWidthPx + horizontalPadding
-        );
-
-        const finalHeight = currentFontSize * 1.8 + verticalPadding;
-
-        canvas.width = Math.ceil(finalWidth);
-        canvas.height = Math.ceil(finalHeight);
-
-        const drawContext = canvas.getContext("2d");
-        if (!drawContext) return null;
-
-        drawContext.font = `${fontStyle} ${fontWeight} ${currentFontSize}px "${fontFamily}"`;
-        drawContext.fillStyle = fontColor;
-        drawContext.textBaseline = "middle";
-
-        const align = field.align || "center";
-        drawContext.textAlign = align;
-
-        let drawX;
-
-        if (align === "left") {
-            drawX = horizontalPadding / 2;
-        } else if (align === "right") {
-            drawX = canvas.width - horizontalPadding / 2;
-        } else {
-            drawX = canvas.width / 2;
-        }
-
-        drawContext.fillText(text, drawX, canvas.height / 2);
 
         return {
             image: canvas.toDataURL("image/png"),
@@ -217,19 +213,13 @@ const AdmitCardPrint = () => {
     // DRAW TEXT (with margin)
     // =========================================================
     const drawText = (pdf, field) => {
-        if (
-            !field ||
-            field.text === null ||
-            field.text === undefined ||
-            String(field.text).trim() === ""
-        ) {
+        if (!field || field.text === null || field.text === undefined || String(field.text).trim() === "") {
             return;
         }
 
         const textData = createTextImage(field);
         if (!textData) return;
 
-        // ✅ margin ke saath calculate
         const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
         const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
 
@@ -237,23 +227,10 @@ const AdmitCardPrint = () => {
         const imageHeight = textData.height / textData.scale / 3.78;
 
         let drawX = x;
+        if (field.align === "center") drawX = x - imageWidth / 2;
+        else if (field.align === "right") drawX = x - imageWidth;
 
-        if (field.align === "center") {
-            drawX = x - imageWidth / 2;
-        } else if (field.align === "right") {
-            drawX = x - imageWidth;
-        }
-
-        pdf.addImage(
-            textData.image,
-            "PNG",
-            drawX,
-            y - imageHeight / 2,
-            imageWidth,
-            imageHeight,
-            undefined,
-            "FAST"
-        );
+        pdf.addImage(textData.image, "PNG", drawX, y - imageHeight / 2, imageWidth, imageHeight, undefined, "FAST");
     };
 
     // =========================================================
@@ -262,9 +239,7 @@ const AdmitCardPrint = () => {
     const drawSubjects = (pdf, subjects) => {
         if (!Array.isArray(subjects)) return;
 
-        const validSubjects = subjects.filter(
-            (item) => item?.code && item?.name
-        );
+        const validSubjects = subjects.filter((item) => item?.code && item?.name);
 
         validSubjects.forEach((subject, index) => {
             const y = 50 + index * 2;
@@ -329,8 +304,6 @@ const AdmitCardPrint = () => {
 
             if (!result) {
                 alert("Diploma data nahi mila.");
-
-                // ✅ Wapas usi page pe jao jahan se aaya tha
                 goBackToPreviousPage();
                 return;
             }
@@ -375,17 +348,19 @@ const AdmitCardPrint = () => {
                     fontColor: "#000000",
                 },
 
+                // ✅ Yahan wordWrap add kar diya hai
                 centreName: {
                     text: result.centreName || "",
                     x: 20,
                     y: 37.2,
                     align: "left",
-                    maxWidth: 100,
+                    maxWidth: 150,
                     fontSize: 13,
                     fontFamily: "Arial",
                     fontWeight: "bold",
                     fontStyle: "normal",
                     fontColor: "#000000",
+                    wordWrap: true // 👈 Sirf isko add kiya hai
                 },
 
                 courseName: {
@@ -436,11 +411,8 @@ const AdmitCardPrint = () => {
                 },
             };
 
-            const backgroundImage = await loadImage(
-                "/assets/Documents/AdmitCard.jpeg"
-            );
+            const backgroundImage = await loadImage("/assets/Documents/AdmitCard.jpeg");
 
-            // ✅ Custom 200 x 283
             const pdf = new jsPDF({
                 orientation: "portrait",
                 unit: "mm",
@@ -448,19 +420,7 @@ const AdmitCardPrint = () => {
                 compress: true,
             });
 
-            // =========================================================
-            // BACKGROUND — ✅ margin ke andar
-            // =========================================================
-            pdf.addImage(
-                backgroundImage,
-                "JPEG",
-                PRINT_MARGIN,           // ✅ x = 5
-                PRINT_MARGIN,           // ✅ y = 5
-                CONTENT_WIDTH,          // ✅ width = 190
-                CONTENT_HEIGHT,         // ✅ height = 273
-                undefined,
-                "FAST"
-            );
+            pdf.addImage(backgroundImage, "JPEG", PRINT_MARGIN, PRINT_MARGIN, CONTENT_WIDTH, CONTENT_HEIGHT, undefined, "FAST");
 
             await drawImage(pdf, FIELDS.selfImage, "Student Image");
             await drawImage(pdf, FIELDS.stampImage, "Stamp Image");
@@ -486,11 +446,7 @@ const AdmitCardPrint = () => {
 
             if (!newTab) {
                 URL.revokeObjectURL(pdfUrl);
-                alert(
-                    "Popup blocked hai. Browser mein popup allow karo."
-                );
-
-                // ✅ Wapas usi page pe jao
+                alert("Popup blocked hai. Browser mein popup allow karo.");
                 goBackToPreviousPage();
                 return;
             }
@@ -499,8 +455,6 @@ const AdmitCardPrint = () => {
                 if (newTab.closed) {
                     clearInterval(checkPdfClosed);
                     URL.revokeObjectURL(pdfUrl);
-
-                    // ✅ Wapas usi page pe jao jahan se aaya tha
                     goBackToPreviousPage();
                 }
             }, 500);
@@ -511,20 +465,11 @@ const AdmitCardPrint = () => {
             }, 60 * 60 * 1000);
         } catch (error) {
             console.error("Diploma PDF Error:", error);
-
-            alert(
-                error?.message ||
-                "Diploma PDF banane mein error aa gaya."
-            );
-
-            // ✅ Error case me bhi wapas usi page pe jao
+            alert(error?.message || "Diploma PDF banane mein error aa gaya.");
             goBackToPreviousPage();
         }
     };
 
-    // ==========================================
-    // NO UI — sirf null return
-    // ==========================================
     return null;
 };
 

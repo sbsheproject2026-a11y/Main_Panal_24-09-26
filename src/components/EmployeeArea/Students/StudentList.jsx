@@ -919,9 +919,9 @@ function StudentList() {
                         <th className="sr-column">#</th>
                         <th>Student</th>
                         <th>Father's Name</th>
-                        <th>Mobile No.</th>
-                        <th>Email</th>
-                        <th>Username</th>
+                        <th>Mobile No./Email</th>
+                         
+                        <th>Username/Password</th>
                         <th>Address</th>
                         <th className="action-column">Action</th>
                       </tr>
@@ -998,21 +998,18 @@ function StudentList() {
                               <span className="mobile-number">
                                 <i className="bi bi-telephone-fill"></i>
                                 {item.mobileNo || "-"}
-                              </span>
-                            </td>
-
-                            <td>
-                              <span className="mobile-number">
-                                <i className="bi bi-envelope-fill"></i>
+                                <br/>
                                 {item.email || "-"}
                               </span>
                             </td>
+
+                             
 
                             <td>
                               <span className="username-badge">
                                 <i className="bi bi-person-circle me-1"></i>
                                 {item.userName || "-"}
-                                {" / "}
+                              <br/>
                                 {item.password || "-"}
                               </span>
                             </td>

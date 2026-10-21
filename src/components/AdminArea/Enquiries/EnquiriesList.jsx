@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   getEnquiries,
@@ -18,6 +18,18 @@ function EnquiriesList() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(0);
   const [deleteName, setDeleteName] = useState("");
+
+  // =========================================================
+  // ✅ TOAST STATE & FUNCTION
+  // =========================================================
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3000); // 3 seconds baad gayab ho jayega
+  };
 
   const type = searchParams.get("type");
 
@@ -61,17 +73,20 @@ function EnquiriesList() {
 
       const result = await deleteEnquiry(deleteId);
 
-      alert(
+      // ✅ ALERT KI JAGAH TOAST
+      showToast(
         result?.message ||
         result ||
-        "Enquiry deleted successfully"
+        "Enquiry deleted successfully",
+        "success"
       );
 
       closeDeleteModal();
       await loadEnquiries();
     } catch (error) {
       console.log(error);
-      alert("Unable to delete enquiry.");
+      // ✅ ALERT KI JAGAH TOAST
+      showToast("Unable to delete enquiry.", "error");
     } finally {
       setDeleteLoading(false);
     }
@@ -164,6 +179,36 @@ function EnquiriesList() {
   return (
     <>
       <style>{`
+        /* ================= TOAST CSS ================= */
+        .custom-toast-container {
+          position: fixed;
+          top: 25px;
+          right: 25px;
+          z-index: 99999;
+          animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        .custom-toast {
+          min-width: 300px;
+          padding: 16px 20px;
+          border-radius: 10px;
+          color: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .custom-toast.success { background: #16a34a; }
+        .custom-toast.error { background: #dc2626; }
+
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
         html,
         body,
         #root {
@@ -941,6 +986,16 @@ function EnquiriesList() {
           }
         }
       `}</style>
+
+      {/* ✅ TOAST UI */}
+      {toast.show && (
+        <div className="custom-toast-container">
+          <div className={`custom-toast ${toast.type}`}>
+            <i className={`bi ${toast.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}`}></i>
+            {toast.message}
+          </div>
+        </div>
+      )}
 
       <div className="enquiry-page">
 

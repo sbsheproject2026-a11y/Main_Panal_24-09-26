@@ -39,6 +39,13 @@ export const printDiplomaApi = async (id) => {
 
     return response.data;
 };
+export const printNOCApi = async (id) => {
+    const response = await api.get(
+        `/DocumentProfile/noc-print/${id}`
+    );
+
+    return response.data;
+};
 export const printMarksheetApi = async (id) => {
     const response = await api.get(
         `/DocumentProfile/document-print-Marksheet-print/${id}`
