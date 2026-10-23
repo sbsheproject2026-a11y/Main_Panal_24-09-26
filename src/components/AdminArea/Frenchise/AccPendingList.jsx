@@ -627,11 +627,10 @@ function AccPendingList() {
 
                               </div>
 
-                              <div className="consultant-role">
-
-                                Admission Consultant
-
-                              </div>
+<div className="consultant-role">
+  {item.referenceId == 91 ? "Admission Consultant" : "Study Centre"}
+</div>
+                             
 
                             </div>
 

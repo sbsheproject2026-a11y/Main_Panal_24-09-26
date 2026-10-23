@@ -1,4 +1,4 @@
- import React, { useEffect, useMemo, useState } from "react";
+ import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   getMasterTypeDetails,
   createMasterTypeDetail,
@@ -9,6 +9,86 @@ import {
   getMasterTypesdetails,
 } from "../../AllServicesFiles/MastertypeDetailService";
 import { FILE_URL } from "../../api";
+
+// =========================================================
+// ✅ CUSTOM SEARCHABLE DROPDOWN COMPONENT
+// =========================================================
+const SearchableSelect = ({ options, value, onChange, placeholder, disabled, labelKey = "name", valueKey = "id" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [wrapperRef]);
+
+  const safeOptions = options || [];
+
+  const filteredOptions = safeOptions.filter((opt) =>
+    String(opt[labelKey] || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  const selectedOption = safeOptions.find((opt) => String(opt[valueKey]) === String(value));
+
+  return (
+    <div className="searchable-select-wrapper" ref={wrapperRef}>
+      <div
+        className={`form-select modern-input modern-select d-flex align-items-center justify-content-between ${disabled ? "bg-light text-muted" : ""}`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        style={{ cursor: disabled ? "not-allowed" : "pointer", minHeight: "46px" }}
+      >
+        <span className={selectedOption ? "text-dark" : "text-muted"}>
+          {selectedOption ? selectedOption[labelKey] : placeholder}
+        </span>
+        <i className={`bi bi-chevron-${isOpen ? "up" : "down"}`} style={{ fontSize: "12px", color: "#94a3b8" }}></i>
+      </div>
+
+      {isOpen && (
+        <div className="searchable-dropdown-menu shadow-lg">
+          <div className="p-2 border-bottom bg-white sticky-top">
+            <div className="input-group input-group-sm">
+              <input
+                type="text"
+                className="form-control border-start-0 ps-0"
+                placeholder="Search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
+          </div>
+          <ul className="list-unstyled mb-0 searchable-list">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt) => (
+                <li
+                  key={opt[valueKey]}
+                  className={`searchable-item ${String(opt[valueKey]) === String(value) ? "active" : ""}`}
+                  onClick={() => {
+                    onChange(opt[valueKey]);
+                    setIsOpen(false);
+                    setSearch("");
+                  }}
+                >
+                  {opt[labelKey]}
+                </li>
+              ))
+            ) : (
+              <li className="p-3 text-muted text-center" style={{ fontSize: "13px" }}>
+                No results found
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 function MasterTypeDetails() {
   const [data, setData] = useState([]);
@@ -30,6 +110,10 @@ function MasterTypeDetails() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // ✅ NAYE FILTER STATES
+  const [filterMasterTypeId, setFilterMasterTypeId] = useState(0);
+  const [filterParentId, setFilterParentId] = useState(0);
+
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [deleteMasterTypeDetailName, setDeleteMasterTypeDetailName] = useState("");
@@ -39,16 +123,13 @@ function MasterTypeDetails() {
   const [masterTypeLoading, setMasterTypeLoading] = useState(false);
   const [masterTypedLoading, setMasterTypedLoading] = useState(false);
 
-  // =========================================================
-  // ✅ TOAST STATE & FUNCTION
-  // =========================================================
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
     setTimeout(() => {
       setToast((prev) => ({ ...prev, show: false }));
-    }, 3000); // 3 seconds baad gayab ho jayega
+    }, 3000);
   };
 
   useEffect(() => {
@@ -164,17 +245,17 @@ function MasterTypeDetails() {
     }));
   };
 
-  const handleMasterTypeChange = (e) => {
-    setFormData((prev) => ({ ...prev, masterTypeId: Number(e.target.value) }));
+  const handleMasterTypeChange = (val) => {
+    setFormData((prev) => ({ ...prev, masterTypeId: Number(val) }));
   };
 
-  const handleMasterTypedChange = (e) => {
-    setFormData((prev) => ({ ...prev, parentId: Number(e.target.value) }));
+  const handleMasterTypedChange = (val) => {
+    setFormData((prev) => ({ ...prev, parentId: Number(val) }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.masterTypeId) {
+    if (!formData.masterTypeId || formData.masterTypeId === 0) {
       showToast("Please select Master Type.", "error");
       return;
     }
@@ -208,18 +289,35 @@ function MasterTypeDetails() {
     setCurrentPage(1);
   };
 
+  // ✅ FILTER LOGIC UPDATE
   const filteredData = useMemo(() => {
+    let result = data;
+
+    // 1. Text Search Filter
     const search = searchTerm.toLowerCase().trim();
-    if (!search) return data;
-    return data.filter((item) => {
-      const masterTypeName = item.masterTypeName || item.masterType?.name || "";
-      return (
-        item.code?.toString().toLowerCase().includes(search) ||
-        item.name?.toString().toLowerCase().includes(search) ||
-        masterTypeName?.toString().toLowerCase().includes(search)
-      );
-    });
-  }, [data, searchTerm]);
+    if (search) {
+      result = result.filter((item) => {
+        const masterTypeName = item.masterTypeName || item.masterType?.name || "";
+        return (
+          item.code?.toString().toLowerCase().includes(search) ||
+          item.name?.toString().toLowerCase().includes(search) ||
+          masterTypeName?.toString().toLowerCase().includes(search)
+        );
+      });
+    }
+
+    // 2. Master Type Dropdown Filter
+    if (filterMasterTypeId && filterMasterTypeId !== 0) {
+      result = result.filter((item) => Number(item.masterTypeId) === Number(filterMasterTypeId));
+    }
+
+    // 3. Parent Dropdown Filter
+    if (filterParentId && filterParentId !== 0) {
+      result = result.filter((item) => Number(item.parentId) === Number(filterParentId));
+    }
+
+    return result;
+  }, [data, searchTerm, filterMasterTypeId, filterParentId]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -263,9 +361,18 @@ function MasterTypeDetails() {
     return masterType?.name || "—";
   };
 
+  // ✅ Clear All Filters
+  const clearFilters = () => {
+    setFilterMasterTypeId(0);
+    setFilterParentId(0);
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = filterMasterTypeId > 0 || filterParentId > 0 || searchTerm.trim() !== "";
+
   return (
     <>
-      {/* ✅ TOAST UI */}
       {toast.show && (
         <div className="custom-toast-container">
           <div className={`custom-toast ${toast.type}`}>
@@ -276,7 +383,6 @@ function MasterTypeDetails() {
       )}
 
       <div className="master-type-details-page">
-        {/* PAGE HEADER */}
         <div className="page-header mb-4">
           <div>
             <div className="d-flex align-items-center gap-2 mb-2">
@@ -289,7 +395,6 @@ function MasterTypeDetails() {
               </div>
             </div>
           </div>
-
           <nav>
             <ol className="breadcrumb custom-breadcrumb mb-0">
               <li className="breadcrumb-item">
@@ -307,7 +412,8 @@ function MasterTypeDetails() {
         <section className="section">
           {/* FORM CARD */}
           <div className="card modern-card border-0 mb-4">
-            <div className="card-body p-0">
+             {/* ... (Form UI remains exactly the same as before) ... */}
+             <div className="card-body p-0">
               <div className="card-header-modern">
                 <div className="d-flex align-items-center gap-3">
                   <div className="section-icon">
@@ -342,20 +448,15 @@ function MasterTypeDetails() {
                       </label>
                       <div className="input-group-modern">
                         <span className="input-icon"><i className="bi bi-diagram-3"></i></span>
-                        <select
-                          className="form-select modern-input modern-select"
-                          required
+                        <SearchableSelect
+                          options={masterTypes}
                           value={formData.masterTypeId}
                           onChange={handleMasterTypeChange}
+                          placeholder={masterTypeLoading ? "Loading Master Types..." : "Select Master Type"}
                           disabled={masterTypeLoading}
-                        >
-                          <option value={0}>
-                            {masterTypeLoading ? "Loading Master Types..." : "Select Master Type"}
-                          </option>
-                          {masterTypes.map((item) => (
-                            <option key={item.id} value={item.id}>{item.name}</option>
-                          ))}
-                        </select>
+                          labelKey="name"
+                          valueKey="id"
+                        />
                       </div>
                       <small className="field-help">Select the parent master type</small>
                     </div>
@@ -364,19 +465,15 @@ function MasterTypeDetails() {
                       <label className="form-label-modern">Parent</label>
                       <div className="input-group-modern">
                         <span className="input-icon"><i className="bi bi-diagram-3"></i></span>
-                        <select
-                          className="form-select modern-input modern-select"
+                        <SearchableSelect
+                          options={masterTypesdetsils}
                           value={formData.parentId}
                           onChange={handleMasterTypedChange}
+                          placeholder={masterTypedLoading ? "Loading..." : "Select Parent"}
                           disabled={masterTypedLoading}
-                        >
-                          <option value={0}>
-                            {masterTypedLoading ? "Loading Master Types..." : "Select Master Type"}
-                          </option>
-                          {masterTypesdetsils.map((item) => (
-                            <option key={item.id} value={item.id}>{item.name}</option>
-                          ))}
-                        </select>
+                          labelKey="name"
+                          valueKey="id"
+                        />
                       </div>
                     </div>
 
@@ -555,6 +652,43 @@ function MasterTypeDetails() {
               </div>
 
               <div className="p-4">
+                
+                {/* =========================================================
+                    ✅ NAYE FILTERS YAHAN ADD KIYE HAIN
+                ========================================================= */}
+                <div className="row g-3 mb-4 align-items-end filter-row">
+                  <div className="col-md-4">
+                    <label className="form-label-modern mb-1" style={{ fontSize: '12px' }}>Filter by Master Type</label>
+                    <SearchableSelect
+                      options={masterTypes}
+                      value={filterMasterTypeId}
+                      onChange={(val) => { setFilterMasterTypeId(Number(val)); setCurrentPage(1); }}
+                      placeholder="All Master Types"
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label-modern mb-1" style={{ fontSize: '12px' }}>Filter by Parent</label>
+                    <SearchableSelect
+                      options={masterTypesdetsils}
+                      value={filterParentId}
+                      onChange={(val) => { setFilterParentId(Number(val)); setCurrentPage(1); }}
+                      placeholder="All Parents"
+                    />
+                  </div>
+                  <div className="col-md-4 d-flex gap-2">
+                     {hasActiveFilters && (
+                       <button 
+                         type="button" 
+                         className="btn btn-outline-danger w-100" 
+                         onClick={clearFilters}
+                         style={{ height: '46px' }}
+                       >
+                         <i className="bi bi-x-circle me-1"></i> Clear Filters
+                       </button>
+                     )}
+                  </div>
+                </div>
+
                 <div className="table-toolbar mb-4">
                   <div className="entries-control">
                     <span className="text-muted">Show</span>
@@ -603,7 +737,7 @@ function MasterTypeDetails() {
                       "No records available"
                     )}
                   </div>
-                  {searchTerm && (
+                  {hasActiveFilters && (
                     <span className="search-result-label">
                       <i className="bi bi-funnel me-1"></i>
                       Filtered
@@ -611,7 +745,6 @@ function MasterTypeDetails() {
                   )}
                 </div>
 
-                {/* ✅ TABLE — Visible Scrollbar */}
                 <div className="modern-table-responsive">
                   <table className="table modern-table align-middle mb-0">
                     <thead>
@@ -642,11 +775,9 @@ function MasterTypeDetails() {
                               <td>
                                 <span className="row-number">{startIndex + index + 1}</span>
                               </td>
-
                               <td>
                                 <span className="code-badge">{item.code || "—"}</span>
                               </td>
-
                               <td>
                                 <div className="name-cell">
                                   <div className="name-avatar detail-avatar">
@@ -658,7 +789,6 @@ function MasterTypeDetails() {
                                   </div>
                                 </div>
                               </td>
-
                               <td>
                                 <div className="master-type-cell">
                                   <div className="master-type-icon">
@@ -670,7 +800,6 @@ function MasterTypeDetails() {
                                   </div>
                                 </div>
                               </td>
-
                               <td>
                                 {item.isActive === 1 ? (
                                   <span className="status-badge active">
@@ -684,13 +813,11 @@ function MasterTypeDetails() {
                                   </span>
                                 )}
                               </td>
-
                               <td>
                                 <span className="code-badge file-path-badge">
                                   {item.filePath || "—"}
                                 </span>
                               </td>
-
                               <td>
                                 <div className="action-buttons">
                                   <button
@@ -723,8 +850,8 @@ function MasterTypeDetails() {
                               </div>
                               <h6 className="fw-bold mt-3">No Master Type Details Found</h6>
                               <p className="text-muted mb-0">
-                                {searchTerm
-                                  ? "Try changing your search keyword."
+                                {hasActiveFilters
+                                  ? "Try changing your filter or search keyword."
                                   : "There are no detail records available."}
                               </p>
                             </div>
@@ -776,7 +903,6 @@ function MasterTypeDetails() {
           </div>
         </section>
 
-        {/* DELETE MODAL */}
         {deleteModal && (
           <>
             <div
@@ -835,759 +961,168 @@ function MasterTypeDetails() {
         )}
       </div>
 
-      {/* CUSTOM CSS */}
       <style>{`
         /* ================= TOAST CSS ================= */
-        .custom-toast-container {
-          position: fixed;
-          top: 25px;
-          right: 25px;
-          z-index: 99999;
-          animation: slideInRight 0.3s ease-out forwards;
-        }
-
-        .custom-toast {
-          min-width: 300px;
-          padding: 16px 20px;
-          border-radius: 10px;
-          color: #fff;
-          font-weight: 600;
-          font-size: 14px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
+        .custom-toast-container { position: fixed; top: 25px; right: 25px; z-index: 99999; animation: slideInRight 0.3s ease-out forwards; }
+        .custom-toast { min-width: 300px; padding: 16px 20px; border-radius: 10px; color: #fff; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .custom-toast.success { background: #16a34a; }
         .custom-toast.error { background: #dc2626; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        @keyframes slideInRight {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
+        /* ================= SEARCHABLE DROPDOWN CSS ================= */
+        .searchable-select-wrapper { position: relative; width: 100%; }
+        .searchable-dropdown-menu { position: absolute; top: 105%; left: 0; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; z-index: 1050; overflow: hidden; margin-top: 4px; }
+        .searchable-list { max-height: 220px; overflow-y: auto; }
+        .searchable-list::-webkit-scrollbar { width: 6px; }
+        .searchable-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .searchable-item { padding: 10px 14px; font-size: 13.5px; color: #334155; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: all 0.15s ease; }
+        .searchable-item:last-child { border-bottom: 0; }
+        .searchable-item:hover { background: #f8fafc; color: #4154f1; }
+        .searchable-item.active { background: #eef2ff; color: #4154f1; font-weight: 600; }
 
-        /* ================= PAGE — NO HORIZONTAL SCROLL ================= */
-        html, body, #root {
-          width: 100%;
-          max-width: 100%;
-          overflow-x: hidden !important;
-          box-sizing: border-box;
-        }
+        /* ✅ FILTER ROW SPECIFIC CSS */
+        .filter-row { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
 
-        .master-type-details-page {
-          width: 100%;
-          max-width: 100%;
-          min-width: 0;
-          overflow-x: hidden;
-          box-sizing: border-box;
-        }
-
-        .section {
-          width: 100%;
-          max-width: 100%;
-          min-width: 0;
-          overflow-x: hidden;
-          box-sizing: border-box;
-        }
-
-        /* ================= PAGE HEADER ================= */
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          gap: 20px;
-          padding: 5px 0 15px;
-        }
-
-        .page-icon {
-          width: 46px;
-          height: 46px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #4154f1, #6c63ff);
-          color: #fff;
-          font-size: 20px;
-          box-shadow: 0 8px 20px rgba(65, 84, 241, .22);
-        }
-
-        .detail-icon {
-          background: linear-gradient(135deg, #7c3aed, #6366f1);
-        }
-
-        .page-title {
-          font-size: 26px;
-          font-weight: 700;
-          color: #1e293b;
-        }
-
-        .page-subtitle {
-          color: #94a3b8;
-          font-size: 13px;
-        }
-
+        /* ================= PAGE & CARD ================= */
+        html, body, #root { width: 100%; max-width: 100%; overflow-x: hidden !important; box-sizing: border-box; }
+        .master-type-details-page { width: 100%; max-width: 100%; min-width: 0; overflow-x: hidden; box-sizing: border-box; }
+        .section { width: 100%; max-width: 100%; min-width: 0; overflow-x: hidden; box-sizing: border-box; }
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding: 5px 0 15px; }
+        .page-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #4154f1, #6c63ff); color: #fff; font-size: 20px; box-shadow: 0 8px 20px rgba(65, 84, 241, .22); }
+        .detail-icon { background: linear-gradient(135deg, #7c3aed, #6366f1); }
+        .page-title { font-size: 26px; font-weight: 700; color: #1e293b; }
+        .page-subtitle { color: #94a3b8; font-size: 13px; }
         .custom-breadcrumb { font-size: 13px; }
         .custom-breadcrumb a { color: #64748b; text-decoration: none; }
         .custom-breadcrumb .active { color: #4154f1; font-weight: 600; }
 
-        /* ================= CARD ================= */
-        .modern-card {
-          width: 100%;
-          max-width: 100%;
-          min-width: 0;
-          background: #fff;
-          border-radius: 16px;
-          box-shadow: 0 5px 25px rgba(15, 23, 42, .06);
-          overflow: hidden;
-          box-sizing: border-box;
-        }
-
-        .card-header-modern {
-          min-height: 78px;
-          padding: 18px 24px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 1px solid #eef2f7;
-          background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
-        }
-
-        .section-icon {
-          width: 42px;
-          height: 42px;
-          border-radius: 11px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(65, 84, 241, .10);
-          color: #4154f1;
-          font-size: 18px;
-        }
-
-        .section-icon.purple {
-          background: rgba(124, 58, 237, .10);
-          color: #7c3aed;
-        }
-
-        .reset-btn {
-          border: 1px solid #e2e8f0;
-          color: #64748b;
-          border-radius: 8px;
-        }
+        .modern-card { width: 100%; max-width: 100%; min-width: 0; background: #fff; border-radius: 16px; box-shadow: 0 5px 25px rgba(15, 23, 42, .06); overflow: hidden; box-sizing: border-box; }
+        .card-header-modern { min-height: 78px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eef2f7; background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%); }
+        .section-icon { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: rgba(65, 84, 241, .10); color: #4154f1; font-size: 18px; }
+        .section-icon.purple { background: rgba(124, 58, 237, .10); color: #7c3aed; }
+        .reset-btn { border: 1px solid #e2e8f0; color: #64748b; border-radius: 8px; }
 
         /* ================= FORM ================= */
-        .form-label-modern {
-          font-size: 13px;
-          font-weight: 600;
-          color: #334155;
-          margin-bottom: 8px;
-        }
-
+        .form-label-modern { font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 8px; }
         .input-group-modern { position: relative; }
-
-        .input-icon {
-          position: absolute;
-          left: 14px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #94a3b8;
-          z-index: 3;
-          pointer-events: none;
-        }
-
-        .modern-input {
-          height: 46px;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px !important;
-          padding-left: 42px;
-          font-size: 14px;
-          color: #334155;
-          background: #fff;
-          transition: all .2s ease;
-        }
-
-        .modern-input:focus {
-          border-color: #4154f1;
-          box-shadow: 0 0 0 3px rgba(65, 84, 241, .10);
-        }
-
+        .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; z-index: 3; pointer-events: none; }
+        .modern-input { height: 46px; border: 1px solid #e2e8f0; border-radius: 10px !important; padding-left: 42px; font-size: 14px; color: #334155; background: #fff; transition: all .2s ease; }
+        .modern-input:focus { border-color: #4154f1; box-shadow: 0 0 0 3px rgba(65, 84, 241, .10); }
         .modern-select { cursor: pointer; }
-
-        .field-help {
-          display: block;
-          margin-top: 6px;
-          color: #94a3b8;
-          font-size: 11px;
-        }
+        .field-help { display: block; margin-top: 6px; color: #94a3b8; font-size: 11px; }
 
         /* ================= STATUS ================= */
-        .status-box {
-          min-height: 70px;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          padding: 10px 14px;
-          background: #fafbff;
-        }
-
-        .status-icon {
-          width: 38px;
-          height: 38px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
+        .status-box { min-height: 70px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; background: #fafbff; }
+        .status-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .status-icon.active { color: #16a34a; background: #dcfce7; }
         .status-icon.inactive { color: #64748b; background: #e2e8f0; }
-
-        .custom-switch {
-          width: 42px !important;
-          height: 22px;
-          cursor: pointer;
-        }
-
-        .custom-switch:checked {
-          background-color: #16a34a;
-          border-color: #16a34a;
-        }
+        .custom-switch { width: 42px !important; height: 22px; cursor: pointer; }
+        .custom-switch:checked { background-color: #16a34a; border-color: #16a34a; }
 
         /* ================= BUTTONS ================= */
-        .form-actions {
-          display: flex;
-          gap: 10px;
-          padding-top: 5px;
-        }
-
-        .modern-primary-btn {
-          border: 0;
-          min-height: 44px;
-          padding: 0 22px;
-          border-radius: 9px;
-          background: linear-gradient(135deg, #4154f1, #5b5ff7);
-          box-shadow: 0 7px 18px rgba(65, 84, 241, .18);
-          font-weight: 600;
-        }
-
-        .modern-primary-btn:hover {
-          background: linear-gradient(135deg, #3445db, #4f53e7);
-          transform: translateY(-1px);
-        }
-
-        .modern-reset-btn {
-          min-height: 44px;
-          padding: 0 20px;
-          border-radius: 9px;
-          border: 1px solid #e2e8f0;
-          color: #64748b;
-          font-weight: 500;
-        }
+        .form-actions { display: flex; gap: 10px; padding-top: 5px; }
+        .modern-primary-btn { border: 0; min-height: 44px; padding: 0 22px; border-radius: 9px; background: linear-gradient(135deg, #4154f1, #5b5ff7); box-shadow: 0 7px 18px rgba(65, 84, 241, .18); font-weight: 600; }
+        .modern-primary-btn:hover { background: linear-gradient(135deg, #3445db, #4f53e7); transform: translateY(-1px); }
+        .modern-reset-btn { min-height: 44px; padding: 0 20px; border-radius: 9px; border: 1px solid #e2e8f0; color: #64748b; font-weight: 500; }
 
         /* ================= RECORD COUNT ================= */
-        .record-count {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          color: #64748b;
-        }
-
-        .record-count span {
-          min-width: 32px;
-          height: 28px;
-          padding: 0 8px;
-          border-radius: 7px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #eef2ff;
-          color: #4154f1;
-          font-weight: 700;
-          font-size: 13px;
-        }
-
+        .record-count { display: flex; align-items: center; gap: 7px; color: #64748b; }
+        .record-count span { min-width: 32px; height: 28px; padding: 0 8px; border-radius: 7px; display: flex; align-items: center; justify-content: center; background: #eef2ff; color: #4154f1; font-weight: 700; font-size: 13px; }
         .record-count small { font-size: 12px; }
 
         /* ================= TOOLBAR ================= */
-        .table-toolbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 15px;
-        }
-
-        .entries-control {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          font-size: 13px;
-        }
-
-        .entries-select {
-          width: 75px;
-          height: 38px;
-          border-radius: 8px;
-          border-color: #e2e8f0;
-          font-size: 13px;
-        }
-
-        .search-wrapper {
-          width: 300px;
-          position: relative;
-        }
-
-        .search-wrapper > i {
-          position: absolute;
-          left: 13px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #94a3b8;
-          z-index: 2;
-        }
-
-        .search-input {
-          height: 40px;
-          border-radius: 9px;
-          border: 1px solid #e2e8f0;
-          padding-left: 38px;
-          padding-right: 38px;
-          font-size: 13px;
-        }
-
-        .search-input:focus {
-          border-color: #4154f1;
-          box-shadow: 0 0 0 3px rgba(65, 84, 241, .08);
-        }
-
-        .search-clear {
-          position: absolute;
-          right: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          border: 0;
-          background: transparent;
-          color: #94a3b8;
-          padding: 0;
-        }
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+        .entries-control { display: flex; align-items: center; gap: 9px; font-size: 13px; }
+        .entries-select { width: 75px; height: 38px; border-radius: 8px; border-color: #e2e8f0; font-size: 13px; }
+        .search-wrapper { width: 300px; position: relative; }
+        .search-wrapper > i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #94a3b8; z-index: 2; }
+        .search-input { height: 40px; border-radius: 9px; border: 1px solid #e2e8f0; padding-left: 38px; padding-right: 38px; font-size: 13px; }
+        .search-input:focus { border-color: #4154f1; box-shadow: 0 0 0 3px rgba(65, 84, 241, .08); }
+        .search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: #94a3b8; padding: 0; }
 
         .showing-text { color: #94a3b8; font-size: 12px; }
         .showing-text strong { color: #475569; }
-
-        .search-result-label {
-          font-size: 11px;
-          padding: 5px 9px;
-          border-radius: 20px;
-          color: #4154f1;
-          background: #eef2ff;
-          font-weight: 600;
-        }
-
-        /* =========================================================
-           ✅ TABLE WRAPPER — VISIBLE SCROLLBAR (Employee style)
-        ========================================================= */
-        .modern-table-responsive {
-          display: block !important;
-          width: 0 !important;
-          min-width: 100% !important;
-          max-width: 100% !important;
-          overflow-x: auto !important;
-          overflow-y: hidden !important;
-          box-sizing: border-box !important;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: thin;
-          scrollbar-color: #c9ced8 #eef1f5;
-          border: 1px solid #edf1f6;
-          border-radius: 12px;
-        }
-
-        .modern-table-responsive::-webkit-scrollbar {
-          height: 9px;
-        }
-
-        .modern-table-responsive::-webkit-scrollbar-track {
-          background: #eef1f5;
-          border-radius: 10px;
-        }
-
-        .modern-table-responsive::-webkit-scrollbar-thumb {
-          background: #c9ced8;
-          border-radius: 10px;
-        }
-
-        .modern-table-responsive::-webkit-scrollbar-thumb:hover {
-          background: #aeb5c2;
-        }
+        .search-result-label { font-size: 11px; padding: 5px 9px; border-radius: 20px; color: #4154f1; background: #eef2ff; font-weight: 600; }
 
         /* ================= TABLE ================= */
-        .modern-table {
-          width: auto !important;
-          min-width: 100% !important;
-          max-width: none !important;
-          table-layout: auto !important;
-          border-collapse: separate !important;
-          border-spacing: 0 !important;
-          margin: 0 !important;
-        }
-
-        .modern-table thead th {
-          background: #f8fafc;
-          color: #64748b;
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: .5px;
-          font-weight: 700;
-          padding: 15px 16px;
-          border-bottom: 1px solid #e9eef5;
-          white-space: nowrap;
-          vertical-align: middle;
-        }
-
-        .modern-table tbody td {
-          padding: 15px 16px;
-          border-bottom: 1px solid #f1f5f9;
-          color: #334155;
-          font-size: 13px;
-          white-space: nowrap;
-          vertical-align: middle;
-        }
-
+        .modern-table-responsive { display: block !important; width: 0 !important; min-width: 100% !important; max-width: 100% !important; overflow-x: auto !important; overflow-y: hidden !important; box-sizing: border-box !important; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: #c9ced8 #eef1f5; border: 1px solid #edf1f6; border-radius: 12px; }
+        .modern-table-responsive::-webkit-scrollbar { height: 9px; }
+        .modern-table-responsive::-webkit-scrollbar-track { background: #eef1f5; border-radius: 10px; }
+        .modern-table-responsive::-webkit-scrollbar-thumb { background: #c9ced8; border-radius: 10px; }
+        .modern-table-responsive::-webkit-scrollbar-thumb:hover { background: #aeb5c2; }
+        .modern-table { width: auto !important; min-width: 100% !important; max-width: none !important; table-layout: auto !important; border-collapse: separate !important; border-spacing: 0 !important; margin: 0 !important; }
+        .modern-table thead th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; font-weight: 700; padding: 15px 16px; border-bottom: 1px solid #e9eef5; white-space: nowrap; vertical-align: middle; }
+        .modern-table tbody td { padding: 15px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 13px; white-space: nowrap; vertical-align: middle; }
         .modern-table tbody tr:last-child td { border-bottom: 0; }
         .modern-table tbody tr { transition: background .2s ease; }
         .modern-table tbody tr:hover { background: #fafbff; }
 
-        /* ================= NUMBER ================= */
-        .row-number {
-          width: 30px;
-          height: 30px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 8px;
-          background: #f1f5f9;
-          color: #64748b;
-          font-size: 12px;
-          font-weight: 600;
-        }
-
-        /* ================= MASTER TYPE ================= */
-        .master-type-cell {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .master-type-icon {
-          width: 35px;
-          height: 35px;
-          flex-shrink: 0;
-          border-radius: 9px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #f3e8ff;
-          color: #7c3aed;
-          font-size: 14px;
-        }
-
+        .row-number { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #f1f5f9; color: #64748b; font-size: 12px; font-weight: 600; }
+        .master-type-cell { display: flex; align-items: center; gap: 10px; }
+        .master-type-icon { width: 35px; height: 35px; flex-shrink: 0; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: #f3e8ff; color: #7c3aed; font-size: 14px; }
         .master-type-cell small { font-size: 10px; }
-
-        /* ================= CODE ================= */
-        .code-badge {
-          display: inline-flex;
-          padding: 6px 10px;
-          border-radius: 7px;
-          background: #f1f5f9;
-          color: #475569;
-          font-family: monospace;
-          font-size: 12px;
-          font-weight: 600;
-          max-width: 180px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .file-path-badge {
-          max-width: 200px;
-        }
-
-        /* ================= NAME ================= */
-        .name-cell {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-        }
-
-        .name-avatar {
-          width: 36px;
-          height: 36px;
-          flex-shrink: 0;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #eef2ff, #e0e7ff);
-          color: #4154f1;
-          font-weight: 700;
-          font-size: 13px;
-        }
-
-        .detail-avatar {
-          background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-          color: #16a34a;
-        }
-
+        .code-badge { display: inline-flex; padding: 6px 10px; border-radius: 7px; background: #f1f5f9; color: #475569; font-family: monospace; font-size: 12px; font-weight: 600; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .file-path-badge { max-width: 200px; }
+        .name-cell { display: flex; align-items: center; gap: 11px; }
+        .name-avatar { width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #eef2ff, #e0e7ff); color: #4154f1; font-weight: 700; font-size: 13px; }
+        .detail-avatar { background: linear-gradient(135deg, #f0fdf4, #dcfce7); color: #16a34a; }
         .name-cell small { font-size: 10px; }
-
-        /* ================= STATUS BADGE ================= */
-        .status-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          padding: 6px 10px;
-          border-radius: 20px;
-          font-size: 11px;
-          font-weight: 600;
-        }
-
+        .status-badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
         .status-badge.active { background: #ecfdf3; color: #15803d; }
         .status-badge.inactive { background: #f1f5f9; color: #64748b; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-        .status-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: currentColor;
-        }
-
-        /* ================= ACTIONS ================= */
-        .action-buttons {
-          display: flex;
-          justify-content: center;
-          gap: 7px;
-        }
-
-        .action-btn {
-          width: 34px;
-          height: 34px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid transparent;
-          transition: all .2s ease;
-        }
-
+        .action-buttons { display: flex; justify-content: center; gap: 7px; }
+        .action-btn { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; transition: all .2s ease; }
         .action-btn.edit { color: #4154f1; background: #eef2ff; }
         .action-btn.edit:hover { color: #fff; background: #4154f1; }
         .action-btn.delete { color: #dc2626; background: #fef2f2; }
         .action-btn.delete:hover { color: #fff; background: #dc2626; }
 
-        /* ================= EMPTY ================= */
         .empty-state { padding: 20px; }
-
-        .empty-icon {
-          width: 65px;
-          height: 65px;
-          margin: auto;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #f8fafc;
-          color: #94a3b8;
-          font-size: 28px;
-        }
+        .empty-icon { width: 65px; height: 65px; margin: auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #94a3b8; font-size: 28px; }
 
         /* ================= PAGINATION ================= */
-        .pagination-wrapper {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-        }
-
+        .pagination-wrapper { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
         .page-numbers { display: flex; gap: 5px; }
-
-        .pagination-btn,
-        .page-number {
-          height: 36px;
-          border-radius: 8px;
-          border: 1px solid #e2e8f0;
-          background: #fff;
-          color: #64748b;
-          font-size: 12px;
-          font-weight: 600;
-          transition: all .2s ease;
-        }
-
-        .pagination-btn {
-          padding: 0 13px;
-          display: flex;
-          align-items: center;
-          gap: 7px;
-        }
-
-        .pagination-btn:hover:not(:disabled) {
-          border-color: #4154f1;
-          color: #4154f1;
-        }
-
+        .pagination-btn, .page-number { height: 36px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #64748b; font-size: 12px; font-weight: 600; transition: all .2s ease; }
+        .pagination-btn { padding: 0 13px; display: flex; align-items: center; gap: 7px; }
+        .pagination-btn:hover:not(:disabled) { border-color: #4154f1; color: #4154f1; }
         .pagination-btn:disabled { opacity: .45; cursor: not-allowed; }
         .page-number { width: 36px; }
         .page-number:hover { border-color: #4154f1; color: #4154f1; }
-
-        .page-number.active {
-          color: #fff;
-          background: #4154f1;
-          border-color: #4154f1;
-          box-shadow: 0 5px 12px rgba(65, 84, 241, .18);
-        }
+        .page-number.active { color: #fff; background: #4154f1; border-color: #4154f1; box-shadow: 0 5px 12px rgba(65, 84, 241, .18); }
 
         /* ================= DELETE MODAL ================= */
-        .delete-modal {
-          border: 0;
-          border-radius: 18px;
-          overflow: hidden;
-          box-shadow: 0 25px 60px rgba(15, 23, 42, .25);
-        }
-
-        .delete-modal-top {
-          position: relative;
-          padding: 30px 25px 24px;
-          text-align: center;
-        }
-
-        .delete-close-btn {
-          position: absolute;
-          right: 15px;
-          top: 15px;
-          width: 32px;
-          height: 32px;
-          border: 0;
-          border-radius: 8px;
-          background: #f8fafc;
-          color: #64748b;
-        }
-
-        .delete-icon {
-          width: 68px;
-          height: 68px;
-          margin: auto;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          background: #fef2f2;
-          color: #dc2626;
-          font-size: 27px;
-        }
-
-        .delete-record {
-          margin: 0 25px;
-          padding: 13px;
-          border: 1px solid #edf1f6;
-          border-radius: 11px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          background: #fafbfc;
-        }
-
-        .delete-record-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #eef2ff;
-          color: #4154f1;
-          font-weight: 700;
-        }
-
-        .delete-warning {
-          margin: 16px 25px;
-          padding: 10px 12px;
-          border-radius: 9px;
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          background: #fff7ed;
-          color: #c2410c;
-          font-size: 12px;
-        }
-
-        .delete-modal-footer {
-          padding: 15px 25px 22px;
-          display: flex;
-          justify-content: center;
-          gap: 10px;
-        }
-
-        .cancel-delete-btn,
-        .confirm-delete-btn {
-          min-height: 42px;
-          border-radius: 9px;
-          padding: 0 18px;
-          font-size: 13px;
-          font-weight: 600;
-        }
-
-        .cancel-delete-btn {
-          border: 1px solid #e2e8f0;
-          color: #64748b;
-        }
-
-        .confirm-delete-btn {
-          color: #fff;
-          background: #dc2626;
-          border: 1px solid #dc2626;
-        }
-
-        .confirm-delete-btn:hover {
-          color: #fff;
-          background: #b91c1c;
-          border-color: #b91c1c;
-        }
+        .delete-modal { border: 0; border-radius: 18px; overflow: hidden; box-shadow: 0 25px 60px rgba(15, 23, 42, .25); }
+        .delete-modal-top { position: relative; padding: 30px 25px 24px; text-align: center; }
+        .delete-close-btn { position: absolute; right: 15px; top: 15px; width: 32px; height: 32px; border: 0; border-radius: 8px; background: #f8fafc; color: #64748b; }
+        .delete-icon { width: 68px; height: 68px; margin: auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #fef2f2; color: #dc2626; font-size: 27px; }
+        .delete-record { margin: 0 25px; padding: 13px; border: 1px solid #edf1f6; border-radius: 11px; display: flex; align-items: center; gap: 12px; background: #fafbfc; }
+        .delete-record-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #eef2ff; color: #4154f1; font-weight: 700; }
+        .delete-warning { margin: 16px 25px; padding: 10px 12px; border-radius: 9px; display: flex; align-items: center; gap: 9px; background: #fff7ed; color: #c2410c; font-size: 12px; }
+        .delete-modal-footer { padding: 15px 25px 22px; display: flex; justify-content: center; gap: 10px; }
+        .cancel-delete-btn, .confirm-delete-btn { min-height: 42px; border-radius: 9px; padding: 0 18px; font-size: 13px; font-weight: 600; }
+        .cancel-delete-btn { border: 1px solid #e2e8f0; color: #64748b; }
+        .confirm-delete-btn { color: #fff; background: #dc2626; border: 1px solid #dc2626; }
+        .confirm-delete-btn:hover { color: #fff; background: #b91c1c; border-color: #b91c1c; }
 
         /* ================= RESPONSIVE ================= */
         @media (max-width: 768px) {
-          .page-header {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .table-toolbar {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
+          .page-header { flex-direction: column; align-items: flex-start; }
+          .table-toolbar { flex-direction: column; align-items: stretch; }
           .search-wrapper { width: 100%; }
-
           .card-header-modern { padding: 16px; }
-
           .card-body > .p-4 { padding: 16px !important; }
-
           .pagination-wrapper { flex-direction: column; }
           .page-numbers { order: -1; }
-
-          .pagination-btn {
-            width: 100%;
-            justify-content: center;
-          }
-
+          .pagination-btn { width: 100%; justify-content: center; }
           .record-count { display: none; }
           .form-actions { flex-direction: column; }
-
-          .modern-primary-btn,
-          .modern-reset-btn { width: 100%; }
-
+          .modern-primary-btn, .modern-reset-btn { width: 100%; }
           .delete-modal-footer { flex-direction: column; }
-
-          .cancel-delete-btn,
-          .confirm-delete-btn { width: 100%; }
+          .cancel-delete-btn, .confirm-delete-btn { width: 100%; }
+          .filter-row { flex-direction: column; }
         }
       `}</style>
     </>

@@ -1,7 +1,7 @@
 import api from "../api";
 
-export const getCourses = () => {
-    return api.get("/Course/course-getall");
+export const getCourses = (params = {}) => {
+    return api.get("/Course/course-getall", { params });
 };
 
 export const getCourseById = async (id) => {
@@ -82,6 +82,7 @@ export const getParentCourse = async () => {
     formData.append("parentId", data.parentId || 0);
     formData.append("categoryId", data.categoryId || 0);
     formData.append("departmentId", data.departmentId || 0);
+    formData.append("studyModeId", data.studyModeId || 0);
     formData.append("totalClass", data.totalClass || 0);
     formData.append("classNo", data.classNo || 0);
     formData.append("isActive", data.isActive ?? 1);
