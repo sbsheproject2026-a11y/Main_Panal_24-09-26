@@ -1,41 +1,40 @@
-import React, { useEffect, useRef } from "react";
+ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import { printNOCApi } from "../../AllServicesFiles/AdminStudentService";
-
+import { BsRegex } from "react-icons/bs";
 
 const REGPrint = () => {
-
     const { id } = useParams();
     const navigate = useNavigate();
-    const printedId = useRef(null);
+
+    // ✅ Live Preview States
+    const [pdfUrl, setPdfUrl] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     // ✅ Custom size — 200 x 283 (A4 ratio maintain)
     const PAGE_WIDTH = 200;
     const PAGE_HEIGHT = 283;
 
-    // ✅ Print margin (mm) — page ke border se andar space
+    // ✅ Print margin (mm)
     const PRINT_MARGIN = -3;
 
-    // ✅ Effective drawing area (margin ke andar)
-    const CONTENT_WIDTH = PAGE_WIDTH - PRINT_MARGIN * 2;   // 190
-    const CONTENT_HEIGHT = PAGE_HEIGHT - PRINT_MARGIN * 2; // 273
+    // ✅ Effective drawing area
+    const CONTENT_WIDTH = PAGE_WIDTH - PRINT_MARGIN * 2;
+    const CONTENT_HEIGHT = PAGE_HEIGHT - PRINT_MARGIN * 2;
 
     const FONT_SIZE = 18;
     const TEXT_SCALE = 4;
     const FONT_COLOR = "#000000";
 
     // ==========================================
-    // ✅ GO BACK TO PREVIOUS PAGE (jahan se aaya tha)
+    // ✅ GO BACK TO PREVIOUS PAGE
     // ==========================================
     const goBackToPreviousPage = () => {
         if (window.history.length > 1) {
             navigate(-1);
         } else {
-            const roleId = String(
-                localStorage.getItem("RoleId") || ""
-            ).trim();
-
+            const roleId = String(localStorage.getItem("RoleId") || "").trim();
             if (roleId === "5") {
                 navigate("/confirm-addmissions", { replace: true });
             } else if (roleId === "33") {
@@ -47,10 +46,16 @@ const REGPrint = () => {
     };
 
     useEffect(() => {
-        if (!id || printedId.current === id) return;
+        // 🆕 Hot-Reload Fix: यह लॉजिक चेक करता है कि क्या पेज पहली बार लोड हुआ है या रीलोड (F5) हुआ है।
+        // अगर आप सिर्फ कोड सेव (Ctrl+S) करेंगे, तो window.lastGeneratedREGId पहले से सेट होने की वजह से PDF अपडेट नहीं होगी।
+        if (id && window.lastGeneratedREGId !== id) {
+            window.lastGeneratedREGId = id;
+            printDiploma(id);
+        }
 
-        printedId.current = id;
-        printDiploma(id);
+        return () => {
+            if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+        };
     }, [id]);
 
     const loadImage = (src) => {
@@ -59,13 +64,10 @@ const REGPrint = () => {
                 reject(new Error("Image URL/Base64 empty hai."));
                 return;
             }
-
             const image = new Image();
             image.crossOrigin = "anonymous";
-
             image.onload = () => resolve(image);
             image.onerror = () => reject(new Error(`Image load nahi hui: ${src.substring(0, 100)}`));
-
             image.src = src;
         });
     };
@@ -73,7 +75,6 @@ const REGPrint = () => {
     const getImageFormat = (src) => {
         if (!src) return "PNG";
         const value = src.toLowerCase();
-
         if (
             value.startsWith("data:image/jpeg") ||
             value.startsWith("data:image/jpg") ||
@@ -82,7 +83,6 @@ const REGPrint = () => {
         ) {
             return "JPEG";
         }
-
         return "PNG";
     };
 
@@ -92,10 +92,8 @@ const REGPrint = () => {
 
     const drawImage = async (pdf, field, imageName) => {
         if (!field?.image) return;
-
         try {
             const image = await loadImage(field.image);
-
             const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
             const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
             const width = field.width || 25;
@@ -162,7 +160,6 @@ const REGPrint = () => {
         if (field.align === "right") drawX = canvas.width - horizontalPadding / 2;
 
         const drawY = canvas.height / 2 + finalFontSize / 3;
-
         drawContext.fillText(text, drawX, drawY);
 
         return {
@@ -207,54 +204,56 @@ const REGPrint = () => {
         );
     };
 
-    // ==========================================
-    // ✅ DRAW ENGLISH TEXT (With Full Box Border Logic)
-    // ==========================================
     const drawEnglishText = (pdf, field) => {
         if (!field?.text) return;
+
+        const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
+        const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
+        const fontSize = field.fontSize || FONT_SIZE;
+
+        pdf.setFontSize(fontSize);
+        pdf.setTextColor(0, 0, 0);
+
+        if (field.valueText !== undefined) {
+            pdf.setFont("helvetica", "bold");
+            pdf.text(field.text, x, y, { align: field.align || "left" });
+            
+            const labelWidth = pdf.getTextWidth(field.text);
+            
+            pdf.setFont("helvetica", "normal");
+            pdf.text(String(field.valueText), x + labelWidth, y, { align: field.align || "left" });
+            return; 
+        }
 
         const text = String(field.text).trim();
         if (!text) return;
 
-        const x = PRINT_MARGIN + (field.x / 100) * CONTENT_WIDTH;
-        const y = PRINT_MARGIN + (field.y / 100) * CONTENT_HEIGHT;
-
-        const fontSize = field.fontSize || FONT_SIZE;
         const fontStyle = field.fontStyle || "normal";
-
         pdf.setFont("helvetica", fontStyle === "bold" ? "bold" : "normal");
-        pdf.setFontSize(fontSize);
-        pdf.setTextColor(0, 0, 0);
 
-        // ✅ BORDER LOGIC (RED COLOR BOX)
         if (field.border) {
-            pdf.setDrawColor(255, 0, 0); // Red color
-            pdf.setLineWidth(0.5); // Line thickness
+            pdf.setDrawColor(255, 0, 0);
+            pdf.setLineWidth(0.5);
 
             if (field.border.type === 'box') {
                 const textWidth = pdf.getTextWidth(text);
-                const textHeightMm = (fontSize * 0.352778); // Convert pt to mm
-
-                // Padding (Text aur border ke beech ka gap)
+                const textHeightMm = (fontSize * 0.352778);
                 const paddingX = 4;
                 const paddingY = 3;
 
-                // Draw Box (x, y, width, height)
                 pdf.rect(
                     x - paddingX,
-                    y - textHeightMm - paddingY + 1, // Y ko thoda upar shift kiya
+                    y - textHeightMm - paddingY + 1,
                     textWidth + (paddingX * 2),
                     textHeightMm + (paddingY * 2)
                 );
             } else if (field.border.type === 'line') {
-                // Only Top Line
                 const borderWidth = field.border.width || pdf.getTextWidth(text);
                 const borderY = y + (field.border.offsetY || 0);
                 pdf.line(x, borderY, x + borderWidth, borderY);
             }
         }
 
-        // ✅ TEXT PRINT LOGIC
         if (field.wordWrap) {
             const maxWidth = field.maxWidth || CONTENT_WIDTH;
             const splitText = pdf.splitTextToSize(text, maxWidth);
@@ -266,7 +265,6 @@ const REGPrint = () => {
 
     const drawText = (pdf, field) => {
         if (!field?.text) return;
-
         const text = String(field.text).trim();
         if (!text) return;
 
@@ -278,6 +276,7 @@ const REGPrint = () => {
     };
 
     const printDiploma = async (studentId) => {
+        setLoading(true);
         try {
             const result = await printNOCApi(studentId);
 
@@ -287,9 +286,6 @@ const REGPrint = () => {
                 return;
             }
 
-            // ==========================================
-            // FIELDS
-            // ==========================================
             const FIELDS = {
                 certificateName: {
                     text: "REGISTRATION CERTIFICATE",
@@ -300,10 +296,10 @@ const REGPrint = () => {
                     fontSize: 18,
                     fontStyle: "bold",
                     fontFamily: "Arial"
-
                 },
                 name: {
-                    text: "Student's Name : " + (result.firstName || ""),
+                    text: "Student's Name : ", 
+                    valueText: (result.firstName || ""), 
                     x: 7,
                     y: 34.5,
                     align: "left",
@@ -313,7 +309,8 @@ const REGPrint = () => {
                     fontFamily: "Arial"
                 },
                 fatherName: {
-                    text: "Father's Name : " + (result.fatherName || ""),
+                    text: "Father's Name : ", 
+                    valueText: (result.fatherName || ""), 
                     x: 7,
                     y: 38,
                     align: "left",
@@ -323,7 +320,8 @@ const REGPrint = () => {
                     fontFamily: "Arial"
                 },
                 motherName: {
-                    text: "Mother's Name : " + (result.motherName || ""),
+                    text: "Mother's Name : ", 
+                    valueText: (result.motherName || ""), 
                     x: 7,
                     y: 42,
                     align: "left",
@@ -333,7 +331,8 @@ const REGPrint = () => {
                     fontFamily: "Arial"
                 },
                 dOB1: {
-                    text: "Date of Birth : " + (result.dOB1 || ""),
+                    text: "Date of Birth : ", 
+                    valueText: (result.dOB1 || ""), 
                     x: 7,
                     y: 45.5,
                     align: "left",
@@ -342,19 +341,19 @@ const REGPrint = () => {
                     fontStyle: "normal",
                     fontFamily: "Arial"
                 },
-
                 courseName: {
-                    text: "Course's Name : " + (result.courseName || ""),
+                    text: "Course's Name : ", 
+                    valueText: (result.courseName || ""), 
                     x: 7,
                     y: 31,
                     align: "left",
-                    maxWidth: 75,
+                    maxWidth: 100,
                     fontSize: 12,
-                    fontStyle: "normal",
                     fontFamily: "Arial"
                 },
                 address: {
-                    text: "Address : " + (result.address || ""),
+                    valueText: (result.address || ""), 
+                    text: "Address : "  ,
                     x: 7,
                     y: 49,
                     align: "left",
@@ -370,13 +369,13 @@ const REGPrint = () => {
                     align: "left",
                     maxWidth: 180,
                     fontSize: 12,
-                    fontStyle: "normal",
+                    fontStyle: "bold",
                     fontFamily: "Arial",
                     wordWrap: true
                 },
                 centreName: {
                     text: (result.centreName || ""),
-                    x: 31,
+                    x: 32,
                     y: 53,
                     align: "left",
                     maxWidth: 100,
@@ -392,7 +391,7 @@ const REGPrint = () => {
                     align: "left",
                     maxWidth: 100,
                     fontSize: 12,
-                    fontStyle: "normal",
+                    fontStyle: "bold",
                     fontFamily: "Arial",
                     wordWrap: true
                 },
@@ -407,7 +406,6 @@ const REGPrint = () => {
                     fontFamily: "Arial",
                     wordWrap: true
                 },
-
                 selfImage: {
                     image: result.selfImage || "",
                     x: 85,
@@ -417,16 +415,33 @@ const REGPrint = () => {
                 },
                 qrImage: {
                     image: result.qrimage || "",
-                    x: 86,
-                    y: 79,
+                    x: 85,
+                    y: 68,
                     width: 25,
                     height: 25
                 },
-
-                enrollmentNo: {
+                sealstemp: {
+                    text: "(Signature with Seal) " ,
+                    x: 70,
+                    y: 83, 
+                    align: "left",
+                    maxWidth: 40,
+                    fontSize: 14,
+                    fontFamily: "Arial"
+                },
+                registrationno: {
                     text: "Registration No. " + (result.enrollmentNo || ""),
                     x: 13,
                     y: 5.5,
+                    align: "left",
+                    maxWidth: 40,
+                    fontSize: 10,
+                    fontFamily: "Arial"
+                },
+                enrollmentNo: {
+                    text: (result.enrollmentNo || ""),
+                    x: 76,
+                    y: 43,
                     align: "left",
                     maxWidth: 40,
                     fontSize: 10,
@@ -441,7 +456,6 @@ const REGPrint = () => {
                     fontSize: 10,
                     fontFamily: "Arial"
                 },
-
                 issueDate: {
                     text: "Date :" + (result.issueDate || ""),
                     x: 7,
@@ -460,9 +474,9 @@ const REGPrint = () => {
                     fontSize: 10,
                     fontFamily: "Arial"
                 },
-
                 issueYear: {
-                    text: "Passing Year : " + (result.issueYear || ""),
+                    valueText: (result.issueYear || ""), 
+                    text: "Passing Year : "  ,
                     x: 7,
                     y: 59,
                     align: "left",
@@ -482,7 +496,7 @@ const REGPrint = () => {
                 },
                 note1: {
                     text: "• Shaheed Bhagat Singh Health & Education reserves the right to cancel or withdraw this certificate if any\n  information or document submitted by the student is found to be incorrect, false, or fraudulent. As per the \n  applicable rules, this certificate is valid for a lifetime, unless cancelled or withdrawn by the issuing authority.",
-                    x: 10, // Indent
+                    x: 10,
                     y: 85,
                     align: "left",
                     maxWidth: 175,
@@ -493,7 +507,7 @@ const REGPrint = () => {
                 note2: {
                     text: "•" + " This is a Membership/Registration Certificate issued by Shaheed Bhagat Singh Health & Education, New  \n  Delhi. It is not a professional or government-issued license.",
                     x: 10,
-                    y: 90.5, // Adjust y based on note1 lines
+                    y: 90.5,
                     align: "left",
                     maxWidth: 175,
                     fontSize: 10,
@@ -503,23 +517,16 @@ const REGPrint = () => {
                 website: {
                     text: "Website:" + " Shaheedbhagatsinghhealthandeducation.com" + " | " + "Email:" + " Contact@Shaheedbhagatsinghhealthandeducation.Com",
                     x: 6,
-                    y: 95, // Adjust y based on note1 lines
+                    y: 95,
                     align: "left",
                     maxWidth: 180,
                     fontSize: 9.5,
                     fontFamily: "Arial"
-
                 },
             };
 
-            // ==========================================
-            // BACKGROUND IMAGE
-            // ==========================================
             const backgroundImage = await loadImage("/assets/Documents/REGFinal.png");
 
-            // ==========================================
-            // PDF — ✅ Custom 200 x 283
-            // ==========================================
             const pdf = new jsPDF({
                 orientation: "portrait",
                 unit: "mm",
@@ -527,9 +534,6 @@ const REGPrint = () => {
                 compress: true
             });
 
-            // ==========================================
-            // ADD BACKGROUND — ✅ margin ke andar
-            // ==========================================
             pdf.addImage(
                 backgroundImage,
                 "JPEG",
@@ -541,19 +545,9 @@ const REGPrint = () => {
                 "FAST"
             );
 
-            // ==========================================
-            // STUDENT IMAGE
-            // ==========================================
             await drawImage(pdf, FIELDS.selfImage, "Student Image");
-
-            // ==========================================
-            // QR IMAGE
-            // ==========================================
             await drawImage(pdf, FIELDS.qrImage, "QR Image");
 
-            // ==========================================
-            // TEXT FIELDS
-            // ==========================================
             [
                 FIELDS.certificateName,
                 FIELDS.trainingcentreName,
@@ -575,57 +569,51 @@ const REGPrint = () => {
                 FIELDS.note1,
                 FIELDS.note2,
                 FIELDS.website,
+                FIELDS.registrationno,
+                FIELDS.sealstemp,
             ].forEach((field) => {
                 drawText(pdf, field);
             });
 
-            // ==========================================
-            // PDF BLOB
-            // ==========================================
             const pdfBlob = pdf.output("blob");
-            const pdfUrl = URL.createObjectURL(pdfBlob);
+            const pdfObjectUrl = URL.createObjectURL(pdfBlob);
 
-            // ==========================================
-            // OPEN PDF
-            // ==========================================
-            const newTab = window.open(pdfUrl, "_blank");
+            if (pdfUrl) URL.revokeObjectURL(pdfUrl);
 
-            if (!newTab) {
-                URL.revokeObjectURL(pdfUrl);
-                alert("Popup blocked hai. Browser mein popup allow karo.");
-                goBackToPreviousPage();
-                return;
-            }
+            setPdfUrl(pdfObjectUrl);
+            setLoading(false);
 
-            // ==========================================
-            // CHECK PDF TAB CLOSED
-            // ==========================================
-            const checkPdfClosed = setInterval(() => {
-                if (newTab.closed) {
-                    clearInterval(checkPdfClosed);
-                    URL.revokeObjectURL(pdfUrl);
-                    goBackToPreviousPage();
-                }
-            }, 500);
-
-            // ==========================================
-            // CLEANUP
-            // ==========================================
-            setTimeout(() => {
-                clearInterval(checkPdfClosed);
-                URL.revokeObjectURL(pdfUrl);
-            }, 60 * 60 * 1000);
         } catch (error) {
             console.error("Diploma PDF Error:", error);
             alert(error?.message || "Diploma PDF banane mein error aa gaya.");
+            setLoading(false);
             goBackToPreviousPage();
         }
     };
 
-    // ==========================================
-    // NO UI — sirf null return
-    // ==========================================
-    return null;
+    // ✅ UI - सिर्फ PDF दिखेगी
+    return (
+        <div style={{ width: "100%", height: "100vh", position: "relative", background: "#333" }}>
+            {loading && (
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "center", alignItems: "center", background: "rgba(255,255,255,0.9)", zIndex: 5 }}>
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <span style={{ marginLeft: "15px", fontWeight: "bold", color: "#333" }}>Generating PDF...</span>
+                </div>
+            )}
+            
+            {pdfUrl && (
+                <iframe 
+                    src={`${pdfUrl}#toolbar=1&navpanes=0`} 
+                    title="REG PDF" 
+                    width="100%" 
+                    height="100%" 
+                    style={{ border: "none" }}
+                />
+            )}
+        </div>
+    );
 };
 
 export default REGPrint;

@@ -305,6 +305,11 @@ function Sidebar({ sidebarOpen }) {
             <ul id="icons-nav-1" className="nav-content collapse " data-bs-parent="#sidebar-nav">
 
               <li>
+                <Link to="/book-payments">
+                  <i className="bi bi-circle"></i><span>Book</span>
+                </Link>
+              </li>
+              <li>
                 <Link to="/offline-payments">
                   <i className="bi bi-circle"></i><span>Payment Detail</span>
                 </Link>

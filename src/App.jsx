@@ -35,6 +35,8 @@ import RegistrationModeSelect from './components/WebsiteForms/RegistrationModeSe
 import REGPrint from './components/DocumentPrintFiles/AllDocumentsPrint/REGPrint'
 import NOCPrint from './components/DocumentPrintFiles/AllDocumentsPrint/NOCPrint'
 import NeedHelp from './components/EmployeeArea/EmployeePage/NeedHelp'
+import BONAFIDECERTIFICATE from './components/DocumentPrintFiles/AllDocumentsPrint/BONAFIDECERTIFICATE'
+import TrainingCertificate from './components/DocumentPrintFiles/AllDocumentsPrint/TrainingCertificate'
 
 
 
@@ -91,6 +93,8 @@ function App() {
                     <Route path="/id-card/:id" element={<IdCard />} />
                     <Route path="/noc-print/:id" element={<NOCPrint />} />
                     <Route path="/reg-print/:id" element={<REGPrint />} />
+                    <Route path="/bonafide-certificate-print/:id" element={<BONAFIDECERTIFICATE />} />
+                    <Route path="/trainging-certificate-print/:id" element={<TrainingCertificate />} />
                    
                    
                 </Route>

@@ -16,8 +16,8 @@ function FeeCard() {
     const oId = location.state?.oId || sessionStorage.getItem("oId");
 
     // Test ke liye
-    //  const userId = 632;
-    //  const oId = 1;
+     // const userId = 1805;
+     // const oId = 1033;
 
     const [fees, setFees] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -64,6 +64,7 @@ function FeeCard() {
                         totalGstPercent: d.totalGstPercent || 0,
                         totalGst: d.totalGst || 0,
                         total: d.total || 0,
+                        classNo: d.classNo || 0,
                     });
                 } else {
                     setError(result?.message || "Fee details not found");
@@ -839,7 +840,7 @@ function FeeCard() {
                             <div className="detail-row">
                                 <div className="detail-label">
                                     <div className="detail-label-icon">📚</div>
-                                    <span>Course Fee</span>
+                       <span>Tutorial Fee ({ fees.classNo == 2 ? '2nd Year' : '1st Year' })</span>
                                 </div>
                                 <span className="detail-value">
                                     ₹{Number(fees.courseFee).toLocaleString("en-IN")}

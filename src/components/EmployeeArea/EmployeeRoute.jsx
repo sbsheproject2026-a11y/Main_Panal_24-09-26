@@ -21,6 +21,7 @@ import NewStudentRegistrationStudent from "./Students/NewStudentRegistrationStud
 import StudentFeeCard from "./Students/StudentFeeCard";
 import RollNoList from "../AdminArea/AdminStudent/RollNoList";
 import FranchiseDashboard from "./FranchiseDashboard";
+import ApplyForBook from "./EmpFranchise/ApplyForBook";
  
  
  
@@ -54,6 +55,7 @@ const employeeRoutes = [
     { path: "/set-marks", element: <SetMarksStudent  />, role: ["33"] },
     { path: "/student-print-list", element: <ConfirmStudent  />, role: ["33"] },
     { path: "/student-rollno", element: <RollNoList  />, role: ["33"] },
+    { path: "/apply-books", element: <ApplyForBook  />, role: ["33"] },
     
 
      

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { GetConfirmToAdmin, sendToConfirmStatus } from '../../AllServicesFiles/AdminStudentService';
 import { FILE_URL } from '../../api';
 import { getStudentFeeDetails } from '../../AllServicesFiles/PaymentService';
+import { getStudentDelete } from '../../AllServicesFiles/StudentService';
 
 function SendToConfirmStudent() {
 
@@ -148,7 +149,20 @@ function SendToConfirmStudent() {
     };
 
     const confirmDelete = async () => {
-        setShowDeleteModal(false);
+        try {
+            const result = await getStudentDelete(deleteId);
+            alert(result.message);
+            setShowDeleteModal(false);
+            setDeleteId(0);
+
+            if (data.length === 1 && pageNo > 1) {
+                setPageNo((prev) => prev - 1);
+            } else {
+                loadStudents();
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     return (
@@ -1377,7 +1391,7 @@ function SendToConfirmStudent() {
                                                                     title="Print Form"
                                                                 >
                                                                     <i className="bi bi-printer-fill"></i>
-                                                                    <span>Print</span>
+
                                                                 </button>
 
 
@@ -1388,7 +1402,7 @@ function SendToConfirmStudent() {
                                                                     title="View Student"
                                                                 >
                                                                     <i className="bi bi-eye-fill"></i>
-                                                                    <span>View</span>
+
                                                                 </button>
 
                                                                 <button
@@ -1398,7 +1412,18 @@ function SendToConfirmStudent() {
                                                                     title="Edit Student"
                                                                 >
                                                                     <i className="bi bi-pencil-square"></i>
-                                                                    <span>Edit</span>
+
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    className="student-action delete"
+                                                                    onClick={() => {
+                                                                        setDeleteId(item.id);
+                                                                        setShowDeleteModal(true);
+                                                                    }}
+                                                                    title="Delete Student"
+                                                                >
+                                                                    <i className="bi bi-trash-fill"></i>
                                                                 </button>
 
                                                                 {studyModeId === 88 && (

@@ -268,6 +268,14 @@ export const getCoursematerial = async (id) => {
     return response.data;
 };
   
+export const getCoursematerialById = async (id) => {
+    const response = await api.get(
+        `/Course/course-update-material-get/${id}`
+    );
+
+    return response.data;
+};
+  
  
 export const createCourseMaterial = async (formData) => {
   const data = new FormData();
@@ -276,7 +284,12 @@ export const createCourseMaterial = async (formData) => {
   data.append("name", formData.name);
   data.append("productId", formData.productId);
   data.append("documentTypeId", formData.documentTypeId);
-  data.append("docExtensionId", formData.docExtensionId);
+  // 👇 Agar docExtensionId nahi hai, toh 0 bhejein ya skip karein backend validation ke hisaab se
+  if (formData.docExtensionId !== undefined && formData.docExtensionId !== null) {
+      data.append("docExtensionId", formData.docExtensionId);
+  } else {
+      data.append("docExtensionId", 0); // Backend ko error se bachane ke liye 0 bhej rahe hain
+  }
   data.append("srNo", formData.srNo);
   
 
@@ -290,6 +303,43 @@ export const createCourseMaterial = async (formData) => {
 
   const response = await api.post(
     "/Course/create-course-material",
+    data,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  return response.data;
+};
+
+export const UpdateCourseMaterial = async (formData) => {
+  const data = new FormData();
+
+  data.append("id", formData.id);
+  data.append("name", formData.name);
+  data.append("productId", formData.productId);
+  data.append("documentTypeId", formData.documentTypeId);
+  data.append("srNo", formData.srNo);
+  data.append("altTag", formData.altTag);
+
+  // 👇 Agar docExtensionId nahi hai, toh 0 bhejein ya skip karein backend validation ke hisaab se
+  if (formData.docExtensionId !== undefined && formData.docExtensionId !== null) {
+      data.append("docExtensionId", formData.docExtensionId);
+  } else {
+      data.append("docExtensionId", 0); // Backend ko error se bachane ke liye 0 bhej rahe hain
+  }
+
+  if (formData.fileupload1) {
+    data.append("fileupload1", formData.fileupload1);
+  }
+  if (formData.fileupload) {
+    data.append("fileupload", formData.fileupload);
+  }
+
+  const response = await api.put(
+    "/Course/Update-course-material",
     data,
     {
       headers: {
@@ -354,6 +404,29 @@ export const sendToCourseCommission = async (payload) => {
 export const getStudentCourseById = async (id) => {
     const response = await api.get(
         `/Course/course-getstudent-details-all/${id}`
+    );
+
+    return response.data;
+};
+
+
+export const ApplyForBookbyStudent = async (data) => {
+    // 👇 FormData banayein kyunki backend [FromForm] expect kar raha hai
+    const formData = new FormData();
+    formData.append("UserId", data.UserId);
+    formData.append("CourseId", data.CourseId);
+    formData.append("Amount", data.Amount);
+    formData.append("Address", data.Address);
+    formData.append("Remark", data.Message || ""); // Agar message nahi hai toh blank string jaye
+
+    const response = await api.post(
+        "/Home/applyforbookbystudent",
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
     );
 
     return response.data;

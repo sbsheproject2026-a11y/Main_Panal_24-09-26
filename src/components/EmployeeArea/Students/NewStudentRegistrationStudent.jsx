@@ -71,7 +71,7 @@ const NewStudentRegistrationStudent = () => {
         courseTypeId: 0,
         courseCategoryId: 0,
         courseId: 0,
-        courseMetrialID: 142,   // Hard Copy default
+        courseMetrialID: 0,   // Hard Copy default
         examSessionId: 0,
         genderId: 0,
         stateId: 0,
@@ -541,8 +541,8 @@ const NewStudentRegistrationStudent = () => {
         if (!formData.courseId)
             newErrors.courseId = "Course is required";
 
-        if (!formData.courseMetrialID)
-            newErrors.courseMetrialID = "Study Material Type is required";
+        // if (!formData.courseMetrialID)
+        //     newErrors.courseMetrialID = "Study Material Type is required";
 
         const invalidAcademic = formData.academicDetails.some(
             (a) => !a.levelTypeId
@@ -730,7 +730,7 @@ const NewStudentRegistrationStudent = () => {
                                 </div>
 
                                 {/* ✅ STUDY MATERIAL TYPE RADIO BUTTONS */}
-                                <div className="row">
+                                {/* <div className="row">
                                     <div className="col-12 mb-2">
                                         <label>
                                             Study Material Type <span>*</span>
@@ -776,7 +776,7 @@ const NewStudentRegistrationStudent = () => {
                                             <ErrorText text={errors.courseMetrialID} />
                                         </div>
                                     )}
-                                </div>
+                                </div> */}
                             </div>
 
                             {/* ===== PERSONAL DETAILS ===== */}

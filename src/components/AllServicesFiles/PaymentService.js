@@ -39,6 +39,10 @@ export const getOfflinePayments = async (status) => {
     const response = await api.get(`/Payment/get-payment-detail?status=${status}`);
     return response.data;
 };
+export const getBooksPayments = async (status) => {
+    const response = await api.get(`/Payment/get-books-payment-detail?status=${status}`);
+    return response.data;
+};
 
  
 

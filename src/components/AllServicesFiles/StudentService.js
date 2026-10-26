@@ -447,6 +447,13 @@ export const getStudyCentreSelectedCourse = async (id,courseTypeId) => {
 
     return response.data;
 };
+export const getStudyCentreSelectedCourseAmount = async (id) => {
+    const response = await api.get(
+        `/DropDownFranchise/dropdown-course-amount/${id}`
+    );
+
+    return response.data;
+};
  
 
 export const getAmountDetail = async (userId, oId) => {

@@ -385,3 +385,27 @@ export const GetStudyCentreDepartmentDelete = async (id) => {
 
     return response.data;
 };
+
+
+export const ApplyForBook = async (data) => {
+    // 👇 FormData banayein kyunki backend [FromForm] expect kar raha hai
+    const formData = new FormData();
+    formData.append("UserId", data.UserId);
+    formData.append("CourseId", data.CourseId);
+    formData.append("Amount", data.Amount);
+    formData.append("Address", data.Address);
+    formData.append("Remark", data.Remark || ""); // Agar message nahi hai toh blank string jaye
+    formData.append("Quantity", data.Quantity || ""); // Agar message nahi hai toh blank string jaye
+
+    const response = await api.post(
+        "/Home/franchise-applyforbook",
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
+    );
+
+    return response.data;
+};

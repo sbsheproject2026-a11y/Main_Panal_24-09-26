@@ -126,11 +126,11 @@ export default function StudentPaymentHistory() {
     return [pageNo - 2, pageNo - 1, pageNo, pageNo + 1, pageNo + 2];
   };
 
-  /* ---------- TOTALS ---------- */
-  const totalAmount =
-    payments.length > 0 ? payments[payments.length - 1].amount : 0;
-  const totalPaid    = payments.reduce((s, p) => s + p.paidAmount, 0);
-  const totalPending = totalAmount - totalPaid;
+  /* ---------- ✅ CORRECTED TOTALS ---------- */
+  // यहाँ reduce का इस्तेमाल किया गया है ताकि सारे amounts जुड़ सकें
+  const totalAmount  = payments.reduce((sum, p) => sum + p.amount, 0);
+  const totalPaid    = payments.reduce((sum, p) => sum + p.paidAmount, 0);
+  const totalPending = payments.reduce((sum, p) => sum + p.pendingAmount, 0);
 
   /* ---------- HELPERS ---------- */
   const formatAmount = (amt) => {
@@ -1401,40 +1401,6 @@ export default function StudentPaymentHistory() {
                 </div>
               )}
 
-              {/* SUMMARY CARDS */}
-              {payments.length > 0 && (
-                <div className="sph-cards">
-                  <div className="sph-card sph-card-blue">
-                    <div className="sph-card-icon">💵</div>
-                    <div>
-                      <p className="sph-card-label">Total Fee</p>
-                      <p className="sph-card-value">{formatAmount(totalAmount)}</p>
-                    </div>
-                  </div>
-                  <div className="sph-card sph-card-green">
-                    <div className="sph-card-icon">✅</div>
-                    <div>
-                      <p className="sph-card-label">Total Paid</p>
-                      <p className="sph-card-value">{formatAmount(totalPaid)}</p>
-                    </div>
-                  </div>
-                  <div className="sph-card sph-card-red">
-                    <div className="sph-card-icon">⏳</div>
-                    <div>
-                      <p className="sph-card-label">Pending</p>
-                      <p className="sph-card-value">{formatAmount(totalPending)}</p>
-                    </div>
-                  </div>
-                  <div className="sph-card sph-card-gray">
-                    <div className="sph-card-icon">📋</div>
-                    <div>
-                      <p className="sph-card-label">Total Orders</p>
-                      <p className="sph-card-value">{payments.length}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* TABLE */}
               <div className="rollno-table-wrapper">
                 <table className="table align-middle mb-0 rollno-table">
@@ -1593,13 +1559,19 @@ export default function StudentPaymentHistory() {
                           TOTAL
                         </td>
                         <td style={{ textAlign: "right" }}>
-                          {formatAmount(totalAmount)}
+                          <span className="rollno-amount">
+                            {formatAmount(totalAmount)}
+                          </span>
                         </td>
                         <td style={{ textAlign: "right" }}>
-                          {formatAmount(totalPaid)}
+                          <span className="rollno-amount-paid">
+                            {formatAmount(totalPaid)}
+                          </span>
                         </td>
                         <td style={{ textAlign: "right" }}>
-                          {formatAmount(totalPending)}
+                          <span className="rollno-amount-pending">
+                            {formatAmount(totalPending)}
+                          </span>
                         </td>
                         <td colSpan="2"></td>
                       </tr>
@@ -1687,16 +1659,13 @@ export default function StudentPaymentHistory() {
         </section>
       </div>
 
-      {/* ==========================================================
-          PRINT MODAL — click Print button पर खुलेगा
-          ========================================================== */}
+      {/* PRINT MODAL */}
       {printItem && (
         <div
           className="pay-modal-overlay"
           onClick={() => setPrintItem(null)}
         >
           <div className="pay-modal" onClick={(e) => e.stopPropagation()}>
-            {/* HEADER */}
             <div className="pay-modal-header">
               <div className="pay-modal-header-left">
                 <div className="pay-modal-header-icon">
@@ -1716,7 +1685,6 @@ export default function StudentPaymentHistory() {
               </button>
             </div>
 
-            {/* BODY */}
             <div className="pay-modal-body">
               <div className="pay-modal-hero">
                 <div>
@@ -1739,7 +1707,6 @@ export default function StudentPaymentHistory() {
                 </span>
               </div>
 
-              {/* Student Info */}
               <div>
                 <div className="pay-modal-section-title">
                   <i className="bi bi-person-fill"></i>
@@ -1773,7 +1740,6 @@ export default function StudentPaymentHistory() {
                 </div>
               </div>
 
-              {/* Payment Breakdown */}
               <div>
                 <div className="pay-modal-section-title">
                   <i className="bi bi-cash-stack"></i>
@@ -1802,7 +1768,6 @@ export default function StudentPaymentHistory() {
                 </div>
               </div>
 
-              {/* Transaction Info */}
               <div>
                 <div className="pay-modal-section-title">
                   <i className="bi bi-receipt-cutoff"></i>
@@ -1852,7 +1817,6 @@ export default function StudentPaymentHistory() {
               </div>
             </div>
 
-            {/* FOOTER */}
             <div className="pay-modal-footer">
               <button
                 className="pay-modal-btn cancel"

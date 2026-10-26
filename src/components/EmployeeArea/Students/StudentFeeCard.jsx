@@ -62,6 +62,7 @@ function StudentFeeCard() {
                         totalGstPercent: d.totalGstPercent || 0,
                         totalGst: d.totalGst || 0,
                         total: d.total || 0,
+                        classNo: d.classNo || 0,
                     });
                 } else {
                     setError(result?.message || "Fee details not found");
@@ -837,7 +838,7 @@ function StudentFeeCard() {
                             <div className="detail-row">
                                 <div className="detail-label">
                                     <div className="detail-label-icon">📚</div>
-                                    <span>Course Fee</span>
+                                      <span>Tutorial Fee ({ fees.classNo == 2 ? '2nd Year' : '1st Year' })</span>
                                 </div>
                                 <span className="detail-value">
                                     ₹{Number(fees.courseFee).toLocaleString("en-IN")}

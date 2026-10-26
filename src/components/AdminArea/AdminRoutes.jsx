@@ -47,6 +47,7 @@ import OfflinePaymentList from "./CommanList/OfflinePaymentList";
 import StudentPaymentHistory from "./CommanList/StudentPaymentHistory";
 import AddFranchiseDepartment from "./Frenchise/AddFranchiseDepartment";
 import Menu from "./WebsiteContentData/Menu";
+import BookPaymentRequestList from "./CommanList/BookPaymentRequestList";
  
  
 
@@ -97,6 +98,7 @@ const adminRoutes = [
     { path: "/student-upgrade", element: <UpgradeStudent />, role: ["5"] },
     { path: "/student-rollno-list", element: <RollNoList />, role: ["5"] },
     { path: "/offline-payments", element: <OfflinePaymentList  />, role: ["5"] },
+    { path: "/book-payments", element: <BookPaymentRequestList  />, role: ["5"] },
    { path: "/add-franchise-department/:id?", element: <AddFranchiseDepartment />, role: ["5"] },
     { path: "/student-payments/:id", element: <StudentPaymentHistory  />, role: ["5"] },
     

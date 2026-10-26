@@ -144,6 +144,11 @@ function FranchiseSidebar({ sidebarOpen }) {
                   <i className="bi bi-circle"></i><span>Student Confirm & Print</span>
                 </Link>
               </li>
+              <li>
+                <Link to="/apply-books">
+                  <i className="bi bi-circle"></i><span>Book's Apply</span>
+                </Link>
+              </li>
 
             </ul>
           </li>

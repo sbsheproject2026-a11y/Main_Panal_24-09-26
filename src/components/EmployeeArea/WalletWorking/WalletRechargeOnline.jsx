@@ -81,8 +81,7 @@ const WalletRechargeOnline = () => {
             }
 
             const userid = responseData.userid || responseData.userId;
-            const paymentid =
-                responseData.paymentid || responseData.paymentId;
+            const paymentid = responseData.paymentid || responseData.paymentId;
 
             console.log("📦 Order Created:", { userid, paymentid });
 

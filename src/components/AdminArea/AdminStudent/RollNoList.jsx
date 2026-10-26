@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import {
-    GetConfirmAddmissions
-
+    GetConfirmAddmissions,
+ 
 } from "../../AllServicesFiles/AdminStudentService";
 import { FILE_URL } from "../../api";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { getStudentDelete } from "../../AllServicesFiles/StudentService";
 
 function RollNoList() {
     const navigate = useNavigate();
@@ -15,24 +16,17 @@ function RollNoList() {
     const [totalRecords, setTotalRecords] = useState(0);
     const [loading, setLoading] = useState(false);
     const [searchParams] = useSearchParams();
+    
+    // 🆕 Delete Modal States
+    const [deleteId, setDeleteId] = useState(0);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const studyModeId = Number(searchParams.get("studyModeId")) || 0;
 
-
-
-    // ✅ PRINT
-    const handlePrint = (id) => {
-        navigate(`/admission-form-print/${id}`);
-    };
-
-    // ✅ VIEW
-    const handleView = (id) => {
-        navigate(`/student-view1/${id}`);
-    };
-
-    // ✅ EDIT
-    const handleEdit = (id) => {
-        navigate(`/student-update1/${id}`);
-    };
+    const handlePrint = (id) => navigate(`/admission-form-print/${id}`);
+    const handleView = (id) => navigate(`/student-view1/${id}`);
+    const handleEdit = (id) => navigate(`/student-update1/${id}`);
 
     useEffect(() => {
         loadStudents();
@@ -55,12 +49,8 @@ function RollNoList() {
     };
 
     const totalPages = Math.ceil(totalRecords / pageSize);
-
     const startRecord = totalRecords === 0 ? 0 : (pageNo - 1) * pageSize + 1;
-
-    const endRecord = totalRecords === 0
-        ? 0
-        : Math.min(pageNo * pageSize, totalRecords);
+    const endRecord = totalRecords === 0 ? 0 : Math.min(pageNo * pageSize, totalRecords);
 
     const handleSearch = (e) => {
         setSearch(e.target.value);
@@ -78,52 +68,48 @@ function RollNoList() {
     };
 
     const handlePrevious = () => {
-        if (pageNo > 1) {
-            setPageNo(pageNo - 1);
-        }
+        if (pageNo > 1) setPageNo(pageNo - 1);
     };
 
     const handleNext = () => {
-        if (pageNo < totalPages) {
-            setPageNo(pageNo + 1);
-        }
+        if (pageNo < totalPages) setPageNo(pageNo + 1);
     };
 
     const getPageNumbers = () => {
-        if (totalPages <= 5) {
-            return Array.from({ length: totalPages }, (_, index) => index + 1);
-        }
+        if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
+        if (pageNo <= 3) return [1, 2, 3, 4, 5];
+        if (pageNo >= totalPages - 2) return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        return [pageNo - 2, pageNo - 1, pageNo, pageNo + 1, pageNo + 2];
+    };
 
-        if (pageNo <= 3) {
-            return [1, 2, 3, 4, 5];
-        }
+    // 🆕 Delete Function
+    const confirmDelete = async () => {
+        try {
+            setIsDeleting(true);
+            const result = await getStudentDelete(deleteId);
+            alert(result?.message || "Student deleted successfully");
+            
+            setShowDeleteModal(false);
+            setDeleteId(0);
 
-        if (pageNo >= totalPages - 2) {
-            return [
-                totalPages - 4,
-                totalPages - 3,
-                totalPages - 2,
-                totalPages - 1,
-                totalPages
-            ];
+            // अगर इस पेज पर सिर्फ 1 ही आइटम बचा था, तो पिछले पेज पर भेजें
+            if (data.length === 1 && pageNo > 1) {
+                setPageNo((prev) => prev - 1);
+            } else {
+                loadStudents(); // वरना डेटा दोबारा लोड करें
+            }
+        } catch (error) {
+            console.log(error);
+            alert(error?.response?.data?.message || "Failed to delete student");
+        } finally {
+            setIsDeleting(false);
         }
-
-        return [
-            pageNo - 2,
-            pageNo - 1,
-            pageNo,
-            pageNo + 1,
-            pageNo + 2
-        ];
     };
 
     return (
         <>
-            <style>
-                {`
-                html,
-                body,
-                #root {
+            <style>{`
+                html, body, #root {
                     width: 100%;
                     max-width: 100%;
                     overflow-x: hidden !important;
@@ -137,10 +123,7 @@ function RollNoList() {
                     box-sizing: border-box;
                 }
 
-                .rollno-page .section,
-                .rollno-page .card,
-                .rollno-page .card-body,
-                .rollno-page .card-header {
+                .rollno-page .section, .rollno-page .card, .rollno-page .card-body, .rollno-page .card-header {
                     min-width: 0;
                     max-width: 100%;
                     box-sizing: border-box;
@@ -158,10 +141,6 @@ function RollNoList() {
                     max-width: 100%;
                 }
 
-                /* ============================================
-                   TABLE WRAPPER — only this area scrolls
-                   ============================================ */
-
                 .rollno-table-wrapper {
                     width: 0 !important;
                     min-width: 100% !important;
@@ -177,10 +156,6 @@ function RollNoList() {
                     border: 1px solid #edf0f5;
                 }
 
-                /* ============================================
-                   TABLE — AUTO WIDTH + AUTO HEIGHT
-                   ============================================ */
-
                 .rollno-table {
                     width: auto !important;
                     min-width: 100% !important;
@@ -191,12 +166,8 @@ function RollNoList() {
                     margin: 0 !important;
                 }
 
-                .rollno-table th,
-                .rollno-table td {
-                    box-sizing: border-box;
-                }
+                .rollno-table th, .rollno-table td { box-sizing: border-box; }
 
-                /* Header — auto height, auto width */
                 .rollno-table thead th {
                     background: #f8f9fc !important;
                     color: #687185;
@@ -209,7 +180,6 @@ function RollNoList() {
                     vertical-align: middle;
                 }
 
-                /* Body — auto height, auto width */
                 .rollno-table tbody td {
                     padding: 14px 16px !important;
                     color: #414a5d;
@@ -221,24 +191,10 @@ function RollNoList() {
                     text-overflow: clip !important;
                 }
 
-                .rollno-table tbody tr:last-child td {
-                    border-bottom: 0 !important;
-                }
+                .rollno-table tbody tr:last-child td { border-bottom: 0 !important; }
+                .rollno-table tbody tr:hover { background: #fafbff; }
 
-                .rollno-table tbody tr:hover {
-                    background: #fafbff;
-                }
-
-                /* ============================================
-                   CELL CONTENT
-                   ============================================ */
-
-                .rollno-student {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    min-width: 0;
-                }
+                .rollno-student { display: flex; align-items: center; gap: 12px; min-width: 0; }
 
                 .rollno-student-image {
                     width: 52px;
@@ -250,24 +206,10 @@ function RollNoList() {
                     box-shadow: 0 3px 10px rgba(0,0,0,.12);
                 }
 
-                .rollno-student-name {
-                    font-weight: 600;
-                    color: #212529;
-                    white-space: nowrap;
-                }
-
-                .rollno-badge {
-                    display: inline-flex;
-                    align-items: center;
-                    white-space: nowrap;
-                }
-
-                .rollno-father {
-                    display: flex;
-                    align-items: center;
-                    gap: 9px;
-                }
-
+                .rollno-student-name { font-weight: 600; color: #212529; white-space: nowrap; }
+                .rollno-badge { display: inline-flex; align-items: center; white-space: nowrap; }
+                .rollno-father { display: flex; align-items: center; gap: 9px; }
+                
                 .rollno-father-icon {
                     width: 34px;
                     height: 34px;
@@ -280,305 +222,88 @@ function RollNoList() {
                     justify-content: center;
                 }
 
-                .rollno-father-name {
-                    white-space: nowrap;
+                .rollno-father-name { white-space: nowrap; }
+                .rollno-mobile { display: block; white-space: nowrap; font-weight: 600; }
+                .rollno-address { display: block; white-space: nowrap; color: #596273; }
+
+                .rollno-table-wrapper::-webkit-scrollbar { height: 9px; }
+                .rollno-table-wrapper::-webkit-scrollbar-track { background: #eef1f5; border-radius: 10px; }
+                .rollno-table-wrapper::-webkit-scrollbar-thumb { background: #b8bfcc; border-radius: 10px; }
+                .rollno-table-wrapper::-webkit-scrollbar-thumb:hover { background: #8f98a8; }
+                .rollno-table-wrapper { scrollbar-width: thin; scrollbar-color: #b8bfcc #eef1f5; }
+
+                .student-action-group {
+                    display: flex;
+                    gap: 6px; 
+                    justify-content: center;
                 }
 
-                .rollno-mobile {
-                    display: block;
-                    white-space: nowrap;
+                .student-action {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    padding: 7px 10px;
+                    font-size: 13px;
                     font-weight: 600;
-                }
-
-                .rollno-address {
-                    display: block;
+                    line-height: 1;
+                    border-radius: 8px;
+                    border: 1px solid transparent;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
                     white-space: nowrap;
-                    color: #596273;
+                    outline: none;
+                    text-decoration: none;
+                    font-family: inherit;
                 }
 
-                .rollno-city {
-                    display: block;
-                    white-space: nowrap;
-                    font-weight: 500;
+                .student-action.print { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+                .student-action.print:hover { background: #0369a1; color: #ffffff; transform: translateY(-1px); }
+                
+                .student-action.view { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+                .student-action.view:hover { background: #15803d; color: #ffffff; transform: translateY(-1px); }
+                
+                /* 🆕 Edit Button CSS */
+                .student-action.edit { background: #fef9c3; color: #a16207; border-color: #fef08a; }
+                .student-action.edit:hover { background: #ca8a04; color: #ffffff; transform: translateY(-1px); }
+
+                /* 🆕 Delete Button CSS */
+                .student-action.delete { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+                .student-action.delete:hover { background: #ef4444; color: #ffffff; transform: translateY(-1px); }
+
+                @media (max-width: 576px) {
+                    .student-action span { display: none; }
+                    .student-action { padding: 8px; }
                 }
-
-                /* ============================================
-                   SCROLLBAR
-                   ============================================ */
-
-                .rollno-table-wrapper::-webkit-scrollbar {
-                    height: 9px;
-                }
-
-                .rollno-table-wrapper::-webkit-scrollbar-track {
-                    background: #eef1f5;
-                    border-radius: 10px;
-                }
-
-                .rollno-table-wrapper::-webkit-scrollbar-thumb {
-                    background: #b8bfcc;
-                    border-radius: 10px;
-                }
-
-                .rollno-table-wrapper::-webkit-scrollbar-thumb:hover {
-                    background: #8f98a8;
-                }
-
-                .rollno-table-wrapper {
-                    scrollbar-width: thin;
-                    scrollbar-color: #b8bfcc #eef1f5;
-                }
-
-                .rollno-pagination {
-                    min-width: 0;
-                    max-width: 100%;
-                }
-
-                /* ============================================
-                   MOBILE
-                   ============================================ */
 
                 @media (max-width: 768px) {
-                    .rollno-page {
-                        width: 100%;
-                        max-width: 100%;
-                    }
-
-                    .rollno-table-wrapper {
-                        width: 0 !important;
-                        min-width: 100% !important;
-                        max-width: 100% !important;
-                        overflow-x: auto !important;
-                    }
-
-                    .rollno-table {
-                        width: auto !important;
-                        min-width: 100% !important;
-                        max-width: none !important;
-                    }
+                    .rollno-table-wrapper { width: 0 !important; min-width: 100% !important; max-width: 100% !important; overflow-x: auto !important; }
+                    .rollno-table { width: auto !important; min-width: 100% !important; max-width: none !important; }
                 }
-
-                /* ========================================
-   Student Action Buttons (Print + View)
-======================================== */
-.student-action-group {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columns */
-    gap: 8px; /* spacing between buttons */
-    justify-content: center;
-}
-
-.student-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 7px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    outline: none;
-    text-decoration: none;
-    font-family: inherit;
-}
-
-.student-action i {
-    font-size: 14px;
-    line-height: 1;
-}
-
-/* ---------- Print Button ---------- */
-.student-action.print {
-    background: #e0f2fe;
-    color: #0369a1;
-    border-color: #bae6fd;
-}
-
-.student-action.print:hover {
-    background: #0369a1;
-    color: #ffffff;
-    border-color: #0369a1;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(3, 105, 161, 0.25);
-}
-
-.student-action.print:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(3, 105, 161, 0.2);
-}
-
-/* ---------- View Button ---------- */
-.student-action.view {
-    background: #dcfce7;
-    color: #15803d;
-    border-color: #bbf7d0;
-}
-
-.student-action.view:hover {
-    background: #15803d;
-    color: #ffffff;
-    border-color: #15803d;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(21, 128, 61, 0.25);
-}
-
-.student-action.view:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(21, 128, 61, 0.2);
-}
-
-/* ---------- Focus (accessibility) ---------- */
-.student-action:focus-visible {
-    outline: 2px solid #6366f1;
-    outline-offset: 2px;
-}
-
-/* ---------- Mobile: icon-only buttons ---------- */
-@media (max-width: 576px) {
-    .student-action {
-        padding: 8px 10px;
-        font-size: 12px;
-    }
-
-    .student-action span {
-        display: none; /* sirf icon dikhega */
-    }
-
-    .student-action i {
-        font-size: 15px;
-    }
-}
-
-/* ---------- Header Actions (Back + Edit) ---------- */
-.view-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-/* ---------- Edit Button ---------- */
-.view-edit-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 20px;
-    background: linear-gradient(135deg, #198754, #20c997);
-    border: none;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #ffffff;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.25);
-}
-
-.view-edit-btn:hover {
-    background: linear-gradient(135deg, #146c43, #1aa179);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(25, 135, 84, 0.35);
-}
-
-.view-edit-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
-}
-
-.view-edit-btn i {
-    font-size: 15px;
-}
-
-.view-edit-btn:focus-visible {
-    outline: 2px solid #20c997;
-    outline-offset: 2px;
-}
-
-/* ---------- Bottom Actions (Back + Edit aligned) ---------- */
-.view-bottom-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0 32px;
-    flex-wrap: wrap;
-}
-
-/* ---------- Responsive ---------- */
-@media (max-width: 576px) {
-    .view-header-actions,
-    .view-bottom-actions {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .view-edit-btn,
-    .view-back-btn {
-        flex: 1;
-        justify-content: center;
-    }
-}
-                `}
-            </style>
+            `}</style>
 
             <div className="rollno-page">
                 <div className="pagetitle mb-4">
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div>
-                            <h1 className="fw-bold mb-1">
-                                Student Roll No List
-                            </h1>
+                            <h1 className="fw-bold mb-1">Student Roll No List</h1>
                             <nav>
                                 <ol className="breadcrumb mb-0">
-                                    <li className="breadcrumb-item">
-                                        <a
-                                            href="/"
-                                            className="text-decoration-none"
-                                        >
-                                            Dashboard
-                                        </a>
-                                    </li>
-                                    <li className="breadcrumb-item">
-                                        Students
-                                    </li>
-                                    <li className="breadcrumb-item active">
-                                        Roll No List
-                                    </li>
+                                    <li className="breadcrumb-item"><a href="/" className="text-decoration-none">Dashboard</a></li>
+                                    <li className="breadcrumb-item">Students</li>
+                                    <li className="breadcrumb-item active">Roll No List</li>
                                 </ol>
                             </nav>
                         </div>
 
-                        <div
-                            className="px-4 py-3 rounded-4 shadow-sm"
-                            style={{
-                                background: "linear-gradient(135deg, #4154f1, #6f7bf7)",
-                                color: "#fff",
-                                minWidth: "190px"
-                            }}
-                        >
+                        <div className="px-4 py-3 rounded-4 shadow-sm" style={{ background: "linear-gradient(135deg, #4154f1, #6f7bf7)", color: "#fff", minWidth: "190px" }}>
                             <div className="d-flex align-items-center gap-3">
-                                <div
-                                    className="rounded-circle d-flex align-items-center justify-content-center"
-                                    style={{
-                                        width: "45px",
-                                        height: "45px",
-                                        background: "rgba(255,255,255,.18)"
-                                    }}
-                                >
+                                <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: "45px", height: "45px", background: "rgba(255,255,255,.18)" }}>
                                     <i className="bi bi-people-fill fs-5"></i>
                                 </div>
                                 <div>
-                                    <small className="opacity-75">
-                                        Total Students
-                                    </small>
-                                    <h4 className="mb-0 fw-bold">
-                                        {totalRecords}
-                                    </h4>
+                                    <small className="opacity-75">Total Students</small>
+                                    <h4 className="mb-0 fw-bold">{totalRecords}</h4>
                                 </div>
                             </div>
                         </div>
@@ -587,82 +312,36 @@ function RollNoList() {
 
                 <section className="section">
                     <div className="card border-0 shadow-sm rounded-4 overflow-hidden rollno-card">
-                        <div
-                            className="card-header border-0 py-4 px-4"
-                            style={{
-                                background: "linear-gradient(135deg, #f8f9ff, #ffffff)"
-                            }}
-                        />
+                        <div className="card-header border-0 py-4 px-4" style={{ background: "linear-gradient(135deg, #f8f9ff, #ffffff)" }} />
 
                         <div className="px-4 pt-4 rollno-toolbar">
                             <div className="row g-3 align-items-center">
                                 <div className="col-md-6">
                                     <div className="d-flex align-items-center">
-                                        <span className="text-muted me-2">
-                                            Show
-                                        </span>
-
-                                        <select
-                                            className="form-select shadow-none"
-                                            style={{
-                                                width: "85px",
-                                                borderRadius: "10px"
-                                            }}
-                                            value={pageSize}
-                                            onChange={handlePageSize}
-                                        >
+                                        <span className="text-muted me-2">Show</span>
+                                        <select className="form-select shadow-none" style={{ width: "85px", borderRadius: "10px" }} value={pageSize} onChange={handlePageSize}>
                                             <option value={100}>100</option>
                                             <option value={250}>250</option>
                                             <option value={500}>500</option>
                                             <option value={1000}>1000</option>
                                         </select>
-
-                                        <span className="text-muted ms-2">
-                                            entries
-                                        </span>
+                                        <span className="text-muted ms-2">entries</span>
                                     </div>
                                 </div>
 
                                 <div className="col-md-6">
-                                    <div
-                                        className="position-relative ms-md-auto"
-                                        style={{ maxWidth: "320px" }}
-                                    >
-                                        <i
-                                            className="bi bi-search position-absolute"
-                                            style={{
-                                                left: "15px",
-                                                top: "50%",
-                                                transform: "translateY(-50%)",
-                                                color: "#899bbd"
-                                            }}
-                                        />
-
+                                    <div className="position-relative ms-md-auto" style={{ maxWidth: "320px" }}>
+                                        <i className="bi bi-search position-absolute" style={{ left: "15px", top: "50%", transform: "translateY(-50%)", color: "#899bbd" }} />
                                         <input
                                             type="text"
                                             className="form-control ps-5 shadow-none"
                                             placeholder="Search student..."
                                             value={search}
                                             onChange={handleSearch}
-                                            style={{
-                                                height: "44px",
-                                                borderRadius: "12px",
-                                                border: "1px solid #e1e5eb",
-                                                paddingRight: search ? "42px" : "15px"
-                                            }}
+                                            style={{ height: "44px", borderRadius: "12px", border: "1px solid #e1e5eb", paddingRight: search ? "42px" : "15px" }}
                                         />
-
                                         {search && (
-                                            <button
-                                                type="button"
-                                                className="btn position-absolute p-0"
-                                                style={{
-                                                    right: "13px",
-                                                    top: "50%",
-                                                    transform: "translateY(-50%)"
-                                                }}
-                                                onClick={clearSearch}
-                                            >
+                                            <button type="button" className="btn position-absolute p-0" style={{ right: "13px", top: "50%", transform: "translateY(-50%)" }} onClick={clearSearch}>
                                                 <i className="bi bi-x-circle-fill text-muted"></i>
                                             </button>
                                         )}
@@ -672,34 +351,12 @@ function RollNoList() {
                         </div>
 
                         <div className="px-4 pt-4">
-                            <div
-                                className="d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2 rounded-3"
-                                style={{
-                                    background: "#f8f9fc"
-                                }}
-                            >
+                            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2 rounded-3" style={{ background: "#f8f9fc" }}>
                                 <span className="text-muted small">
                                     <i className="bi bi-info-circle me-1"></i>
-                                    Showing{" "}
-                                    <strong className="text-dark">
-                                        {startRecord}
-                                    </strong>{" "}
-                                    to{" "}
-                                    <strong className="text-dark">
-                                        {endRecord}
-                                    </strong>{" "}
-                                    of{" "}
-                                    <strong className="text-dark">
-                                        {totalRecords}
-                                    </strong>{" "}
-                                    students
+                                    Showing <strong className="text-dark">{startRecord}</strong> to <strong className="text-dark">{endRecord}</strong> of <strong className="text-dark">{totalRecords}</strong> students
                                 </span>
-
-                                {search && (
-                                    <span className="text-primary small fw-semibold">
-                                        Search: "{search}"
-                                    </span>
-                                )}
+                                {search && <span className="text-primary small fw-semibold">Search: "{search}"</span>}
                             </div>
                         </div>
 
@@ -713,41 +370,25 @@ function RollNoList() {
                                             <th> ENROLLMENT NO </th>
                                             <th> ROLL NO </th>
                                             <th> FATHER NAME </th>
-                                            
                                             <th> ADDRESS </th>
-                                            <th>Franchise Name</th>
-                                            
-                                            <th>Action</th>
+                                            <th> Franchise Name </th>
+                                            <th> Action </th>
                                         </tr>
                                     </thead>
 
                                     <tbody>
                                         {loading ? (
                                             <tr>
-                                                <td
-                                                    colSpan="8"
-                                                    className="text-center py-5"
-                                                >
+                                                <td colSpan="8" className="text-center py-5">
                                                     <div className="spinner-border text-primary mb-3"></div>
-                                                    <div className="text-muted">
-                                                        Loading students...
-                                                    </div>
+                                                    <div className="text-muted">Loading students...</div>
                                                 </td>
                                             </tr>
                                         ) : data.length > 0 ? (
                                             data.map((item, index) => (
                                                 <tr key={item.id || index}>
                                                     <td>
-                                                        <span
-                                                            className="d-inline-flex align-items-center justify-content-center rounded-circle fw-semibold"
-                                                            style={{
-                                                                width: "32px",
-                                                                height: "32px",
-                                                                background: "#f0f2ff",
-                                                                color: "#4154f1",
-                                                                fontSize: "13px"
-                                                            }}
-                                                        >
+                                                        <span className="d-inline-flex align-items-center justify-content-center rounded-circle fw-semibold" style={{ width: "32px", height: "32px", background: "#f0f2ff", color: "#4154f1", fontSize: "13px" }}>
                                                             {(pageNo - 1) * pageSize + index + 1}
                                                         </span>
                                                     </td>
@@ -758,92 +399,54 @@ function RollNoList() {
                                                                 className="rollno-student-image"
                                                                 src={`${FILE_URL}${item.selfImageShow}`}
                                                                 alt="Student"
-                                                                onError={(e) => {
-                                                                    e.currentTarget.src =
-                                                                        `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || "Student")}`;
-                                                                }}
+                                                                onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || "Student")}`; }}
                                                             />
-
                                                             <div className="rollno-student-name">
-                                                                {item.name || "-"}
-                                                                <br />
-                                                                {item.mobileNo || "-"}
-                                                                <br />
+                                                                {item.name || "-"}<br />
+                                                                {item.mobileNo || "-"}<br />
                                                                 {item.courseName || "-"}
                                                             </div>
                                                         </div>
                                                     </td>
 
-                                                    <td>
-
-                                                        <i className="bi bi-card-text me-1"></i>
-                                                        {item.enrollmentNo || "-"}
-
-                                                    </td>
-
-                                                    <td>
-
-                                                        <i className="bi bi-hash me-1"></i>
-                                                        {item.rollno || "-"}
-
-                                                    </td>
+                                                    <td><i className="bi bi-card-text me-1"></i>{item.enrollmentNo || "-"}</td>
+                                                    <td><i className="bi bi-hash me-1"></i>{item.rollno || "-"}</td>
 
                                                     <td>
                                                         <div className="rollno-father">
-                                                            <div className="rollno-father-icon">
-                                                                <i className="bi bi-person"></i>
-                                                            </div>
-
-                                                            <span className="rollno-father-name">
-                                                                {item.fatherName || "-"}
-                                                            </span>
+                                                            <div className="rollno-father-icon"><i className="bi bi-person"></i></div>
+                                                            <span className="rollno-father-name">{item.fatherName || "-"}</span>
                                                         </div>
                                                     </td>
 
-
-
-                                                    <td>
-                                                        <span className="rollno-address">
-                                                            {item.address || "-"}
-                                                        </span>
-                                                    </td>
-
+                                                    <td><span className="rollno-address">{item.address || "-"}</span></td>
                                                     <td>{item.instituteName || "-"}</td>
-
 
                                                     <td>
                                                         <div className="student-action-group">
-                                                            {/* Print */}
-                                                            <button
-                                                                type="button"
-                                                                className="student-action print"
-                                                                onClick={() => handlePrint(item.id)}
-                                                                title="Print Form"
-                                                            >
+                                                            <button type="button" className="student-action print" onClick={() => handlePrint(item.id)} title="Print Form">
                                                                 <i className="bi bi-printer-fill"></i>
                                                                 <span>Print</span>
                                                             </button>
-
-                                                            {/* View */}
-                                                            <button
-                                                                type="button"
-                                                                className="student-action view"
-                                                                onClick={() => handleView(item.id)}
-                                                                title="View Student"
-                                                            >
+                                                            <button type="button" className="student-action view" onClick={() => handleView(item.id)} title="View Student">
                                                                 <i className="bi bi-eye-fill"></i>
                                                                 <span>View</span>
                                                             </button>
-
-                                                            {/* Edit */}
-                                                            <button
-                                                                type="button"
-                                                                className="student-action edit"
-                                                                onClick={() => handleEdit(item.id)}
-                                                                title="Edit Student"
-                                                            >
+                                                            <button type="button" className="student-action edit" onClick={() => handleEdit(item.id)} title="Edit Student">
                                                                 <i className="bi bi-pencil-square"></i>
                                                                 <span>Edit</span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="student-action delete"
+                                                                onClick={() => {
+                                                                    setDeleteId(item.id);
+                                                                    setShowDeleteModal(true);
+                                                                }}
+                                                                title="Delete Student"
+                                                            >
+                                                                <i className="bi bi-trash-fill"></i>
+                                                                <span>Delete</span>
                                                             </button>
                                                         </div>
                                                     </td>
@@ -851,33 +454,12 @@ function RollNoList() {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td
-                                                    colSpan="8"
-                                                    className="text-center py-5"
-                                                >
-                                                    <div
-                                                        className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                                                        style={{
-                                                            width: "70px",
-                                                            height: "70px",
-                                                            background: "#f1f3f9"
-                                                        }}
-                                                    >
-                                                        <i
-                                                            className="bi bi-people text-muted"
-                                                            style={{
-                                                                fontSize: "30px"
-                                                            }}
-                                                        ></i>
+                                                <td colSpan="8" className="text-center py-5">
+                                                    <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style={{ width: "70px", height: "70px", background: "#f1f3f9" }}>
+                                                        <i className="bi bi-people text-muted" style={{ fontSize: "30px" }}></i>
                                                     </div>
-
-                                                    <h5 className="fw-semibold">
-                                                        No Students Found
-                                                    </h5>
-
-                                                    <p className="text-muted mb-0">
-                                                        No student records match your search.
-                                                    </p>
+                                                    <h5 className="fw-semibold">No Students Found</h5>
+                                                    <p className="text-muted mb-0">No student records match your search.</p>
                                                 </td>
                                             </tr>
                                         )}
@@ -888,57 +470,24 @@ function RollNoList() {
                             {totalPages > 0 && (
                                 <div className="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3 rollno-pagination">
                                     <div className="text-muted small">
-                                        Page{" "}
-                                        <strong className="text-dark">
-                                            {pageNo}
-                                        </strong>{" "}
-                                        of{" "}
-                                        <strong className="text-dark">
-                                            {totalPages}
-                                        </strong>
+                                        Page <strong className="text-dark">{pageNo}</strong> of <strong className="text-dark">{totalPages}</strong>
                                     </div>
-
                                     <div className="d-flex align-items-center gap-1">
-                                        <button
-                                            type="button"
-                                            className="btn btn-light border"
-                                            onClick={handlePrevious}
-                                            disabled={pageNo === 1}
-                                            style={{
-                                                borderRadius: "10px"
-                                            }}
-                                        >
+                                        <button type="button" className="btn btn-light border" onClick={handlePrevious} disabled={pageNo === 1} style={{ borderRadius: "10px" }}>
                                             <i className="bi bi-chevron-left"></i>
                                         </button>
-
                                         {getPageNumbers().map((page) => (
                                             <button
                                                 key={page}
                                                 type="button"
                                                 onClick={() => setPageNo(page)}
-                                                className={
-                                                    pageNo === page
-                                                        ? "btn btn-primary"
-                                                        : "btn btn-light border"
-                                                }
-                                                style={{
-                                                    minWidth: "40px",
-                                                    borderRadius: "10px"
-                                                }}
+                                                className={pageNo === page ? "btn btn-primary" : "btn btn-light border"}
+                                                style={{ minWidth: "40px", borderRadius: "10px" }}
                                             >
                                                 {page}
                                             </button>
                                         ))}
-
-                                        <button
-                                            type="button"
-                                            className="btn btn-light border"
-                                            onClick={handleNext}
-                                            disabled={pageNo === totalPages}
-                                            style={{
-                                                borderRadius: "10px"
-                                            }}
-                                        >
+                                        <button type="button" className="btn btn-light border" onClick={handleNext} disabled={pageNo === totalPages} style={{ borderRadius: "10px" }}>
                                             <i className="bi bi-chevron-right"></i>
                                         </button>
                                     </div>
@@ -948,6 +497,54 @@ function RollNoList() {
                     </div>
                 </section>
             </div>
+
+            {/* 🆕 DELETE CONFIRMATION MODAL */}
+            {showDeleteModal && (
+                <div style={{
+                    position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: "rgba(0,0,0,0.5)", zIndex: 9999,
+                    display: "flex", justifyContent: "center", alignItems: "center"
+                }}>
+                    <div style={{
+                        background: "#fff", padding: "25px", borderRadius: "16px",
+                        width: "90%", maxWidth: "420px", textAlign: "center",
+                        boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+                    }}>
+                        <div style={{
+                            width: "70px", height: "70px", borderRadius: "50%",
+                            background: "#fee2e2", color: "#ef4444", display: "flex",
+                            alignItems: "center", justifyContent: "center",
+                            margin: "0 auto 15px", fontSize: "30px"
+                        }}>
+                            <i className="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+                        <h4 className="fw-bold mb-2">Are you sure?</h4>
+                        <p className="text-muted mb-4" style={{ fontSize: "14px" }}>
+                            Do you really want to delete this student record? This process cannot be undone.
+                        </p>
+                        <div className="d-flex justify-content-center gap-3">
+                            <button 
+                                type="button" 
+                                className="btn btn-light border px-4" 
+                                onClick={() => setShowDeleteModal(false)}
+                                disabled={isDeleting}
+                                style={{ borderRadius: "8px", fontWeight: "600" }}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="button" 
+                                className="btn btn-danger px-4" 
+                                onClick={confirmDelete}
+                                disabled={isDeleting}
+                                style={{ borderRadius: "8px", fontWeight: "600", background: "#ef4444", border: "none" }}
+                            >
+                                {isDeleting ? "Deleting..." : "Yes, Delete"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

@@ -1135,6 +1135,34 @@ function ConfirmStudent() {
                         />
                       </div>
                     )}
+                    <div className="col-md-6">
+                      <DocumentButton
+                        icon="bi-person-badge-fill"
+                        title="Bonafide Certificate"
+                        subtitle="Print Bonafide Certificate "
+                        color="#087990"
+                        bg="#f3fcff"
+                        onClick={() =>
+                          openDocument(
+                            `/bonafide-certificate-print/${selectedStudent.id}`
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <DocumentButton
+                        icon="bi-person-badge-fill"
+                        title="Training Letter"
+                        subtitle="Print Training Letter"
+                        color="#087990"
+                        bg="#f3fcff"
+                        onClick={() =>
+                          openDocument(
+                            `/trainging-certificate-print/${selectedStudent.id}`
+                          )
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
 
