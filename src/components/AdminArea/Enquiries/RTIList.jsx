@@ -1,7 +1,6 @@
  import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
- 
     deleteRTI,
   getRtiList,
   updateRtiStatus,
@@ -451,6 +450,25 @@ function RTIList() {
         .rti-table tbody tr:hover { background: #fafbff; }
         .rti-table tbody tr:last-child td { border-bottom: none; }
 
+        /* ================= ✅ STICKY ACTION COLUMN ================= */
+        .rti-table th.sticky-action,
+        .rti-table td.sticky-action {
+            position: sticky !important;
+            right: 0 !important;
+            z-index: 5;
+            background-color: #fff;
+            box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .rti-table thead th.sticky-action {
+            background-color: #f8f9fc !important;
+            z-index: 6;
+        }
+
+        .rti-table tbody tr:hover td.sticky-action {
+            background-color: #fafbff !important;
+        }
+
         /* CELLS */
         .rti-serial {
           display: inline-flex; align-items: center;
@@ -869,14 +887,16 @@ function RTIList() {
                   <th>Status</th>
                   <th>Applied On</th>
                   <th>Remark</th>
-                  <th style={{ textAlign: "center" }}>Action</th>
+                  {/* ✅ ADDED sticky-action CLASS */}
+                  <th className="sticky-action" style={{ textAlign: "center" }}>Action</th>
                 </tr>
               </thead>
 
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="11" className="rti-loading">
+                    {/* ✅ FIXED colSpan to 12 */}
+                    <td colSpan="12" className="rti-loading">
                       <div className="rti-loading-icon">
                         <div className="spinner-border text-primary"></div>
                       </div>
@@ -973,13 +993,14 @@ function RTIList() {
                           </span>
                         </td>
 
-                         
-                         <td>
+                        <td>
                           <span className="rti-subject" title={item.subject || "-"}>
                             {item.remarks || "-"}
                           </span>
                         </td>
-                        <td style={{ textAlign: "center" }}>
+                        
+                        {/* ✅ ADDED sticky-action CLASS */}
+                        <td className="sticky-action" style={{ textAlign: "center" }}>
                           <div className="rti-action-group">
                             <button
                               type="button"
@@ -1004,7 +1025,8 @@ function RTIList() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="11" className="rti-empty">
+                    {/* ✅ FIXED colSpan to 12 */}
+                    <td colSpan="12" className="rti-empty">
                       <div className="rti-empty-icon">
                         <i className="bi bi-inbox"></i>
                       </div>

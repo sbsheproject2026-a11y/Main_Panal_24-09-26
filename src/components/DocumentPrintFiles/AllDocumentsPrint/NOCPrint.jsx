@@ -1,7 +1,8 @@
  import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
-import { printDiplomaApi } from "../../AllServicesFiles/AdminStudentService";
+import { printNOCApi } from "../../AllServicesFiles/AdminStudentService";
+ 
 
 const NOCPrint = () => {
     const { id } = useParams();
@@ -206,7 +207,7 @@ const NOCPrint = () => {
     const printDiploma = async (studentId) => {
         setLoading(true);
         try {
-            const result = await printDiplomaApi(studentId);
+            const result = await printNOCApi(studentId);
 
             if (!result) {
                 alert("Diploma data nahi mila.");
@@ -215,8 +216,8 @@ const NOCPrint = () => {
             }
 
             const FIELDS = {
-                srnoDiploma: {
-                    text: "Serial No. : " + (result.srnoDiploma || ""),
+                nocSRNO: {
+                    text: "Serial No. : " + (result.nocSRNO || ""),
                     x: 11,
                     y: 8,
                     align: "left",
@@ -317,7 +318,7 @@ const NOCPrint = () => {
             pdf.addImage(backgroundImage, "JPEG", PRINT_MARGIN, PRINT_MARGIN, CONTENT_WIDTH, CONTENT_HEIGHT, undefined, "FAST");
 
             [
-                FIELDS.srnoDiploma,
+                FIELDS.nocSRNO,
                 FIELDS.enrollmentNo,
                 FIELDS.courseName,
                 FIELDS.subjectName,

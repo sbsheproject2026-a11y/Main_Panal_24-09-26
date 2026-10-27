@@ -479,12 +479,36 @@ function OfflinePaymentList() {
                     vertical-align: middle;
                     border-right: 1px solid #e2e8f0;
                     border-bottom: 1px solid #e2e8f0;
+                    background-color: #fff; /* Important for sticky */
+                }
+                .data-table tbody tr:hover td {
+                    background-color: #f8faff; /* Match hover */
                 }
 
                 .data-table tbody td:last-child { border-right: none; }
                 .data-table tbody tr:last-child td { border-bottom: none; }
                 .data-table tbody td.center { text-align: center; }
                 .data-table tbody td.right  { text-align: right; }
+
+                /* ================= ✅ STICKY ACTION COLUMN ================= */
+                .data-table th.sticky-action,
+                .data-table td.sticky-action {
+                    position: sticky !important;
+                    right: 0 !important;
+                    z-index: 5;
+                    background-color: #fff;
+                    box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1);
+                }
+
+                .data-table thead th.sticky-action {
+                    background-color: #f1f5f9 !important;
+                    z-index: 6;
+                    border-bottom: 2px solid #94a3b8;
+                }
+
+                .data-table tbody tr:hover td.sticky-action {
+                    background-color: #f8faff !important;
+                }
 
                 .table-user-cell {
                     display: flex;
@@ -1356,7 +1380,8 @@ function OfflinePaymentList() {
                                                 <th className="right">Paid</th>
                                                 <th className="right">Pending</th>
                                                 <th className="center">Status</th>
-                                                <th className="center">Action</th>
+                                                {/* ✅ ADDED sticky-action CLASS */}
+                                                <th className="center sticky-action">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1417,7 +1442,8 @@ function OfflinePaymentList() {
                                                             {item.payStatus || "Pending"}
                                                         </span>
                                                     </td>
-                                                    <td className="center">
+                                                    {/* ✅ ADDED sticky-action CLASS */}
+                                                    <td className="center sticky-action">
                                                         <div className="table-actions">
                                                             <button
                                                                 className="table-btn table-btn-view"
@@ -1428,14 +1454,14 @@ function OfflinePaymentList() {
                                                                 }}
                                                                 title={`View payments of ${item.name}`}
                                                             >
-                                                                📄 Print
+                                                                📄  
                                                             </button>
 
                                                             <button
                                                                 className="table-btn table-btn-view"
                                                                 onClick={() => setSelectedItem(item)}
                                                             >
-                                                                👁️ View
+                                                                👁️  
                                                             </button>
 
                                                             {Number(item.pendingAmount || 0) > 0 && (
@@ -1443,7 +1469,7 @@ function OfflinePaymentList() {
                                                                     className="table-btn table-btn-add"
                                                                     onClick={() => handleAdd(item)}
                                                                 >
-                                                                    ➕ Add
+                                                                    ➕  
                                                                 </button>
                                                             )}
                                                         </div>

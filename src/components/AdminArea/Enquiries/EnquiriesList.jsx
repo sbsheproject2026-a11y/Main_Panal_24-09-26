@@ -306,6 +306,25 @@ function EnquiriesList() {
         .enq-table tbody tr:hover { background: #fafbff; }
         .enq-table tbody tr:last-child td { border-bottom: none; }
 
+        /* ================= ✅ STICKY ACTION COLUMN ================= */
+        .enq-table th.sticky-action,
+        .enq-table td.sticky-action {
+            position: sticky !important;
+            right: 0 !important;
+            z-index: 5;
+            background-color: #fff;
+            box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .enq-table thead th.sticky-action {
+            background-color: #f8f9fc !important;
+            z-index: 6;
+        }
+
+        .enq-table tbody tr:hover td.sticky-action {
+            background-color: #fafbff !important;
+        }
+
         .enq-serial { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: #eef1ff; color: #4154f1; font-size: 12px; font-weight: 700; }
         .enq-name { display: flex; align-items: center; gap: 10px; }
         .enq-avatar { width: 38px; height: 38px; min-width: 38px; border-radius: 50%; background: linear-gradient(135deg, #4154f1, #6f7bf7); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; box-shadow: 0 4px 10px rgba(65, 84, 241, .2); }
@@ -511,7 +530,8 @@ function EnquiriesList() {
                   <th>Email</th>
                   <th>Course</th>
                   <th>Remarks</th>
-                  <th style={{ textAlign: "center" }}>Action</th>
+                  {/* ✅ ADDED sticky-action CLASS */}
+                  <th className="sticky-action" style={{ textAlign: "center" }}>Action</th>
                 </tr>
               </thead>
 
@@ -572,7 +592,8 @@ function EnquiriesList() {
                         </span>
                       </td>
 
-                      <td style={{ textAlign: "center" }}>
+                      {/* ✅ ADDED sticky-action CLASS */}
+                      <td className="sticky-action" style={{ textAlign: "center" }}>
                         <button
                           type="button"
                           className="enq-action-btn"

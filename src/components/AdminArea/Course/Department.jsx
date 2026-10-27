@@ -688,6 +688,25 @@ function Department() {
         .modern-table tbody tr { transition: background .2s ease; }
         .modern-table tbody tr:hover { background: #fafbff; }
 
+        /* ================= ✅ STICKY ACTION COLUMN ================= */
+        .modern-table th.sticky-action,
+        .modern-table td.sticky-action {
+          position: sticky !important;
+          right: 0 !important;
+          z-index: 5; 
+          background-color: #fff; 
+          box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1); 
+        }
+
+        .modern-table thead th.sticky-action {
+          background-color: #f8fafc !important;
+          z-index: 6; 
+        }
+
+        .modern-table tbody tr:hover td.sticky-action {
+          background-color: #fafbff !important;
+        }
+
         /* ================= NUMBER ================= */
         .row-number {
           width: 30px;
@@ -1351,7 +1370,8 @@ function Department() {
                         <th>Study Mode</th>
                         <th style={{ width: "130px" }}>Status</th>
                         <th style={{ width: "130px" }}>File</th>
-                        <th className="text-center" style={{ width: "120px" }}>Action</th>
+                        {/* ✅ ADDED sticky-action CLASS */}
+                        <th className="text-center sticky-action" style={{ width: "120px" }}>Action</th>
                       </tr>
                     </thead>
 
@@ -1424,7 +1444,8 @@ function Department() {
                                 <span className="code-badge">{item.filePath || "—"}</span>
                               </td>
 
-                              <td>
+                              {/* ✅ ADDED sticky-action CLASS */}
+                              <td className="sticky-action">
                                 <div className="action-buttons">
                                   <button
                                     type="button"

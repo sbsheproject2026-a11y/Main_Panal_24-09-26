@@ -886,6 +886,25 @@ function MasterSession() {
           background: #fafbff;
         }
 
+        /* ================= ✅ STICKY ACTION COLUMN ================= */
+        .ms-table th.sticky-action,
+        .ms-table td.sticky-action {
+          position: sticky !important;
+          right: 0 !important;
+          z-index: 5; /* Data ke upar dikhne ke liye */
+          background-color: #fff; /* White background taake text overlap na ho */
+          box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1); /* Left side par shadow */
+        }
+
+        .ms-table thead th.sticky-action {
+          background-color: #f8fafc !important;
+          z-index: 6; /* Header aur data ke beech layer manage karne ke liye */
+        }
+
+        .ms-table tbody tr:hover td.sticky-action {
+          background-color: #fafbff !important;
+        }
+
         /* ================= TABLE CELLS ================= */
         .ms-session-cell {
           display: flex;
@@ -1648,13 +1667,15 @@ function MasterSession() {
             <thead>
               <tr>
                 <th style={{ width: "60px" }}>#</th>
+                <th>Session Type</th>
                 <th>Session</th>
                 <th>Name</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Issue Date</th>
                 <th style={{ textAlign: "center" }}>Status</th>
-                <th style={{ textAlign: "center", width: "120px" }}>Action</th>
+                {/* ✅ ADDED sticky-action CLASS */}
+                <th className="sticky-action" style={{ textAlign: "center", width: "120px" }}>Action</th>
               </tr>
             </thead>
 
@@ -1667,7 +1688,9 @@ function MasterSession() {
                         {startIndex + index + 1}
                       </span>
                     </td>
-
+                    <td>
+                      <span className="ms-name-text">{item.masterSessionName}</span>
+                    </td>
                     <td>
                       <div className="ms-session-cell">
                         <div className="ms-session-avatar">
@@ -1714,7 +1737,8 @@ function MasterSession() {
                       </span>
                     </td>
 
-                    <td>
+                    {/* ✅ ADDED sticky-action CLASS */}
+                    <td className="sticky-action">
                       <div className="ms-actions">
                         <button
                           type="button"
@@ -1738,7 +1762,8 @@ function MasterSession() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8">
+                  {/* ✅ FIXED colSpan to 9 */}
+                  <td colSpan="9">
                     <div className="ms-empty">
                       <div className="ms-empty-icon">
                         <i className="bi bi-calendar-x"></i>

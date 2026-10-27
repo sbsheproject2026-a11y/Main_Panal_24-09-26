@@ -261,6 +261,30 @@ function CourseList() {
                 .course-table tbody tr:hover { background: #fafbff; }
                 .course-table tbody tr:last-child td { border-bottom: none !important; }
 
+                /* ================= ✅ STICKY ACTION COLUMN ================= */
+                .course-table th.sticky-action,
+                .course-table td.sticky-action {
+                    position: sticky !important;
+                    right: 0 !important;
+                    z-index: 5;
+                    background-color: #fff;
+                    box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1);
+                }
+
+                .course-table thead th.sticky-action {
+                    background-color: #f8f9fc !important;
+                    z-index: 6;
+                }
+
+                .course-table tbody tr:hover td.sticky-action {
+                    background-color: #fafbff !important;
+                }
+
+                /* ✅ Dropdown open hone par us row ka z-index badhane ke liye */
+                .course-table td.sticky-action.dropdown-open {
+                    z-index: 50 !important;
+                }
+
                 .serial-number { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #f0f2ff; color: #4154f1; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: visible; }
                 .course-code { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 20px; background: #eef7ff; color: #0d6efd; font-size: 12px; font-weight: 600; white-space: nowrap; }
                 .course-name-cell { display: flex; align-items: center; gap: 10px; min-width: 0; width: auto; }
@@ -478,13 +502,13 @@ function CourseList() {
                                                     <th>Category</th>
                                                     <th>Department</th>
                                                     <th className="text-center">Status</th>
-                                                    <th className="text-center">Actions</th>
+                                                    <th className="text-center sticky-action">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {loading ? (
                                                     <tr>
-                                                        <td colSpan="10">
+                                                        <td colSpan="9">
                                                             <div className="course-loading">
                                                                 <div className="spinner-border text-primary"></div>
                                                                 <span>Loading courses...</span>
@@ -493,7 +517,7 @@ function CourseList() {
                                                     </tr>
                                                 ) : paginatedData.length === 0 ? (
                                                     <tr>
-                                                        <td colSpan="10">
+                                                        <td colSpan="9">
                                                             <div className="course-empty">
                                                                 <div className="empty-icon"><i className="bi bi-journal-x"></i></div>
                                                                 <h5>No Courses Found</h5>
@@ -541,7 +565,9 @@ function CourseList() {
                                                                     <span className="status-badge inactive"><span className="status-dot"></span> Inactive</span>
                                                                 )}
                                                             </td>
-                                                            <td>
+                                                            
+                                                            {/* ✅ DYNAMIC CLASS ADDED HERE */}
+                                                            <td className={`sticky-action ${openDropdown === item.id ? "dropdown-open" : ""}`}>
                                                                 <div className="course-actions">
                                                                     <button type="button" className="action-btn edit-btn" title="Edit Course" onClick={() => handleEdit(item.id)}>
                                                                         <i className="bi bi-pencil-square"></i>

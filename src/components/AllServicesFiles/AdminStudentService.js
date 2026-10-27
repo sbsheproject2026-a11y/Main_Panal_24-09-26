@@ -22,7 +22,14 @@ export const sendToConfirmStatus = async (ids) => {
 
     return response.data;
 };
-
+export const GenerateUserCode = async (id, code) => {
+   
+  const response = await api.put(
+    `/RequestStudent/request-student-usercode`,
+    { id, code }
+  );
+  return response.data;
+};
  
 export const printAuthorityLetterApi = async (id) => {
     const response = await api.get(

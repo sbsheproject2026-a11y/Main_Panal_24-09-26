@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+ import React, { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { GetConfirmToAdmin, sendToConfirmStatus } from '../../AllServicesFiles/AdminStudentService';
 import { FILE_URL } from '../../api';
@@ -58,7 +58,6 @@ function SendToConfirmStudent() {
 
         try {
             const result = await getStudentFeeDetails(item.id);
-
 
             if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
                 setFeeDetails(result.data[0]);   // 👈 poori array save karo
@@ -453,6 +452,25 @@ function SendToConfirmStudent() {
                     border-bottom: none !important;
                 }
 
+                /* ================= ✅ STICKY ACTION COLUMN ================= */
+                .student-table th.sticky-action,
+                .student-table td.sticky-action {
+                    position: sticky !important;
+                    right: 0 !important;
+                    z-index: 5;
+                    background-color: #fff;
+                    box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1);
+                }
+
+                .student-table thead th.sticky-action {
+                    background-color: #f8f9fc !important;
+                    z-index: 6;
+                }
+
+                .student-table tbody tr:hover td.sticky-action {
+                    background-color: #fafbff !important;
+                }
+
                 .student-serial {
                     display: inline-flex;
                     align-items: center;
@@ -725,13 +743,12 @@ function SendToConfirmStudent() {
                     }
                 }
 
-                 
-                    .student-action-group {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columns */
-    gap: 8px; /* spacing between buttons */
-    justify-content: center;
-}
+                .student-action-group {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+                    gap: 8px; /* spacing between buttons */
+                    justify-content: center;
+                }
 
                 .student-action {
                     display: inline-flex;
@@ -799,6 +816,20 @@ function SendToConfirmStudent() {
                     box-shadow: 0 4px 10px rgba(180, 83, 9, 0.25);
                 }
 
+                .student-action.delete {
+                    background: #fee2e2;
+                    color: #b91c1c;
+                    border-color: #fecaca;
+                }
+
+                .student-action.delete:hover {
+                    background: #b91c1c;
+                    color: #ffffff;
+                    border-color: #b91c1c;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 10px rgba(185, 28, 28, 0.25);
+                }
+
                 .student-action:focus-visible {
                     outline: 2px solid #6366f1;
                     outline-offset: 2px;
@@ -832,6 +863,7 @@ function SendToConfirmStudent() {
                     font-family: inherit;
                     display: flex;
                     align-items: center;
+                    justify-content: center;
                     gap: 5px;
                     flex-shrink: 0;
                 }
@@ -972,227 +1004,227 @@ function SendToConfirmStudent() {
                 }
 
                 /* =============================================
-   PAYMENT RECEIPT
-============================================= */
-.payment-receipt {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
+                   PAYMENT RECEIPT
+                ============================================= */
+                .payment-receipt {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                }
 
-/* ===== TOP (Amount + Status) ===== */
-.receipt-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-    padding: 22px 24px;
-    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
-    border-radius: 14px;
-    border: 1px solid #e0e7ff;
-    flex-wrap: wrap;
-}
+                /* ===== TOP (Amount + Status) ===== */
+                .receipt-top {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    gap: 20px;
+                    padding: 22px 24px;
+                    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+                    border-radius: 14px;
+                    border: 1px solid #e0e7ff;
+                    flex-wrap: wrap;
+                }
 
-.receipt-amount-box {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
+                .receipt-amount-box {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
 
-.receipt-amount-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #6366f1;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-}
+                .receipt-amount-label {
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #6366f1;
+                    text-transform: uppercase;
+                    letter-spacing: .5px;
+                }
 
-.receipt-amount {
-    margin: 0;
-    font-size: 32px;
-    font-weight: 800;
-    color: #1e293b;
-    line-height: 1.1;
-    letter-spacing: -.5px;
-}
+                .receipt-amount {
+                    margin: 0;
+                    font-size: 32px;
+                    font-weight: 800;
+                    color: #1e293b;
+                    line-height: 1.1;
+                    letter-spacing: -.5px;
+                }
 
-.receipt-amount-words {
-    font-size: 12px;
-    color: #7c86a2;
-    font-style: italic;
-}
+                .receipt-amount-words {
+                    font-size: 12px;
+                    color: #7c86a2;
+                    font-style: italic;
+                }
 
-.receipt-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 30px;
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: capitalize;
-    white-space: nowrap;
-}
+                .receipt-status {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 8px 16px;
+                    border-radius: 30px;
+                    font-size: 13px;
+                    font-weight: 700;
+                    text-transform: capitalize;
+                    white-space: nowrap;
+                }
 
-.receipt-status i {
-    font-size: 16px;
-}
+                .receipt-status i {
+                    font-size: 16px;
+                }
 
-.status-pending {
-    background: #fef3c7;
-    color: #b45309;
-    border: 1px solid #fde68a;
-}
+                .status-pending {
+                    background: #fef3c7;
+                    color: #b45309;
+                    border: 1px solid #fde68a;
+                }
 
-.status-paid {
-    background: #dcfce7;
-    color: #15803d;
-    border: 1px solid #bbf7d0;
-}
+                .status-paid {
+                    background: #dcfce7;
+                    color: #15803d;
+                    border: 1px solid #bbf7d0;
+                }
 
-.status-failed {
-    background: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fecaca;
-}
+                .status-failed {
+                    background: #fee2e2;
+                    color: #b91c1c;
+                    border: 1px solid #fecaca;
+                }
 
-/* ===== DIVIDER ===== */
-.receipt-divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #cbd5e1;
-}
+                /* ===== DIVIDER ===== */
+                .receipt-divider {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    color: #cbd5e1;
+                }
 
-.receipt-divider span {
-    flex: 1;
-    height: 1px;
-    background: repeating-linear-gradient(
-        to right,
-        #cbd5e1 0,
-        #cbd5e1 6px,
-        transparent 6px,
-        transparent 12px
-    );
-}
+                .receipt-divider span {
+                    flex: 1;
+                    height: 1px;
+                    background: repeating-linear-gradient(
+                        to right,
+                        #cbd5e1 0,
+                        #cbd5e1 6px,
+                        transparent 6px,
+                        transparent 12px
+                    );
+                }
 
-.receipt-divider i {
-    font-size: 16px;
-    color: #94a3b8;
-    transform: rotate(-90deg);
-}
+                .receipt-divider i {
+                    font-size: 16px;
+                    color: #94a3b8;
+                    transform: rotate(-90deg);
+                }
 
-/* ===== SECTIONS ===== */
-.receipt-section {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
+                /* ===== SECTIONS ===== */
+                .receipt-section {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
 
-.receipt-section-title {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 700;
-    color: #475569;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-transform: uppercase;
-    letter-spacing: .4px;
-}
+                .receipt-section-title {
+                    margin: 0;
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: #475569;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    text-transform: uppercase;
+                    letter-spacing: .4px;
+                }
 
-.receipt-section-title i {
-    color: #6366f1;
-    font-size: 15px;
-}
+                .receipt-section-title i {
+                    color: #6366f1;
+                    font-size: 15px;
+                }
 
-/* ===== GRID ===== */
-.receipt-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
+                /* ===== GRID ===== */
+                .receipt-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 12px;
+                }
 
-.receipt-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 10px 14px;
-    background: #f8fafc;
-    border-radius: 10px;
-    border: 1px solid #eef1f5;
-    transition: .18s ease;
-}
+                .receipt-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                    padding: 10px 14px;
+                    background: #f8fafc;
+                    border-radius: 10px;
+                    border: 1px solid #eef1f5;
+                    transition: .18s ease;
+                }
 
-.receipt-item:hover {
-    background: #f1f5ff;
-    border-color: #dbe4ff;
-}
+                .receipt-item:hover {
+                    background: #f1f5ff;
+                    border-color: #dbe4ff;
+                }
 
-.receipt-item.full {
-    grid-column: 1 / -1;
-}
+                .receipt-item.full {
+                    grid-column: 1 / -1;
+                }
 
-.receipt-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: .3px;
-}
+                .receipt-label {
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: #94a3b8;
+                    text-transform: uppercase;
+                    letter-spacing: .3px;
+                }
 
-.receipt-value {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1e293b;
-    word-break: break-word;
-}
+                .receipt-value {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #1e293b;
+                    word-break: break-word;
+                }
 
-.receipt-value.mono {
-    font-family: "Courier New", monospace;
-    font-size: 13px;
-    letter-spacing: .3px;
-    color: #4154f1;
-}
+                .receipt-value.mono {
+                    font-family: "Courier New", monospace;
+                    font-size: 13px;
+                    letter-spacing: .3px;
+                    color: #4154f1;
+                }
 
-/* ===== NOTE ===== */
-.receipt-note {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
-    border-radius: 10px;
-    font-size: 12px;
-    color: #0369a1;
-}
+                /* ===== NOTE ===== */
+                .receipt-note {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 12px 16px;
+                    background: #f0f9ff;
+                    border: 1px solid #bae6fd;
+                    border-radius: 10px;
+                    font-size: 12px;
+                    color: #0369a1;
+                }
 
-.receipt-note i {
-    font-size: 15px;
-    flex-shrink: 0;
-}
+                .receipt-note i {
+                    font-size: 15px;
+                    flex-shrink: 0;
+                }
 
-/* ===== MOBILE ===== */
-@media (max-width: 576px) {
-    .receipt-top {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 18px;
-    }
+                /* ===== MOBILE ===== */
+                @media (max-width: 576px) {
+                    .receipt-top {
+                        flex-direction: column;
+                        align-items: stretch;
+                        padding: 18px;
+                    }
 
-    .receipt-amount {
-        font-size: 26px;
-    }
+                    .receipt-amount {
+                        font-size: 26px;
+                    }
 
-    .receipt-grid {
-        grid-template-columns: 1fr;
-    }
+                    .receipt-grid {
+                        grid-template-columns: 1fr;
+                    }
 
-    .receipt-item.full {
-        grid-column: auto;
-    }
-}
+                    .receipt-item.full {
+                        grid-column: auto;
+                    }
+                }
             `}</style>
 
             <div className="student-page">
@@ -1301,11 +1333,10 @@ function SendToConfirmStudent() {
                                                 <th>Name</th>
                                                 <th>Father Name</th>
                                                 <th>Address</th>
-
                                                 <th>Franchise Name</th>
-
-
-                                                <th>Action</th>
+                                                
+                                                {/* ✅ ADDED sticky-action CLASS */}
+                                                <th className="sticky-action" style={{ textAlign: "center" }}>Action</th>
                                             </tr>
                                         </thead>
 
@@ -1313,14 +1344,16 @@ function SendToConfirmStudent() {
 
                                             {loading ? (
                                                 <tr>
-                                                    <td colSpan="13" className="student-loading">
+                                                    {/* ✅ FIXED colSpan to 8 */}
+                                                    <td colSpan="8" className="student-loading">
                                                         <div className="spinner-border text-primary mb-2"></div>
                                                         <div>Loading students...</div>
                                                     </td>
                                                 </tr>
                                             ) : data.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan="13" className="student-empty">
+                                                    {/* ✅ FIXED colSpan to 8 */}
+                                                    <td colSpan="8" className="student-empty">
                                                         <i className="bi bi-person-x"></i>
                                                         <div>No students found</div>
                                                         {search && (
@@ -1373,16 +1406,13 @@ function SendToConfirmStudent() {
                                                             {item.mobileNo || "-"}
                                                             <br />
                                                             {item.courseName || "-"}
-
-
                                                         </td>
                                                         <td>{item.fatherName || "-"}</td>
                                                         <td>{item.address || "-"}</td>
-
                                                         <td>{item.instituteName || "-"}</td>
 
-
-                                                        <td>
+                                                        {/* ✅ ADDED sticky-action CLASS */}
+                                                        <td className="sticky-action">
                                                             <div className="student-action-group">
                                                                 <button
                                                                     type="button"
@@ -1391,9 +1421,7 @@ function SendToConfirmStudent() {
                                                                     title="Print Form"
                                                                 >
                                                                     <i className="bi bi-printer-fill"></i>
-
                                                                 </button>
-
 
                                                                 <button
                                                                     type="button"
@@ -1402,7 +1430,6 @@ function SendToConfirmStudent() {
                                                                     title="View Student"
                                                                 >
                                                                     <i className="bi bi-eye-fill"></i>
-
                                                                 </button>
 
                                                                 <button
@@ -1412,8 +1439,8 @@ function SendToConfirmStudent() {
                                                                     title="Edit Student"
                                                                 >
                                                                     <i className="bi bi-pencil-square"></i>
-
                                                                 </button>
+                                                                
                                                                 <button
                                                                     type="button"
                                                                     className="student-action delete"
@@ -1430,8 +1457,9 @@ function SendToConfirmStudent() {
                                                                     <button
                                                                         className="list-btn"
                                                                         onClick={() => handleFeeClick(item)}
+                                                                        style={{ gridColumn: 'span 2' }}
                                                                     >
-                                                                        Fee
+                                                                        Fee Details
                                                                     </button>
                                                                 )}
                                                             </div>

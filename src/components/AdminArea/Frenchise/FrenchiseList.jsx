@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { getFrenchises, getFrenchiseDelete } from "../../AllServicesFiles/FrenchiseService";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -23,7 +23,6 @@ function FrenchiseList() {
         navigate(`/add-franchise-department/${id}`);
     };
 
-
     useEffect(() => {
         loadAccAcounts();
     }, [typeid, pageNo, pageSize, search]);
@@ -31,13 +30,7 @@ function FrenchiseList() {
     const loadAccAcounts = async () => {
         try {
             setLoading(true);
-
-            const result = await getFrenchises(
-                typeid, pageNo,
-                pageSize,
-                search
-            );
-
+            const result = await getFrenchises(typeid, pageNo, pageSize, search);
             setData(result?.data?.data || []);
             setTotalRecords(result?.data?.totalRecords || 0);
         } catch (error) {
@@ -78,52 +71,39 @@ function FrenchiseList() {
 
     return (
         <>
-
             <style>
                 {`
-
                 /* =====================================================
                    GLOBAL PAGE OVERFLOW FIX
                    ===================================================== */
-
-                html,
-                body,
-                #root {
+                html, body, #root {
                     width: 100%;
                     max-width: 100%;
                     overflow-x: hidden !important;
                 }
 
-
                 /* =====================================================
                    PAGE
                    ===================================================== */
-
                 .franchise-page {
                     background: #f6f8fc;
                     min-height: 100vh;
                     padding: 25px;
-
                     width: 100%;
                     max-width: 100%;
                     min-width: 0;
-
                     overflow-x: hidden;
-
                     box-sizing: border-box;
                 }
-
 
                 /* =====================================================
                    HEADER
                    ===================================================== */
-
                 .franchise-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     margin-bottom: 25px;
-
                     min-width: 0;
                     max-width: 100%;
                 }
@@ -147,22 +127,18 @@ function FrenchiseList() {
                     margin: 8px 0 0;
                 }
 
-
                 /* =====================================================
                    CARD
                    ===================================================== */
-
                 .franchise-card {
                     border: 0;
                     border-radius: 18px;
                     background: #ffffff;
                     box-shadow: 0 8px 30px rgba(30, 41, 59, 0.07);
                     overflow: hidden;
-
                     width: 100%;
                     max-width: 100%;
                     min-width: 0;
-
                     box-sizing: border-box;
                 }
 
@@ -182,21 +158,16 @@ function FrenchiseList() {
                 /* =====================================================
                    CARD HEADER
                    ===================================================== */
-
                 .franchise-card-header {
                     padding: 22px 24px;
                     border-bottom: 1px solid #edf0f5;
-
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-
                     gap: 15px;
                     flex-wrap: wrap;
-
                     min-width: 0;
                     max-width: 100%;
-
                     box-sizing: border-box;
                 }
 
@@ -204,7 +175,6 @@ function FrenchiseList() {
                     display: flex;
                     align-items: center;
                     gap: 12px;
-
                     min-width: 0;
                 }
 
@@ -212,21 +182,12 @@ function FrenchiseList() {
                     width: 43px;
                     height: 43px;
                     min-width: 43px;
-
                     border-radius: 12px;
-
-                    background: linear-gradient(
-                        135deg,
-                        #4154f1,
-                        #6c7cff
-                    );
-
+                    background: linear-gradient(135deg, #4154f1, #6c7cff);
                     color: white;
-
                     display: flex;
                     align-items: center;
                     justify-content: center;
-
                     font-size: 19px;
                 }
 
@@ -244,20 +205,16 @@ function FrenchiseList() {
                     margin-top: 3px;
                 }
 
-
                 /* =====================================================
                    SEARCH / TOOLS
                    ===================================================== */
-
                 .franchise-tools {
                     padding: 20px 24px;
                     background: #fbfcfe;
                     border-bottom: 1px solid #edf0f5;
-
                     width: 100%;
                     max-width: 100%;
                     min-width: 0;
-
                     box-sizing: border-box;
                 }
 
@@ -270,159 +227,108 @@ function FrenchiseList() {
                     position: absolute;
                     left: 14px;
                     top: 50%;
-
                     transform: translateY(-50%);
-
                     color: #8d96a8;
                     z-index: 2;
                 }
 
                 .franchise-search input {
                     height: 45px;
-
                     border: 1px solid #e2e6ee;
                     border-radius: 10px;
-
                     padding-left: 42px;
-
                     font-size: 14px;
-
                     box-shadow: none;
-
                     max-width: 100%;
                     box-sizing: border-box;
                 }
 
                 .franchise-search input:focus {
                     border-color: #4154f1;
-
-                    box-shadow:
-                        0 0 0 3px rgba(65, 84, 241, 0.08);
+                    box-shadow: 0 0 0 3px rgba(65, 84, 241, 0.08);
                 }
 
                 .franchise-page-size {
                     height: 45px;
-
                     border: 1px solid #e2e6ee;
                     border-radius: 10px;
-
                     padding: 0 14px;
-
                     color: #4d5668;
                     background: white;
-
                     outline: none;
                 }
-
 
                 /* =====================================================
                    CARD BODY
                    ===================================================== */
-
                 .franchise-card > .card-body {
                     width: 100%;
                     max-width: 100%;
                     min-width: 0;
-
                     overflow: hidden;
-
                     box-sizing: border-box;
                 }
-
 
                 /* =====================================================
                    TABLE WRAPPER
                    ONLY THIS AREA WILL SCROLL
                    ===================================================== */
-
                 .franchise-table-wrapper {
                     display: block;
-
                     width: 0 !important;
                     min-width: 100% !important;
                     max-width: 100% !important;
-
                     overflow-x: auto !important;
                     overflow-y: hidden !important;
-
                     box-sizing: border-box;
-
                     position: relative;
-
                     -webkit-overflow-scrolling: touch;
-
                     scrollbar-gutter: stable;
-
                     contain: inline-size;
                 }
-
 
                 /* =====================================================
                    TABLE  (AUTO WIDTH — NO FIXED COLUMN WIDTHS)
                    ===================================================== */
-
                 .franchise-table {
                     display: table;
-
                     width: auto !important;
                     min-width: 100% !important;
                     max-width: none !important;
-
                     margin: 0;
-
                     border-collapse: separate;
                     border-spacing: 0;
-
                     table-layout: auto;
                 }
-
 
                 /* =====================================================
                    TABLE HEADER
                    ===================================================== */
-
                 .franchise-table thead th {
                     background: #f8f9fc;
-
                     color: #687185;
-
                     font-size: 12px;
                     font-weight: 700;
-
                     text-transform: uppercase;
                     letter-spacing: .3px;
-
                     padding: 15px 16px;
-
                     border-bottom: 1px solid #e9edf3;
-
                     white-space: nowrap;
-
                     box-sizing: border-box;
-
                     vertical-align: middle;
                 }
-
 
                 /* =====================================================
                    TABLE BODY
                    ===================================================== */
-
                 .franchise-table tbody td {
                     padding: 15px 16px;
-
                     color: #414a5d;
-
                     font-size: 13px;
-
                     vertical-align: middle;
-
                     border-bottom: 1px solid #f0f2f6;
-
                     white-space: nowrap;
-
                     box-sizing: border-box;
-
                     height: 66px;
                 }
 
@@ -430,24 +336,37 @@ function FrenchiseList() {
                     background: #fafbff;
                 }
 
+                /* ================= ✅ STICKY ACTION COLUMN ================= */
+                .franchise-table th.sticky-action,
+                .franchise-table td.sticky-action {
+                    position: sticky !important;
+                    right: 0 !important;
+                    z-index: 5;
+                    background-color: #fff;
+                    box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1);
+                }
+
+                .franchise-table thead th.sticky-action {
+                    background-color: #f8f9fc !important;
+                    z-index: 6;
+                }
+
+                .franchise-table tbody tr:hover td.sticky-action {
+                    background-color: #fafbff !important;
+                }
 
                 /* =====================================================
                    TABLE CONTENT
                    ===================================================== */
-
                 .franchise-number {
                     width: 38px;
                     height: 38px;
-
                     border-radius: 10px;
-
                     display: flex;
                     align-items: center;
                     justify-content: center;
-
                     background: #eef1ff;
                     color: #4154f1;
-
                     font-weight: 700;
                     font-size: 12px;
                 }
@@ -455,114 +374,84 @@ function FrenchiseList() {
                 .franchise-code {
                     display: inline-flex;
                     align-items: center;
-
                     padding: 6px 10px;
-
                     border-radius: 7px;
-
                     background: #f0fdf4;
                     color: #15803d;
-
                     font-weight: 700;
                     font-size: 12px;
-
                     white-space: nowrap;
                 }
 
                 .franchise-name {
                     font-weight: 700;
                     color: #20283a;
-
                     display: block;
-
                     white-space: nowrap;
                 }
 
                 .franchise-muted {
                     color: #7c8597;
-
                     display: block;
-
                     white-space: nowrap;
                 }
 
                 .franchise-contact {
                     color: #475166;
                     font-weight: 500;
-
                     display: block;
-
                     white-space: nowrap;
                 }
 
                 .franchise-login {
                     display: inline-block;
-
                     padding: 5px 9px;
-
                     border-radius: 7px;
-
                     background: #f4f5f7;
                     color: #424b5c;
-
                     font-size: 12px;
                     font-weight: 600;
-
                     white-space: nowrap;
                 }
 
                 .franchise-password {
                     display: inline-block;
-
                     padding: 5px 9px;
-
                     border-radius: 7px;
-
                     background: #fff7ed;
                     color: #c2410c;
-
                     font-size: 12px;
                     font-weight: 600;
-
                     white-space: nowrap;
                 }
 
                 .franchise-location {
                     display: block;
-
                     color: #586174;
-
                     white-space: nowrap;
                 }
-
 
                 /* =====================================================
                    ACTIONS
                    ===================================================== */
-
                 .franchise-actions {
                     display: flex;
                     align-items: center;
+                    justify-content: flex-end; /* Aligns items nicely */
                     gap: 8px;
-
                     white-space: nowrap;
                 }
 
                 .franchise-action {
                     width: 36px;
                     height: 36px;
-
                     flex: 0 0 36px;
-
                     border: 0;
                     border-radius: 9px;
-
                     display: flex;
                     align-items: center;
                     justify-content: center;
-
                     cursor: pointer;
-
                     transition: all .2s ease;
                 }
 
@@ -586,11 +475,9 @@ function FrenchiseList() {
                     color: white;
                 }
 
-
                 /* =====================================================
                    TABLE SCROLLBAR
                    ===================================================== */
-
                 .franchise-table-wrapper::-webkit-scrollbar {
                     height: 9px;
                 }
@@ -614,61 +501,43 @@ function FrenchiseList() {
                     scrollbar-color: #b8bfcc #eef1f5;
                 }
 
-
                 /* =====================================================
                    EMPTY
                    ===================================================== */
-
                 .franchise-empty {
                     padding: 55px 20px !important;
-
                     text-align: center;
-
                     color: #8991a3;
                 }
 
                 .franchise-empty i {
                     display: block;
-
                     font-size: 42px;
-
                     color: #cbd1dc;
-
                     margin-bottom: 10px;
                 }
-
 
                 /* =====================================================
                    LOADING
                    ===================================================== */
-
                 .franchise-loading {
                     padding: 50px !important;
-
                     text-align: center;
-
                     color: #737d91;
                 }
-
 
                 /* =====================================================
                    PAGINATION
                    ===================================================== */
-
                 .franchise-pagination {
                     padding: 18px 24px;
-
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-
                     gap: 15px;
-
                     flex-wrap: wrap;
-
                     min-width: 0;
                     max-width: 100%;
-
                     box-sizing: border-box;
                 }
 
@@ -690,17 +559,11 @@ function FrenchiseList() {
                 .franchise-page-btn {
                     min-width: 38px;
                     height: 38px;
-
                     border: 1px solid #e2e6ee;
-
                     background: white;
-
                     color: #515a6c;
-
                     border-radius: 8px;
-
                     cursor: pointer;
-
                     font-size: 13px;
                     font-weight: 600;
                 }
@@ -756,140 +619,92 @@ function FrenchiseList() {
                     white-space: nowrap;
                 }
 
-
                 /* =====================================================
                    DELETE MODAL
                    ===================================================== */
-
                 .franchise-modal-overlay {
                     position: fixed;
                     inset: 0;
-
                     background: rgba(15, 23, 42, 0.65);
-
                     display: flex;
                     align-items: center;
                     justify-content: center;
-
                     padding: 20px;
-
                     z-index: 9999;
                 }
 
                 .franchise-modal {
                     width: 100%;
                     max-width: 440px;
-
                     background: white;
-
                     border-radius: 18px;
-
                     overflow: hidden;
-
-                    box-shadow:
-                        0 25px 70px rgba(0,0,0,.25);
-
-                    animation:
-                        franchiseModalShow .2s ease;
+                    box-shadow: 0 25px 70px rgba(0,0,0,.25);
+                    animation: franchiseModalShow .2s ease;
                 }
 
                 @keyframes franchiseModalShow {
-                    from {
-                        opacity: 0;
-                        transform: translateY(15px) scale(.98);
-                    }
-
-                    to {
-                        opacity: 1;
-                        transform: translateY(0) scale(1);
-                    }
+                    from { opacity: 0; transform: translateY(15px) scale(.98); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
                 }
 
                 .franchise-modal-header {
-                    background:
-                        linear-gradient(
-                            135deg,
-                            #dc3545,
-                            #e63950
-                        );
-
+                    background: linear-gradient(135deg, #dc3545, #e63950);
                     color: white;
-
                     padding: 18px 22px;
-
                     text-align: center;
                 }
 
                 .franchise-modal-header h5 {
                     margin: 0;
-
                     font-size: 18px;
                     font-weight: 700;
                 }
 
                 .franchise-modal-body {
                     padding: 30px 25px;
-
                     text-align: center;
                 }
 
                 .franchise-delete-icon {
                     width: 70px;
                     height: 70px;
-
                     margin: 0 auto 18px;
-
                     border-radius: 50%;
-
                     background: #fff1f2;
                     color: #dc3545;
-
                     display: flex;
                     align-items: center;
                     justify-content: center;
-
                     font-size: 30px;
                 }
 
                 .franchise-modal-body h5 {
                     color: #20283a;
-
                     font-weight: 700;
-
                     margin-bottom: 8px;
                 }
 
                 .franchise-modal-body p {
                     color: #7b8497;
-
                     font-size: 14px;
-
                     margin: 0;
-
                     line-height: 1.6;
                 }
 
                 .franchise-modal-footer {
                     padding: 18px 25px 24px;
-
                     display: flex;
-
                     justify-content: center;
-
                     gap: 10px;
                 }
 
                 .franchise-modal-btn {
                     height: 42px;
-
                     padding: 0 20px;
-
                     border-radius: 9px;
-
                     border: 0;
-
                     font-weight: 600;
-
                     cursor: pointer;
                 }
 
@@ -908,47 +723,23 @@ function FrenchiseList() {
                     cursor: not-allowed;
                 }
 
-                
-
                 /* =====================================================
                    MOBILE
                    ===================================================== */
-
                 @media (max-width: 768px) {
-
-                    .franchise-page {
-                        padding: 15px;
-                    }
-
-                    .franchise-header {
-                        display: block;
-                    }
-
-                    .franchise-title {
-                        font-size: 23px;
-                    }
-
-                    .franchise-card-header {
-                        padding: 18px;
-                    }
-
-                    .franchise-tools {
-                        padding: 15px;
-                    }
-
-                    .franchise-pagination {
-                        padding: 15px;
-                    }
-
+                    .franchise-page { padding: 15px; }
+                    .franchise-header { display: block; }
+                    .franchise-title { font-size: 23px; }
+                    .franchise-card-header { padding: 18px; }
+                    .franchise-tools { padding: 15px; }
+                    .franchise-pagination { padding: 15px; }
                     .franchise-table-wrapper {
                         width: 0 !important;
                         min-width: 100% !important;
                         max-width: 100% !important;
-
                         overflow-x: auto !important;
                         overflow-y: hidden !important;
                     }
-
                     .franchise-table {
                         width: auto !important;
                         min-width: 100% !important;
@@ -956,137 +747,87 @@ function FrenchiseList() {
                     }
                 }
 
-
                 /* =====================================================
                    FINAL OVERFLOW SAFETY
                    ===================================================== */
-
-                .franchise-page,
-                .franchise-card,
-                .franchise-card-header,
-                .franchise-tools,
-                .franchise-card > .card-body {
+                .franchise-page, .franchise-card, .franchise-card-header, 
+                .franchise-tools, .franchise-card > .card-body {
                     min-width: 0;
                     max-width: 100%;
                 }
 
                 .franchise-assign-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 6px;
-    cursor: pointer;
-    background-color: #fff1e8; /* Light orange */
-    color: #f56600; /* Theme Orange */
-    border: 1px solid #ffe4d1;
-    transition: all 0.2s ease;
-}
-.franchise-assign-btn:hover {
-    background-color: #f56600;
-    color: #ffffff;
-    border-color: #f56600;
-    box-shadow: 0 4px 10px rgba(245, 102, 0, 0.2);
-}
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 6px 12px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    background-color: #fff1e8;
+                    color: #f56600;
+                    border: 1px solid #ffe4d1;
+                    transition: all 0.2s ease;
+                    height: 36px;
+                }
+                .franchise-assign-btn:hover {
+                    background-color: #f56600;
+                    color: #ffffff;
+                    border-color: #f56600;
+                    box-shadow: 0 4px 10px rgba(245, 102, 0, 0.2);
+                }
                 `}
             </style>
 
-
             <div className="franchise-page">
-
                 {/* =====================================================
                     HEADER
                     ===================================================== */}
-
                 <div className="franchise-header">
-
                     <div>
-
                         <h1 className="franchise-title">
                             Study Centre
                         </h1>
-
                         <div className="franchise-subtitle">
                             Manage and view all registered study centres
                         </div>
-
                         <nav>
-
                             <ol className="breadcrumb franchise-breadcrumb">
-
                                 <li className="breadcrumb-item">
-                                    <span>
-                                        Dashboard
-                                    </span>
+                                    <span>Dashboard</span>
                                 </li>
-
                                 <li className="breadcrumb-item active">
                                     Study Centre List
                                 </li>
-
                             </ol>
-
                         </nav>
-
                     </div>
-
                 </div>
-
 
                 {/* =====================================================
                     MAIN CARD
                     ===================================================== */}
-
                 <div className="franchise-card">
-
-
-                    {/* =================================================
-                        CARD HEADER
-                        ================================================= */}
-
+                    {/* CARD HEADER */}
                     <div className="franchise-card-header">
-
                         <div className="franchise-card-title">
-
                             <div className="franchise-card-icon">
-
                                 <i className="bi bi-building"></i>
-
                             </div>
-
                             <div>
-
-                                <h5>
-                                    Study Centre List
-                                </h5>
-
-                                <span>
-                                    Total {totalRecords} registered centres
-                                </span>
-
+                                <h5>Study Centre List</h5>
+                                <span>Total {totalRecords} registered centres</span>
                             </div>
-
                         </div>
-
                     </div>
 
-
-                    {/* =================================================
-                        SEARCH
-                        ================================================= */}
-
+                    {/* SEARCH */}
                     <div className="franchise-tools">
-
                         <div className="row align-items-center g-3">
-
                             <div className="col-md-6 col-lg-5">
-
                                 <div className="franchise-search">
-
                                     <i className="bi bi-search"></i>
-
                                     <input
                                         type="text"
                                         className="form-control"
@@ -1094,181 +835,70 @@ function FrenchiseList() {
                                         value={search}
                                         onChange={handleSearch}
                                     />
-
                                 </div>
-
                             </div>
-
-
                             <div className="col-md-3 col-lg-2">
-
                                 <select
                                     className="form-select franchise-page-size"
                                     value={pageSize}
                                     onChange={handlePageSize}
                                 >
-
-                                    <option value={100}>
-                                        100 Records
-                                    </option>
-
-                                    <option value={250}>
-                                        250 Records
-                                    </option>
-
-                                    <option value={500}>
-                                        500 Records
-                                    </option>
-
+                                    <option value={100}>100 Records</option>
+                                    <option value={250}>250 Records</option>
+                                    <option value={500}>500 Records</option>
                                 </select>
-
                             </div>
-
                         </div>
-
                     </div>
 
-
-                    {/* =================================================
-                        TABLE
-                        ================================================= */}
-
+                    {/* TABLE */}
                     <div className="franchise-table-wrapper">
-
                         <table className="franchise-table">
-
                             <thead>
-
                                 <tr>
-
                                     <th>#</th>
-
-                                    <th>
-                                        Print
-                                    </th>
-                                    <th>
-                                        Code
-                                    </th>
-
-                                    <th>
-                                        Name
-                                    </th>
-
-                                    <th>
-                                        Contact Person
-                                    </th>
-
-                                    {/* <th>
-                                        Address
-                                    </th> */}
-
-                                    {/* <th>
-                                        Mobile No
-                                    </th> */}
-
-                                    {/* <th>
-                                        Email/Username
-                                    </th> */}
-
-                                    <th>
-                                        Username/Password
-                                    </th>
-
-                                    <th>
-                                        City
-                                    </th>
-                                    <th>
-                                        Department
-                                    </th>
-
-                                    <th>
-                                        Action
-                                    </th>
-
+                                    <th>Print</th>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Contact Person</th>
+                                    <th>Username/Password</th>
+                                    <th>City</th>
+                                    
+                                    {/* ✅ Added sticky class to header */}
+                                    <th className="sticky-action" style={{ textAlign: "center" }}>Action</th>
                                 </tr>
-
                             </thead>
-
-
                             <tbody>
-
                                 {loading ? (
-
                                     <tr>
-
-                                        <td
-                                            colSpan="11"
-                                            className="franchise-loading"
-                                        >
-
+                                        {/* ✅ Fixed colSpan to 9 */}
+                                        <td colSpan="9" className="franchise-loading">
                                             <div className="spinner-border text-primary mb-2"></div>
-
-                                            <div>
-                                                Loading study centres...
-                                            </div>
-
+                                            <div>Loading study centres...</div>
                                         </td>
-
                                     </tr>
-
                                 ) : data.length === 0 ? (
-
                                     <tr>
-
-                                        <td
-                                            colSpan="11"
-                                            className="franchise-empty"
-                                        >
-
+                                        {/* ✅ Fixed colSpan to 9 */}
+                                        <td colSpan="9" className="franchise-empty">
                                             <i className="bi bi-building-x"></i>
-
-                                            <div>
-                                                No study centre found
-                                            </div>
-
-                                            <small>
-                                                Try changing your search
-                                                criteria.
-                                            </small>
-
+                                            <div>No study centre found</div>
+                                            <small>Try changing your search criteria.</small>
                                         </td>
-
                                     </tr>
-
                                 ) : (
-
                                     data.map((item, index) => (
-
-                                        <tr
-                                            key={item.id || index}
-                                        >
-
-                                            {/* =====================
-                                                #
-                                                ===================== */}
-
+                                        <tr key={item.id || index}>
+                                            {/* # */}
                                             <td>
-
                                                 <div className="franchise-number">
-
-                                                    {(pageNo - 1) *
-                                                        pageSize +
-                                                        index +
-                                                        1}
-
+                                                    {(pageNo - 1) * pageSize + index + 1}
                                                 </div>
-
                                             </td>
 
-
-                                            {/* =====================
-                                                PRINT
-                                                ===================== */}
-
+                                            {/* PRINT */}
                                             <td>
                                                 <div className="d-flex flex-column gap-2 align-items-center">
-
-                                                    {/* ================= ID CARD VIEW ================= */}
                                                     <div className="authority-letter">
                                                         <a
                                                             href="#"
@@ -1283,8 +913,6 @@ function FrenchiseList() {
                                                             <span>ID Card View</span>
                                                         </a>
                                                     </div>
-
-                                                    {/* ================= AUTHORITY LETTER VIEW ================= */}
                                                     <div className="authority-letter">
                                                         <a
                                                             href="#"
@@ -1299,257 +927,129 @@ function FrenchiseList() {
                                                             <span>Authority Letter</span>
                                                         </a>
                                                     </div>
-
                                                 </div>
                                             </td>
 
+                                            {/* CODE */}
                                             <td>
-
                                                 <span className="franchise-code">
-
                                                     {item.code || "-"}
-
                                                 </span>
-
                                             </td>
 
-
-                                            {/* =====================
-                                                NAME
-                                                ===================== */}
-
+                                            {/* NAME */}
                                             <td>
-
                                                 <span className="franchise-name">
-
                                                     {item.name || "-"}
-
                                                 </span>
-                                                 {item.mobileNo || "-"}
-                                                 <span className="franchise-muted">
-
+                                                <span style={{ fontSize: '12px' }}>{item.mobileNo || "-"}</span>
+                                                <span className="franchise-muted">
                                                     {item.address || "-"}
-
                                                 </span>
-
                                             </td>
 
-
-                                            {/* =====================
-                                                CONTACT PERSON
-                                                ===================== */}
-
+                                            {/* CONTACT */}
                                             <td>
-
                                                 <span className="franchise-contact">
-
                                                     {item.fatherName || "-"}
-
                                                 </span>
-
                                             </td>
 
- 
-
-                                            {/* =====================
-                                                USERNAME
-                                                ===================== */}
-
-                                            {/* <td>
-
-                                                <span className="franchise-login">
-
-                                                    {item.userName || "-"}
-
-                                                </span>
-
-                                            </td> */}
-
-
-                                            {/* =====================
-                                                PASSWORD
-                                                ===================== */}
-
+                                            {/* USERNAME / PASSWORD */}
                                             <td>
-
                                                 <span className="franchise-password mb-2">
                                                     {item.userName || "-"}
-
-
                                                 </span>
                                                 <br />
                                                 <span className="franchise-password">
-
                                                     {item.password || "-"}
-
                                                 </span>
-
                                             </td>
 
-
-                                            {/* =====================
-                                                CITY
-                                                ===================== */}
-
+                                            {/* CITY */}
                                             <td>
-
                                                 <span className="franchise-location">
-
                                                     {item.cityName || "-"}
-
                                                 </span>
-
                                             </td>
 
+                                             
 
-                                            {/* =====================
-                                                ACTION
-                                                ===================== */}
-
-                                            <td>
-
+                                            {/* ACTION COLUMN - Merged both actions into 1 sticky td */}
+                                            <td className="sticky-action">
                                                 <div className="franchise-actions">
+                                                    <button
+                                                        type="button"
+                                                        className="franchise-assign-btn"
+                                                        title="Assign Departments & Courses"
+                                                        onClick={() => handleEditDepartment(item.id)}
+                                                    >
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width="14"
+                                                            height="14"
+                                                            viewBox="0 0 24 24"
+                                                            fill="currentColor"
+                                                        >
+                                                            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"></path>
+                                                        </svg>
+                                                        Assign
+                                                    </button>
 
-                                                <button
-    type="button"
-    className="franchise-assign-btn"
-    title="Assign Departments & Courses"
-    onClick={() => handleEditDepartment(item.id)}
->
-    {/* ✅ Inline SVG Icon (Yeh pakka show hoga) */}
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="14" 
-        height="14" 
-        viewBox="0 0 24 24" 
-        fill="currentColor"
-    >
-        <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"></path>
-    </svg>
-    Assign
-</button>
-                                                     
-
-                                                </div>
-
-                                            </td>
-                                            <td>
-
-                                                <div className="franchise-actions">
-
-                                                    
                                                     <button
                                                         type="button"
                                                         className="franchise-action franchise-edit"
                                                         title="Edit"
-                                                        onClick={() =>
-                                                            handleEdit(item.id)
-                                                        }
+                                                        onClick={() => handleEdit(item.id)}
                                                     >
-
                                                         <i className="bi bi-pencil-square"></i>
-
                                                     </button>
-
 
                                                     <button
                                                         type="button"
                                                         className="franchise-action franchise-delete"
                                                         title="Delete"
                                                         onClick={() => {
-
                                                             setDeleteId(item.id);
-
-                                                            setShowDeleteModal(
-                                                                true
-                                                            );
-
+                                                            setShowDeleteModal(true);
                                                         }}
                                                     >
-
                                                         <i className="bi bi-trash3-fill"></i>
-
                                                     </button>
-
                                                 </div>
-
                                             </td>
-
                                         </tr>
-
                                     ))
-
                                 )}
-
                             </tbody>
-
                         </table>
-
                     </div>
 
-
-                    {/* =================================================
-                        PAGINATION
-                        ================================================= */}
-
+                    {/* PAGINATION */}
                     <div className="franchise-pagination">
-
                         <div className="franchise-records">
-
                             Showing{" "}
-
                             <strong>
-
-                                {data.length > 0
-                                    ? (pageNo - 1) *
-                                    pageSize +
-                                    1
-                                    : 0}
-
+                                {data.length > 0 ? (pageNo - 1) * pageSize + 1 : 0}
                             </strong>{" "}
-
                             to{" "}
-
                             <strong>
-
-                                {(pageNo - 1) *
-                                    pageSize +
-                                    data.length}
-
+                                {(pageNo - 1) * pageSize + data.length}
                             </strong>{" "}
-
                             of{" "}
-
-                            <strong>
-                                {totalRecords}
-                            </strong>{" "}
-
+                            <strong>{totalRecords}</strong>{" "}
                             records
-
                         </div>
 
-
                         <div className="franchise-pagination-buttons">
-
                             <button
                                 type="button"
                                 className="franchise-page-btn"
-                                disabled={
-                                    pageNo === 1 ||
-                                    loading
-                                }
-                                onClick={() =>
-                                    setPageNo(
-                                        (prev) =>
-                                            prev - 1
-                                    )
-                                }
+                                disabled={pageNo === 1 || loading}
+                                onClick={() => setPageNo((prev) => prev - 1)}
                             >
-
                                 Previous
-
                             </button>
-
 
                             <div className="page-numbers">
                                 {Array.from(
@@ -1559,8 +1059,7 @@ function FrenchiseList() {
                                     <button
                                         key={page}
                                         type="button"
-                                        className={`page-number-btn ${pageNo === page ? "active" : ""
-                                            }`}
+                                        className={`page-number-btn ${pageNo === page ? "active" : ""}`}
                                         disabled={loading}
                                         onClick={() => setPageNo(page)}
                                     >
@@ -1573,106 +1072,54 @@ function FrenchiseList() {
                                 of {totalPages || 1}
                             </span>
 
-
                             <button
                                 type="button"
                                 className="franchise-page-btn"
-                                disabled={
-                                    pageNo >= totalPages ||
-                                    loading ||
-                                    totalPages === 0
-                                }
-                                onClick={() =>
-                                    setPageNo(
-                                        (prev) =>
-                                            prev + 1
-                                    )
-                                }
+                                disabled={pageNo >= totalPages || loading || totalPages === 0}
+                                onClick={() => setPageNo((prev) => prev + 1)}
                             >
-
                                 Next
-
                             </button>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
 
             {/* =========================================================
                 DELETE MODAL
                 ========================================================= */}
-
             {showDeleteModal && (
-
                 <div className="franchise-modal-overlay">
-
                     <div className="franchise-modal">
-
-
                         <div className="franchise-modal-header">
-
                             <h5>
-
                                 <i className="bi bi-exclamation-triangle-fill me-2"></i>
-
                                 Delete Study Centre
-
                             </h5>
-
                         </div>
-
 
                         <div className="franchise-modal-body">
-
                             <div className="franchise-delete-icon">
-
                                 <i className="bi bi-trash3-fill"></i>
-
                             </div>
-
-
-                            <h5>
-                                Are you sure?
-                            </h5>
-
-
+                            <h5>Are you sure?</h5>
                             <p>
-
-                                Do you really want to delete this study
-                                centre?
-
+                                Do you really want to delete this study centre?
                                 <br />
-
                                 This action cannot be undone.
-
                             </p>
-
                         </div>
 
-
                         <div className="franchise-modal-footer">
-
-
                             <button
                                 type="button"
                                 className="franchise-modal-btn franchise-cancel"
-                                onClick={() =>
-                                    setShowDeleteModal(false)
-                                }
+                                onClick={() => setShowDeleteModal(false)}
                                 disabled={deleteLoading}
                             >
-
                                 <i className="bi bi-x-circle me-1"></i>
-
                                 Cancel
-
                             </button>
-
 
                             <button
                                 type="button"
@@ -1680,41 +1127,22 @@ function FrenchiseList() {
                                 onClick={confirmDelete}
                                 disabled={deleteLoading}
                             >
-
                                 {deleteLoading ? (
-
                                     <>
-
-                                        <span
-                                            className="spinner-border spinner-border-sm me-2"
-                                        ></span>
-
+                                        <span className="spinner-border spinner-border-sm me-2"></span>
                                         Deleting...
-
                                     </>
-
                                 ) : (
-
                                     <>
-
                                         <i className="bi bi-trash3 me-1"></i>
-
                                         Confirm Delete
-
                                     </>
-
                                 )}
-
                             </button>
-
                         </div>
-
                     </div>
-
                 </div>
-
             )}
-
         </>
     );
 }

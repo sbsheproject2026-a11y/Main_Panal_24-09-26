@@ -473,13 +473,34 @@ const WebsiteContent = () => {
                     .table-wrapper::-webkit-scrollbar-thumb:hover { background: #aeb5c2; }
                     .list-table { width: auto !important; min-width: 100% !important; max-width: none !important; table-layout: auto !important; border-collapse: separate !important; border-spacing: 0 !important; margin: 0 !important; }
                     .list-table th { background: #f8fafc; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: .3px; font-weight: 700; padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: left; white-space: nowrap; }
-                    .list-table td { padding: 15px 16px; border-bottom: 1px solid #eef0f3; vertical-align: top; font-size: 13px; color: #475569; }
+                    .list-table td { padding: 15px 16px; border-bottom: 1px solid #eef0f3; vertical-align: top; font-size: 13px; color: #475569; background-color: #fff; }
                     .list-table tr:last-child td { border-bottom: 0; }
+                    .list-table tbody tr:hover td { background-color: #fafbff; }
                     .title-cell { color: #111827 !important; font-weight: 700; min-width: 180px; }
                     .description-cell { max-width: 380px; min-width: 250px; line-height: 1.5; }
                     .description-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
                     .empty-text { color: #94a3b8; font-style: italic; }
-                    .action-cell { width: 120px; white-space: nowrap; }
+                    .action-cell { width: 120px; white-space: nowrap; text-align: right; }
+                    
+                    /* ================= ✅ STICKY ACTION COLUMN ================= */
+                    .list-table th.sticky-action,
+                    .list-table td.sticky-action {
+                        position: sticky !important;
+                        right: 0 !important;
+                        z-index: 5;
+                        background-color: #fff;
+                        box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1);
+                    }
+
+                    .list-table thead th.sticky-action {
+                        background-color: #f8fafc !important;
+                        z-index: 6;
+                    }
+
+                    .list-table tbody tr:hover td.sticky-action {
+                        background-color: #fafbff !important;
+                    }
+
                     .edit-btn { border: 1px solid #fed7aa; background: #fff7ed; color: #ea580c; min-width: 30px; height: 36px; padding: 0 12px; border-radius: 7px; cursor: pointer; font-size: 12px; font-weight: 700; transition: .2s; }
                     .edit-btn:hover { background: #ffedd5; }
                     .delete-btn { border: 1px solid #fecaca; background: #fff1f2; color: #dc2626; min-width: 40px; height: 36px; padding: 0 10px; border-radius: 7px; cursor: pointer; font-size: 14px; font-weight: 700; transition: .2s; margin-left: 6px; display: inline-flex; align-items: center; justify-content: center; }
@@ -567,7 +588,13 @@ const WebsiteContent = () => {
                                     <table className="list-table">
                                         <thead>
                                             <tr>
-                                                <th>#</th><th>Type</th><th>Title</th><th>Short Description</th><th>Description</th><th>Action</th>
+                                                <th>#</th>
+                                                <th>Type</th>
+                                                <th>Title</th>
+                                                <th>Short Description</th>
+                                                <th>Description</th>
+                                                {/* ✅ ADDED sticky-action CLASS */}
+                                                <th className="sticky-action" style={{ textAlign: "right" }}>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -582,7 +609,8 @@ const WebsiteContent = () => {
                                                     <td className="description-cell">
                                                         {item.descrption ? <div className="description-text" title={stripHtml(item.descrption)}>{stripHtml(item.descrption)}</div> : <span className="empty-text">No description</span>}
                                                     </td>
-                                                    <td className="action-cell">
+                                                    {/* ✅ ADDED sticky-action CLASS */}
+                                                    <td className="sticky-action action-cell">
                                                         <button type="button" className="edit-btn" onClick={() => handleEdit(item.id)}><i className="bi bi-pencil-square"></i></button>
                                                         <button type="button" className="action-btn delete-btn" title="Delete Course" onClick={() => { setDeleteId(item.id); setShowDeleteModal(true); }}><i className="bi bi-trash3"></i></button>
                                                     </td>

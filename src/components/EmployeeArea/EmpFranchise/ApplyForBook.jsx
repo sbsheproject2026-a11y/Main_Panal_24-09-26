@@ -184,6 +184,12 @@ const ApplyForBookComponent = () => {
             return;
         }
 
+        // ✅ Amount Validation (0 se bada hona chahiye)
+        if (formData.totalAmount <= 0) {
+            toast.error("Amount must be greater than 0 to proceed with payment.");
+            return;
+        }
+
         try {
             setIsSubmitting(true);
             
@@ -515,10 +521,11 @@ const ApplyForBookComponent = () => {
                                             <h3>₹{formData.totalAmount.toFixed(2)}</h3>
                                         </div>
 
+                                        {/* ✅ YAHAN UPDATE HUA HAI BUTTON LOGIC */}
                                         <button
                                             type="submit"
                                             className="ecom-checkout-btn mt-4"
-                                            disabled={isSubmitting || formData.courseId === 0}
+                                            disabled={isSubmitting || formData.courseId === 0 || formData.totalAmount <= 0}
                                         >
                                             {isSubmitting ? (
                                                 <>
@@ -552,7 +559,7 @@ const ApplyForBookComponent = () => {
                 </div>
             </div>
 
-            {/* CSS STYLES (Same as before) */}
+            {/* CSS STYLES */}
             <style>{`
                 :root {
                     --primary: #4f46e5;

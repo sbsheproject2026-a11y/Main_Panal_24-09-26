@@ -266,6 +266,7 @@ function EmployeeList() {
           font-size: 14px;
           white-space: nowrap;
           vertical-align: middle;
+          background-color: #fff; /* Ensure background for sticky */
         }
 
         .employee-table tbody tr {
@@ -275,9 +276,31 @@ function EmployeeList() {
         .employee-table tbody tr:hover {
           background: #f8fbff;
         }
+        .employee-table tbody tr:hover td {
+          background-color: #f8fbff;
+        }
 
         .employee-table tbody tr:last-child td {
           border-bottom: none;
+        }
+
+        /* ================= ✅ STICKY ACTION COLUMN ================= */
+        .employee-table th.sticky-action,
+        .employee-table td.sticky-action {
+          position: sticky !important;
+          right: 0 !important;
+          z-index: 5;
+          background-color: #fff;
+          box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .employee-table thead th.sticky-action {
+          background-color: #f8fafc !important;
+          z-index: 6;
+        }
+
+        .employee-table tbody tr:hover td.sticky-action {
+          background-color: #f8fbff !important;
         }
 
         /* =========================================================
@@ -658,7 +681,8 @@ function EmployeeList() {
                       <th>Contact</th>
                       <th>Address</th>
                       <th>Login Details</th>
-                      <th className="text-center">Action</th>
+                      {/* ✅ ADDED sticky-action CLASS */}
+                      <th className="text-center sticky-action">Action</th>
                     </tr>
                   </thead>
 
@@ -788,7 +812,8 @@ function EmployeeList() {
                             </div>
                           </td>
 
-                          <td>
+                          {/* ✅ ADDED sticky-action CLASS */}
+                          <td className="sticky-action">
                             <div className="d-flex justify-content-center gap-2">
                               <button
                                 type="button"

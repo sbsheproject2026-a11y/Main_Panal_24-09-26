@@ -1,7 +1,6 @@
  import React, { useEffect, useState } from "react";
 import {
     GetConfirmAddmissions,
- 
 } from "../../AllServicesFiles/AdminStudentService";
 import { FILE_URL } from "../../api";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -189,10 +188,31 @@ function RollNoList() {
                     white-space: nowrap !important;
                     overflow: visible !important;
                     text-overflow: clip !important;
+                    background-color: #fff;
                 }
 
                 .rollno-table tbody tr:last-child td { border-bottom: 0 !important; }
                 .rollno-table tbody tr:hover { background: #fafbff; }
+                .rollno-table tbody tr:hover td { background-color: #fafbff; }
+
+                /* ================= ✅ STICKY ACTION COLUMN ================= */
+                .rollno-table th.sticky-action,
+                .rollno-table td.sticky-action {
+                    position: sticky !important;
+                    right: 0 !important;
+                    z-index: 5;
+                    background-color: #fff;
+                    box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1);
+                }
+
+                .rollno-table thead th.sticky-action {
+                    background-color: #f8f9fc !important;
+                    z-index: 6;
+                }
+
+                .rollno-table tbody tr:hover td.sticky-action {
+                    background-color: #fafbff !important;
+                }
 
                 .rollno-student { display: flex; align-items: center; gap: 12px; min-width: 0; }
 
@@ -232,10 +252,13 @@ function RollNoList() {
                 .rollno-table-wrapper::-webkit-scrollbar-thumb:hover { background: #8f98a8; }
                 .rollno-table-wrapper { scrollbar-width: thin; scrollbar-color: #b8bfcc #eef1f5; }
 
+                /* ✅ 2x2 GRID FOR ACTION BUTTONS */
                 .student-action-group {
-                    display: flex;
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
                     gap: 6px; 
                     justify-content: center;
+                    min-width: max-content;
                 }
 
                 .student-action {
@@ -372,7 +395,8 @@ function RollNoList() {
                                             <th> FATHER NAME </th>
                                             <th> ADDRESS </th>
                                             <th> Franchise Name </th>
-                                            <th> Action </th>
+                                            {/* ✅ ADDED sticky-action CLASS */}
+                                            <th className="sticky-action" style={{ textAlign: "center" }}> Action </th>
                                         </tr>
                                     </thead>
 
@@ -422,19 +446,20 @@ function RollNoList() {
                                                     <td><span className="rollno-address">{item.address || "-"}</span></td>
                                                     <td>{item.instituteName || "-"}</td>
 
-                                                    <td>
+                                                    {/* ✅ ADDED sticky-action CLASS */}
+                                                    <td className="sticky-action">
                                                         <div className="student-action-group">
                                                             <button type="button" className="student-action print" onClick={() => handlePrint(item.id)} title="Print Form">
                                                                 <i className="bi bi-printer-fill"></i>
-                                                                <span>Print</span>
+                                                             
                                                             </button>
                                                             <button type="button" className="student-action view" onClick={() => handleView(item.id)} title="View Student">
                                                                 <i className="bi bi-eye-fill"></i>
-                                                                <span>View</span>
+                                                              
                                                             </button>
                                                             <button type="button" className="student-action edit" onClick={() => handleEdit(item.id)} title="Edit Student">
                                                                 <i className="bi bi-pencil-square"></i>
-                                                                <span>Edit</span>
+                                                                
                                                             </button>
                                                             <button
                                                                 type="button"
@@ -446,7 +471,7 @@ function RollNoList() {
                                                                 title="Delete Student"
                                                             >
                                                                 <i className="bi bi-trash-fill"></i>
-                                                                <span>Delete</span>
+                                                                
                                                             </button>
                                                         </div>
                                                     </td>
