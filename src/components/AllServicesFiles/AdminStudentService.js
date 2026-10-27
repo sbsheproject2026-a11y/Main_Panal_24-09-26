@@ -115,10 +115,23 @@ export const GetUpgradeStudentList = (pageNo, pageSize, search) => {
       `/RequestStudent/request-upgrade-student-list?spageNo=${pageNo}&pageSize=${pageSize}&search=${search}`
     );
 };
+export const GetonlineUpgradeStudentList = (pageNo, pageSize, search) => {
+    return api.get(
+      `/RequestStudent/request-online-upgrade-student-list?spageNo=${pageNo}&pageSize=${pageSize}&search=${search}`
+    );
+};
 
 export const addStudentClass = async (data) => {
     const response = await api.post(
         `/RequestStudent/request-upgrade-addclass`,
+        data
+    );
+
+    return response.data;
+};
+export const addOnlineStudentClass = async (data) => {
+    const response = await api.post(
+        `/RequestStudent/request-online-upgrade-addclass`,
         data
     );
 

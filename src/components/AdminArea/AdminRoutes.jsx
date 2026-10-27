@@ -48,6 +48,7 @@ import StudentPaymentHistory from "./CommanList/StudentPaymentHistory";
 import AddFranchiseDepartment from "./Frenchise/AddFranchiseDepartment";
 import Menu from "./WebsiteContentData/Menu";
 import BookPaymentRequestList from "./CommanList/BookPaymentRequestList";
+import OnlineUpgradeStudent from "./AdminStudent/OnlineUpgradeStudent";
  
  
 
@@ -86,6 +87,7 @@ const adminRoutes = [
     { path: "/employee-frenchise-assign", element: <EmployeeFrenchiseAssing />, role: ["5"] },
     { path: "/student-view1/:id", element: <ViewDetails />, role: ["5"] },
     { path: "/student-update1/:id", element: <StudentUpdate />, role: ["5"] },
+    
     { path: "/state", element: <State />, role: ["5"] },
     { path: "/district", element: <District />, role: ["5"] },
     { path: "/city", element: <City />, role: ["5"] },
@@ -96,6 +98,7 @@ const adminRoutes = [
     { path: "/course-material/:id", element: <CourseMaterial />, role: ["5"] },
     { path: "/student-setmarks", element: <SetMarksStudent />, role: ["5"] },
     { path: "/student-upgrade", element: <UpgradeStudent />, role: ["5"] },
+    { path: "/online-student-upgrade", element: <OnlineUpgradeStudent />, role: ["5"] },
     { path: "/student-rollno-list", element: <RollNoList />, role: ["5"] },
     { path: "/offline-payments", element: <OfflinePaymentList  />, role: ["5"] },
     { path: "/book-payments", element: <BookPaymentRequestList  />, role: ["5"] },

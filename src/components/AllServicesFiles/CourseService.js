@@ -431,3 +431,26 @@ export const ApplyForBookbyStudent = async (data) => {
 
     return response.data;
 };
+export const PayPendingStudent = async (data) => {
+    // 👇 FormData banayein kyunki backend [FromForm] expect kar raha hai
+    const formData = new FormData();
+    formData.append("UserId", data.UserId);
+    formData.append("CourseId", data.CourseId);
+    formData.append("Amount", data.Amount);
+    formData.append("Address", data.Address);
+    formData.append("Remark", data.Message || ""); // Agar message nahi hai toh blank string jaye
+
+    const response = await api.post(
+        "/Home/pay-student-pending-amount",
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
+    );
+
+    return response.data;
+};
+
+ 

@@ -5,29 +5,31 @@ import { getStudentFeeDetails } from "../../AllServicesFiles/PaymentService";
 /* ==========================================================
    Field Normalizer
    ========================================================== */
-const normalizeRow = (row) => ({
-  oId:           row.oId ?? row.OId ?? row.id ?? row.Id,
-  orderId:       row.orderId ?? row.OrderId,
-  referenceId:   row.referenceId ?? row.ReferenceId,
-  feeName:       row.feeName ?? row.FeeName ?? row.ProductName,
-  name:          (row.name ?? row.Name ?? "").trim(),
-  mobileNo:      row.mobileNo ?? row.MobileNo,
-  emailId:       row.emailId ?? row.EmailId,
-  address:       row.address ?? row.Address,
-  amount:        Number(row.amount ?? row.Amount ?? 0),
-  paidAmount:    Number(row.paidAmount ?? row.PaidAmount ?? 0),
-  pendingAmount: Number(
-    row.pendingAmount ??
-      row.PendingAmount ??
-      Number(row.amount ?? row.Amount ?? 0) -
-        Number(row.paidAmount ?? row.PaidAmount ?? 0)
-  ),
-  amountW:       row.amountW ?? row.AmountW ?? "",
-  payStatus:     row.payStatus ?? row.PayStatus ?? "",
-  oDate:         row.oDate ?? row.ODate,
-  printPayDate:  row.printPayDate ?? row.PrintPayDate,
-  getwayPrm:     row.getwayPrm ?? row.GetwayPrm ?? "",
-});
+const normalizeRow = (row) => {
+  // 1. Pehle Amount aur Paid Amount nikaalein
+  const amount = Number(row.amount ?? row.Amount ?? 0);
+  const paidAmount = Number(row.paidAmount ?? row.PaidAmount ?? 0);
+  
+  return {
+    oId:           row.oId ?? row.OId ?? row.id ?? row.Id,
+    orderId:       row.orderId ?? row.OrderId,
+    referenceId:   row.referenceId ?? row.ReferenceId,
+    feeName:       row.feeName ?? row.FeeName ?? row.ProductName,
+    name:          (row.name ?? row.Name ?? "").trim(),
+    mobileNo:      row.mobileNo ?? row.MobileNo,
+    emailId:       row.emailId ?? row.EmailId,
+    address:       row.address ?? row.Address,
+    amount:        amount,
+    paidAmount:    paidAmount,
+    // ✅ FIX: Pending Amount hamesha (Amount - Paid) hoga
+    pendingAmount: amount - paidAmount,
+    amountW:       row.amountW ?? row.AmountW ?? "",
+    payStatus:     row.payStatus ?? row.PayStatus ?? "",
+    oDate:         row.oDate ?? row.ODate,
+    printPayDate:  row.printPayDate ?? row.PrintPayDate,
+    getwayPrm:     row.getwayPrm ?? row.GetwayPrm ?? "",
+  };
+};
 
 /* ==========================================================
    Main Component
@@ -125,12 +127,6 @@ export default function StudentPaymentHistory() {
     }
     return [pageNo - 2, pageNo - 1, pageNo, pageNo + 1, pageNo + 2];
   };
-
-  /* ---------- ✅ CORRECTED TOTALS ---------- */
-  // यहाँ reduce का इस्तेमाल किया गया है ताकि सारे amounts जुड़ सकें
-  const totalAmount  = payments.reduce((sum, p) => sum + p.amount, 0);
-  const totalPaid    = payments.reduce((sum, p) => sum + p.paidAmount, 0);
-  const totalPending = payments.reduce((sum, p) => sum + p.pendingAmount, 0);
 
   /* ---------- HELPERS ---------- */
   const formatAmount = (amt) => {
@@ -431,17 +427,6 @@ export default function StudentPaymentHistory() {
 
         .rollno-table tbody tr:last-child td {
           border-bottom: 0 !important;
-        }
-
-        .rollno-table tfoot td {
-          background: #f8f9fc !important;
-          padding: 14px 16px !important;
-          font-weight: 800;
-          color: #1e293b;
-          font-size: 13px;
-          border-top: 2px solid #cbd5e1;
-          border-bottom: 1px solid #e9edf3;
-          white-space: nowrap;
         }
 
         /* CELLS */
@@ -1499,6 +1484,7 @@ export default function StudentPaymentHistory() {
                             </span>
                           </td>
                           <td style={{ textAlign: "right" }}>
+                            {/* ✅ Yahan par ab calculated pendingAmount dikhega */}
                             <span className="rollno-amount-pending">
                               {formatAmount(p.pendingAmount)}
                             </span>
@@ -1550,33 +1536,6 @@ export default function StudentPaymentHistory() {
                       </tr>
                     )}
                   </tbody>
-
-                  {/* FOOTER */}
-                  {!loading && !error && paginated.length > 0 && (
-                    <tfoot>
-                      <tr>
-                        <td colSpan="7" style={{ textAlign: "right" }}>
-                          TOTAL
-                        </td>
-                        <td style={{ textAlign: "right" }}>
-                          <span className="rollno-amount">
-                            {formatAmount(totalAmount)}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: "right" }}>
-                          <span className="rollno-amount-paid">
-                            {formatAmount(totalPaid)}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: "right" }}>
-                          <span className="rollno-amount-pending">
-                            {formatAmount(totalPending)}
-                          </span>
-                        </td>
-                        <td colSpan="2"></td>
-                      </tr>
-                    </tfoot>
-                  )}
                 </table>
               </div>
 

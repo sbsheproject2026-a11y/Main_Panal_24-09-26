@@ -14,7 +14,8 @@ import {
     FaMapMarkerAlt,
     FaUniversity,
     FaGraduationCap,
-    FaFileContract
+    FaFileContract,
+    FaLock
 } from "react-icons/fa";
 import { getStudentProfile } from "../../AllServicesFiles/StudentService";
 import { FILE_URL } from "../../api";
@@ -88,7 +89,7 @@ const StudentDashboard = () => {
             setStudent({
                 id: data.id || 0,
                 courseId: data.courseId || 0,
-                enrollmentNo: data.enrollmentNo || "-",
+                enrollmentNo: data.enrollmentNo || "",
                 rollno: data.rollno || "",
                 rollNo1: data.rollNo1 || "",
                 name: data.name || "Student",
@@ -129,6 +130,25 @@ const StudentDashboard = () => {
     // =========================================================
     const quickActions = [
         {
+            title: "Payment Details",
+            desc: "Fee payment history & receipts",
+            icon: <FaMoneyBillWave />,
+            color: "#dc2626",
+            bg: "#fef2f2",
+            path: `/student-payments-view/${student.id}`,
+            state: { studentId: student.id },
+        },
+{
+            title: "Profile Print",
+            desc: "View & update your personal details",
+            icon: <FaUserCircle />,
+            color: "#4f46e5",
+            bg: "#eef2ff",
+            path: `/admission-form-print/${userId}`,
+            state: { id: userId },
+            //disabled: !student.enrollmentNo,
+        },
+        {
             title: "My Profile",
             desc: "View & update your personal details",
             icon: <FaUserCircle />,
@@ -136,7 +156,10 @@ const StudentDashboard = () => {
             bg: "#eef2ff",
             path: `/student-view-profile/${userId}`,
             state: { id: userId },
+            disabled: !student.enrollmentNo,
         },
+        
+         
         {
             title: "ID Card",
             desc: "Download your student ID card",
@@ -145,6 +168,7 @@ const StudentDashboard = () => {
             bg: "#ecfeff",
             path: `/id-card/${userId}`,
             state: { id: userId },
+            disabled: !student.enrollmentNo,
         },
         {
             title: "Course Details",
@@ -155,15 +179,17 @@ const StudentDashboard = () => {
             path: `/student-courses/${student.courseId}`,
             state: { id: student.courseId },
             disabled: !student.courseId,
+            disabled: !student.enrollmentNo,
         },
         {
-            title: "Registration Card",
+            title: "Re-Registration Card",
             desc: "Download official registration document",
             icon: <FaFileContract />,
             color: "#0d9488",
             bg: "#ccfbf1",
-            path: `/registration-card/${userId}`,
+            path: `/re-registration/${userId}`,
             state: { id: userId },
+           // disabled: !student.enrollmentNo,
         },
      
         {
@@ -186,14 +212,16 @@ const StudentDashboard = () => {
             state: { rollNo: student.rollNo1 },
             disabled: !student.rollNo1,
         },
+        
         {
-            title: "Payment Details",
+            title: "Update Password",
             desc: "Fee payment history & receipts",
-            icon: <FaMoneyBillWave />,
+            icon: <FaLock   />,
             color: "#dc2626",
             bg: "#fef2f2",
-            path: `/student-payments-view/${student.id}`,
+            path: `/update-password-student`,
             state: { studentId: student.id },
+            disabled: !student.enrollmentNo,
         },
     ];
 

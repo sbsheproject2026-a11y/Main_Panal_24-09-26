@@ -32,7 +32,7 @@ function MasterSession() {
     setToast({ show: true, message, type });
     setTimeout(() => {
       setToast((prev) => ({ ...prev, show: false }));
-    }, 3000); // 3 seconds baad gayab ho jayega
+    }, 3000);
   };
 
   const [formData, setFormData] = useState({
@@ -43,6 +43,7 @@ function MasterSession() {
     endDate: "",
     issueDate: "",
     isActive: 1,
+    parentId: 0, // ✅ ParentId add hai
     masterSessionId: 0
   });
 
@@ -79,6 +80,7 @@ function MasterSession() {
       endDate: "",
       issueDate: "",
       isActive: 0,
+      parentId: 0,
       masterSessionId: 0
     });
   };
@@ -94,6 +96,7 @@ function MasterSession() {
         endDate: result.endDate1,
         issueDate: result.issueDate1,
         isActive: result.isActive,
+        parentId: result.parentId || 0, // ✅ NULL aane par 0 set hoga
         masterSessionId: result.masterSessionId
       });
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -461,7 +464,7 @@ function MasterSession() {
         /* ================= FORM GRID ================= */
         .ms-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(2, 1fr);
           gap: 16px;
         }
 
@@ -891,14 +894,14 @@ function MasterSession() {
         .ms-table td.sticky-action {
           position: sticky !important;
           right: 0 !important;
-          z-index: 5; /* Data ke upar dikhne ke liye */
-          background-color: #fff; /* White background taake text overlap na ho */
-          box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1); /* Left side par shadow */
+          z-index: 5;
+          background-color: #fff;
+          box-shadow: -4px 0 10px -5px rgba(0, 0, 0, 0.1);
         }
 
         .ms-table thead th.sticky-action {
           background-color: #f8fafc !important;
-          z-index: 6; /* Header aur data ke beech layer manage karne ke liye */
+          z-index: 6;
         }
 
         .ms-table tbody tr:hover td.sticky-action {
@@ -1453,7 +1456,34 @@ function MasterSession() {
                     </select>
                   </div>
                 </div>
-
+ {/* ✅ NAYA: PARENT SESSION DROPDOWN */}
+                <div className="ms-field">
+                  <label className="ms-label">Parent Session</label>
+                  <div className="ms-input-wrap">
+                    <i className="bi bi-diagram-2 ms-icon"></i>
+                    <select
+                      className="ms-input"
+                      name="parentId"
+                      value={formData.parentId}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          parentId: Number(e.target.value)
+                        })
+                      }
+                    >
+                      <option value={0}>(Main Session)</option>
+                      {/* ✅ Self-id ko filter kar rahe hain taake koi apna parent na ban sake */}
+                      {data
+                        .filter((item) => item.id !== formData.id)
+                        .map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.name} {item.masterSessionName ? `(${item.masterSessionName})` : ""}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
                 <div className="ms-field">
                   <label className="ms-label">Short Name</label>
                   <div className="ms-input-wrap">
@@ -1486,6 +1516,8 @@ function MasterSession() {
                     />
                   </div>
                 </div>
+
+               
               </div>
             </div>
 
@@ -1674,7 +1706,6 @@ function MasterSession() {
                 <th>End Date</th>
                 <th>Issue Date</th>
                 <th style={{ textAlign: "center" }}>Status</th>
-                {/* ✅ ADDED sticky-action CLASS */}
                 <th className="sticky-action" style={{ textAlign: "center", width: "120px" }}>Action</th>
               </tr>
             </thead>
@@ -1737,7 +1768,6 @@ function MasterSession() {
                       </span>
                     </td>
 
-                    {/* ✅ ADDED sticky-action CLASS */}
                     <td className="sticky-action">
                       <div className="ms-actions">
                         <button
@@ -1762,7 +1792,6 @@ function MasterSession() {
                 ))
               ) : (
                 <tr>
-                  {/* ✅ FIXED colSpan to 9 */}
                   <td colSpan="9">
                     <div className="ms-empty">
                       <div className="ms-empty-icon">

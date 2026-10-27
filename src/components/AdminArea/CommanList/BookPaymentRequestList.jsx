@@ -1374,6 +1374,7 @@ function BookPaymentRequestList() {
                                         <thead>
                                             <tr>
                                                 <th>Quantity</th>
+                                                <th>Address</th>
                                                 <th>Student</th>
                                                 <th>Order ID</th>
                                                 <th>Course / Fee</th>
@@ -1391,6 +1392,11 @@ function BookPaymentRequestList() {
                                                     <td>
                                                         <span className="table-cell-mono">
                                                             {item.quantity || "0"}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span className="table-cell-mono">
+                                                            {item.address || ""}
                                                         </span>
                                                     </td>
                                                     <td>

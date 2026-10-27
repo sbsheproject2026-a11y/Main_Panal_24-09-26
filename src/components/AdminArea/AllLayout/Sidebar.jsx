@@ -143,14 +143,14 @@ function Sidebar({ sidebarOpen }) {
                   <i className="bi bi-circle"></i><span>Student RollNo  List Online</span>
                 </Link>
               </li>
-               
+
               <li>
                 <Link to="/confirm-addmissions?studyModeId=88">
                   <i className="bi bi-circle"></i>
                   <span>Student Confirm & Print Online</span>
                 </Link>
               </li>
-                
+
             </ul>
           </li>
           {/* <!-- End Tables Nav --> */}
@@ -166,36 +166,41 @@ function Sidebar({ sidebarOpen }) {
                   <i className="bi bi-circle"></i><span>Confirm Request Offline</span>
                 </Link>
               </li>
-             
+
               <li>
                 <Link to="/student-rollno-list?studyModeId=89">
                   <i className="bi bi-circle"></i><span>Student RollNo  List Offline</span>
                 </Link>
               </li>
 
-              
-               
+
+
               <li>
                 <Link to="/confirm-addmissions?studyModeId=89">
                   <i className="bi bi-circle"></i>
                   <span>Student Confirm & Print Offline</span>
                 </Link>
               </li>
-              
+
 
             </ul>
           </li>
           {/* <!-- End Charts Nav --> */}
 
-           <li className="nav-item">
+          <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#charts-nav-req" data-bs-toggle="collapse" href="#">
               <i className="bi bi-bar-chart"></i><span>Student  Request</span><i className="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="charts-nav-req" className="nav-content collapse " data-bs-parent="#sidebar-nav">
- 
-               <li>
+
+              <li>
                 <Link to="/student-upgrade">
                   <i className="bi bi-circle"></i><span>Upgrade Student</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/online-student-upgrade">
+                  <i className="bi bi-circle"></i><span>Online Upgrade Student</span>
                 </Link>
               </li>
               <li>
@@ -231,7 +236,7 @@ function Sidebar({ sidebarOpen }) {
 
             </ul>
           </li>
-  <li className="nav-item">
+          <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#icons-navf" data-bs-toggle="collapse" href="#">
               <i className="bi-bullseye"></i><span>Enquiry   Management</span><i className="bi bi-chevron-down ms-auto"></i>
             </a>
@@ -314,11 +319,11 @@ function Sidebar({ sidebarOpen }) {
                   <i className="bi bi-circle"></i><span>Payment Detail</span>
                 </Link>
               </li>
-              
+
             </ul>
           </li>
 
-        
+
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#icons-navl" data-bs-toggle="collapse" href="#">
               <i className="bi bi-pin-map"></i><span>Location</span><i className="bi bi-chevron-down ms-auto"></i>

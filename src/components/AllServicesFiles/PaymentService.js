@@ -70,3 +70,26 @@ export const createOfflinePayment = async (formData) => {
 
     return response.data;
 };
+
+
+export const upgradeverifyPayment = async ({
+    R_orderId,
+    paymentId,
+    signature,
+    paymentstatus,
+    userId,
+    oId,
+}) => {
+    const formData = new FormData();
+    formData.append("R_orderId", R_orderId);
+    formData.append("PaymentId", paymentId);           // ✅ Capital
+    formData.append("Signature", signature);            // ✅ Capital
+    formData.append("PaymentStatus", paymentstatus);    // ✅ Capital
+    formData.append("UserId", userId);
+    formData.append("OId", oId);
+
+    const response = await api.post("/GetWay/upgrade-after-payment", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+};

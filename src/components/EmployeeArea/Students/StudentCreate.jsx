@@ -329,7 +329,7 @@ const StudentCreate = () => {
             setIsSubmitting(true);
             const result = await createStudent(formData);
             alert(result.message || "Student created successfully");
-            navigate("/student-list");
+            navigate("/student-list?studyModeId=89");
         } catch (error) {
             console.error("Create Student Error:", error);
             alert(error?.response?.data?.message || "Unable to create student");

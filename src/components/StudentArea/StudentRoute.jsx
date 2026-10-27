@@ -3,6 +3,7 @@ import NeedHelp from "../EmployeeArea/EmployeePage/NeedHelp";
 import UpdatePassword from "../EmployeeArea/EmployeePage/UpdatePassword";
 import ViewDetails from "../EmployeeArea/Students/ViewDetails";
 import CourseDetails from "./StudentsData/CourseDetails";
+import ReRegistration from "./StudentsData/ReRegistration";
 import StudentDashboard from "./StudentsData/StudentDashboard";
  
  
@@ -15,6 +16,7 @@ const studentRoute = [
     { path: "/student-view-profile/:id", element: <ViewDetails /> },
     { path: "/help", element: <NeedHelp /> },
     { path: "/student-payments-view/:id", element: <StudentPaymentHistory /> },
+    { path: "/re-registration/:id", element: <ReRegistration /> },
     
 ];
 
