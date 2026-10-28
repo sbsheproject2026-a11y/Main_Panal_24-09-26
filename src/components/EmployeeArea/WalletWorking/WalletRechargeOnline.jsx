@@ -54,7 +54,7 @@ const WalletRechargeOnline = () => {
             return;
         }
 
-        if (Number(amount) < 1) {
+        if (Number(amount) < 100) {
             alert("Minimum recharge amount is ₹100");
             return;
         }
@@ -70,7 +70,7 @@ const WalletRechargeOnline = () => {
                 franchiseId: franchiseId,
             });
 
-            console.log("📦 createRes:", createRes);
+           // console.log("📦 createRes:", createRes);
 
             const responseData = createRes?.data || createRes;
 
@@ -83,7 +83,7 @@ const WalletRechargeOnline = () => {
             const userid = responseData.userid || responseData.userId;
             const paymentid = responseData.paymentid || responseData.paymentId;
 
-            console.log("📦 Order Created:", { userid, paymentid });
+           // console.log("📦 Order Created:", { userid, paymentid });
 
             if (!userid || !paymentid) {
                 alert("Invalid response from server");
@@ -124,13 +124,13 @@ const WalletRechargeOnline = () => {
             const mobile = data.Mobile || data.mobile || "";
             const notes = data.Notes || data.notes || {};
 
-            console.log("🎯 Extracted:", {
-                razorpayKey,
-                razorpayOrderId,
-                razorpayAmount,
-                profileName,
-                mobile,
-            });
+            // console.log("🎯 Extracted:", {
+            //     razorpayKey,
+            //     razorpayOrderId,
+            //     razorpayAmount,
+            //     profileName,
+            //     mobile,
+            // });
 
             // ✅ Validation
             if (!razorpayOrderId || !razorpayKey) {
@@ -673,7 +673,7 @@ const WalletRechargeOnline = () => {
                                         setAmount(e.target.value)
                                     }
                                     placeholder="0"
-                                    min="1"
+                                    min="100"
                                     max="100000"
                                     autoFocus
                                     required
@@ -690,7 +690,7 @@ const WalletRechargeOnline = () => {
 
                             <div className="amount-hint">
                                 <i className="bi bi-info-circle"></i>
-                                Min ₹1 • Max ₹1,00,000
+                                Min ₹100 • Max ₹1,00,000
                             </div>
                         </div>
 
@@ -751,7 +751,7 @@ const WalletRechargeOnline = () => {
                             type="submit"
                             className="wallet-btn"
                             disabled={
-                                loading || !amount || Number(amount) < 1
+                                loading || !amount || Number(amount) < 100
                             }
                         >
                             {loading ? (

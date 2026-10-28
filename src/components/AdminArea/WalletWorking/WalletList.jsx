@@ -1,5 +1,6 @@
  import React, { useEffect, useMemo, useState } from "react";
 import { getFrenchisesAssign1, getWalletBalance } from "../../AllServicesFiles/WalletService";
+import { FILE_URL } from "../../api";
 
 const WalletList = () => {
   const [search, setSearch] = useState("");
@@ -17,9 +18,23 @@ const WalletList = () => {
   const [pageNo, setPageNo] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  // ✅ slip preview modal states
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalFile, setModalFile] = useState("");
+  const [modalType, setModalType] = useState("");
+
   useEffect(() => {
     loadFrenchises();
     loadWallets(); // ✅ normal view - saara data
+  }, []);
+
+  // ✅ Esc key se modal band
+  useEffect(() => {
+    const onEsc = (e) => {
+      if (e.key === "Escape") setModalOpen(false);
+    };
+    window.addEventListener("keydown", onEsc);
+    return () => window.removeEventListener("keydown", onEsc);
   }, []);
 
   const loadFrenchises = async () => {
@@ -155,6 +170,22 @@ const WalletList = () => {
       currency: "INR",
       maximumFractionDigits: 2,
     }).format(Number(amount || 0));
+  };
+
+  const handleFileClick = (fileName) => {
+    if (!fileName) return;
+    const fullUrl = `${FILE_URL}${fileName}`;
+    const ext = fileName.split(".").pop().toLowerCase();
+
+    setModalFile(fullUrl);
+    if (["jpg", "jpeg", "png", "gif", "webp", "bmp"].includes(ext)) {
+      setModalType("image");
+    } else if (ext === "pdf") {
+      setModalType("pdf");
+    } else {
+      setModalType("other");
+    }
+    setModalOpen(true);
   };
 
   const formatDate = (dateStr) => {
@@ -848,6 +879,156 @@ const WalletList = () => {
             justify-content: space-between;
           }
         }
+
+        .slip-thumb {
+          width: 44px;
+          height: 44px;
+          object-fit: cover;
+          border-radius: 6px;
+          border: 1px solid #e5e7eb;
+          transition: transform .15s ease;
+        }
+
+        .slip-thumb:hover {
+          transform: scale(1.05);
+        }
+
+        /* =========================
+           SLIP PREVIEW MODAL
+        ========================= */
+
+        .slip-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          background: rgba(15, 23, 42, 0.72);
+          backdrop-filter: blur(3px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          animation: slipFadeIn 0.15s ease;
+        }
+
+        @keyframes slipFadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+
+        .slip-modal {
+          width: auto;
+          max-width: 92vw;
+          max-height: 92vh;
+          display: flex;
+          flex-direction: column;
+          background: #fff;
+          border-radius: 14px;
+          overflow: hidden;
+          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+          animation: slipZoom 0.18s ease;
+        }
+
+        @keyframes slipZoom {
+          from { transform: scale(0.94); opacity: 0.5; }
+          to   { transform: scale(1); opacity: 1; }
+        }
+
+        .slip-modal-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          padding: 12px 16px;
+          border-bottom: 1px solid #edf0f5;
+          background: #fafbfc;
+        }
+
+        .slip-modal-head strong {
+          font-size: 13px;
+          color: #283247;
+        }
+
+        .slip-modal-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .slip-modal-open {
+          font-size: 11px;
+          font-weight: 600;
+          color: #4f46e5;
+          text-decoration: none;
+          padding: 6px 10px;
+          border-radius: 7px;
+          background: #eef2ff;
+        }
+
+        .slip-modal-open:hover { background: #e0e7ff; }
+
+        .slip-modal-close {
+          width: 30px;
+          height: 30px;
+          border: 0;
+          border-radius: 7px;
+          background: #f1f3f7;
+          color: #4b5567;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: 0.15s ease;
+        }
+
+        .slip-modal-close:hover {
+          background: #fee2e2;
+          color: #dc2626;
+        }
+
+        .slip-modal-body {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: auto;
+          padding: 12px;
+          background: #f8fafc;
+        }
+
+        .slip-modal-body img {
+          display: block;
+          max-width: 86vw;
+          max-height: 78vh;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          border-radius: 8px;
+          background: #fff;
+        }
+
+        .slip-modal-body iframe {
+          width: 86vw;
+          height: 78vh;
+          border: 0;
+          border-radius: 8px;
+          background: #fff;
+        }
+
+        .slip-modal-other {
+          padding: 30px;
+          text-align: center;
+          font-size: 13px;
+          color: #4b5567;
+        }
+
+        .slip-modal-other a {
+          color: #4f46e5;
+          font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+          .slip-modal { max-width: 96vw; max-height: 94vh; }
+          .slip-modal-body img { max-width: 92vw; max-height: 72vh; }
+          .slip-modal-body iframe { width: 92vw; height: 72vh; }
+        }
       `}</style>
 
       <div className="wallet-list-page">
@@ -979,6 +1160,7 @@ const WalletList = () => {
               <thead>
                 <tr>
                   <th>Sr.No.</th>
+                  <th>Slip</th>
                   <th>Type</th>
                   <th>Remark</th>
                   <th>DR</th>
@@ -992,7 +1174,7 @@ const WalletList = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="8" className="no-data">
+                    <td colSpan="9" className="no-data">
                       <div>
                         <span>⏳</span>
                         <strong>Loading...</strong>
@@ -1003,6 +1185,7 @@ const WalletList = () => {
                 ) : paginatedWallets.length > 0 ? (
                   paginatedWallets.map((item) => (
                     <tr key={item.id}>
+
                       <td>
                         <div className="wallet-id">
                           <div>
@@ -1010,6 +1193,20 @@ const WalletList = () => {
                             <span>{item.transactionNumber || ""}</span>
                           </div>
                         </div>
+                      </td>
+
+                      <td>
+                        {item.slipUpload ? (
+                          <img
+                            src={`${FILE_URL}${item.slipUpload}`}
+                            alt="slip"
+                            className="slip-thumb"
+                            onClick={() => handleFileClick(item.slipUpload)}
+                            style={{ cursor: "pointer" }}
+                          />
+                        ) : (
+                          "-"
+                        )}
                       </td>
 
                       <td>
@@ -1064,7 +1261,7 @@ const WalletList = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" className="no-data">
+                    <td colSpan="9" className="no-data">
                       <div>
                         <span>⌕</span>
                         <strong>No transactions found</strong>
@@ -1128,6 +1325,62 @@ const WalletList = () => {
 
         </div>
       </div>
+
+      {/* ✅ SLIP PREVIEW MODAL */}
+      {modalOpen && (
+        <div
+          className="slip-modal-overlay"
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="slip-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="slip-modal-head">
+              <strong>Slip Preview</strong>
+
+              <div className="slip-modal-actions">
+                <a
+                  href={modalFile}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="slip-modal-open"
+                >
+                  Open in new tab
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className="slip-modal-close"
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="slip-modal-body">
+              {modalType === "image" && (
+                <img src={modalFile} alt="slip" />
+              )}
+
+              {modalType === "pdf" && (
+                <iframe src={modalFile} title="slip-pdf" />
+              )}
+
+              {modalType === "other" && (
+                <div className="slip-modal-other">
+                  <p>Is file ka preview available nahi hai.</p>
+                  <a href={modalFile} target="_blank" rel="noreferrer">
+                    Download / Open file
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
