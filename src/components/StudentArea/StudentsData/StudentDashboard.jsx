@@ -1,116 +1,50 @@
- import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    FaUserCircle,
-    FaIdCard,
-    FaFileAlt,
-    FaBookOpen,
-    FaMoneyBillWave,
-    FaBell,
-    FaArrowRight,
-    FaUser,
-    FaPhone,
-    FaEnvelope,
-    FaMapMarkerAlt,
-    FaUniversity,
-    FaGraduationCap,
-    FaFileContract,
-    FaLock
+    FaBell, FaPlayCircle, FaFolderOpen, FaRupeeSign,
+    FaPaperclip, FaPrint, FaIdCard, FaCalendarAlt,
+    FaGlobe, FaGraduationCap, FaLink, FaBookOpen,
+    FaMobileAlt, FaShareAlt, FaFileContract, FaBars, FaCaretDown, FaVideo,
+    FaPen, FaBookReader, FaLaptopCode
 } from "react-icons/fa";
 import { getStudentProfile } from "../../AllServicesFiles/StudentService";
 import { FILE_URL } from "../../api";
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
-
-    // =========================================================
-    // USER ID
-    // =========================================================
     const userId = localStorage.getItem("UserId");
 
-    // =========================================================
-    // STATE
-    // =========================================================
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState("Admission");
+
     const [student, setStudent] = useState({
-        id: 0,
-        courseId: 0,
-        totalClass: 0,
-        classNo: 0,
-        enrollmentNo: "",
-        rollno: "",
-        rollNo1: "",
-        name: "",
-        fatherName: "",
-        motherName: "",
-        address: "",
-        mobileNo: "",
-        email: "",
-        instituteName: "",
-        cityName: "",
-        districtName: "",
-        stateName: "",
-        courseName: "",
-        selfImage: "",
-        initials: ""
+        id: 0, courseId: 0, totalClass: 0, enrollmentNo: "", rollno: "", rollNo1: "", name: ""
     });
 
-    // =========================================================
-    // LOAD STUDENT
-    // =========================================================
     useEffect(() => {
         if (!userId) {
-            console.log("❌ UserId not found in localStorage");
             setLoading(false);
             return;
         }
-
         loadStudent();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId]);
 
     const loadStudent = async () => {
         try {
             setLoading(true);
-
             const result = await getStudentProfile(userId);
-            
-
-            const data = Array.isArray(result)
-                ? result[0]
-                : (result?.data || result || {});
-
-            const fullName = data.name || "Student";
-            const initials = fullName
-                .split(" ")
-                .map((w) => w[0])
-                .slice(0, 2)
-                .join("")
-                .toUpperCase();
+            const data = Array.isArray(result) ? result[0] : (result?.data || result || {});
 
             setStudent({
                 id: data.id || 0,
                 courseId: data.courseId || 0,
                 totalClass: data.totalClass || 0,
-                classNo: data.classNo || 0,
                 enrollmentNo: data.enrollmentNo || "",
                 rollno: data.rollno || "",
                 rollNo1: data.rollNo1 || "",
-                name: data.name || "Student",
-                fatherName: data.fatherName || "-",
-                motherName: data.motherName || "-",
-                address: data.address || "-",
-                mobileNo: data.mobileNo || "-",
-                email: data.email || "-",
-                instituteName: data.instituteName || "-",
-                cityName: data.cityName || "-",
-                districtName: data.districtName || "-",
-                stateName: data.stateName || "-",
-                courseName: data.courseName || "-",
-                selfImage: data.selfImage || "",
-                initials: initials || "S"
+                name: data.name || "",
+                courseName: data.courseName || "",
             });
-
         } catch (error) {
             console.log("Student Details Error:", error);
         } finally {
@@ -119,135 +53,198 @@ const StudentDashboard = () => {
     };
 
     // =========================================================
-    // IMAGE URL HELPER
+    // 1. ADMISSION TAB CARDS
     // =========================================================
-    const getImageUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith("http")) return path;
-        const base = (FILE_URL || "").replace(/\/+$/, "");
-        const cleanPath = path.replace(/^\/+/, "");
-        return `${base}/${cleanPath}`;
+    const admissionCards = [
+        {
+            id: "application", title: "Application Status", bgColor: "#e8cc46", icon: <FaFolderOpen />,
+            statusText: "Status : Admission Confirmed",
+
+            links: [{ text: "Review Form", path: `/admission-form-print/${userId}` }]
+        },
+        {
+            id: "payment", title: "Payment Status", bgColor: "#98c953", icon: <FaRupeeSign />,
+            statusText: "Paid",
+            links: [{ text: "Payment History", path: `/student-payments-view/${student.id}` }]
+        },
+        {
+            id: "documents", title: "My Documents", bgColor: "#5fcd5b", icon: <FaPaperclip />,
+            statusText: "Last Date: 29-11-2026\n8 Documents Uploaded",
+            links: [{ text: "Review Document", path: `/student-view-profile/${userId}` }]
+
+        },
+        {
+            id: "print", title: "Print", bgColor: "#25c8f5", icon: <FaPrint />,
+            links: [{ text: "I-Card", path: `/id-card/${userId}` }]
+        },
+        {
+            id: "results", title: "Public Exam", bgColor: "#9c27b0", icon: <FaPen />,
+            links: [
+                { text: "Public Exam ", path: "/student-exam-list" }, // 👈 Yahan path change kiya
+                // { text: "On Demand Exam Results", path: "/student-exam-list" }
+            ]
+        },
+        {
+            id: "results", title: "Results", bgColor: "#9c27b0", icon: <FaPen />,
+            links: [
+                { text: "Public Exam Results", path: "#" },
+                { text: "On Demand Exam Results", path: "#" }
+            ]
+        },
+        // ✅ E-SERVICE CARD — tab switch ke liye `tab` field add kiya
+        {
+            id: "eservice", title: "E-Service", bgColor: "#ba68c8", icon: <FaPen />,
+            links: [
+                { text: "Apply", path: "#", tab: "E-Services" },
+                { text: "My Request", path: "#", tab: "E-Services" }
+            ]
+        },
+        {
+            id: "study-material", title: "Study Material", bgColor: "#e91e63", icon: <FaBookOpen />,
+            links: [
+                { text: "Download Study Material", path: "#" },
+                { text: "Sample Question Papers", path: "#" },
+                { text: "Book Price List", path: `/student-courses/${student.courseId}` },
+                { text: "Submit Book Received Response", path: "#" },
+                { text: "Track Here", path: "#" }
+            ]
+        },
+        {
+            id: "tma", title: "Tutor Mark Assignment", bgColor: "#f06292", icon: <FaBookOpen />,
+            links: [
+                { text: "Download TMA", path: "#" },
+                { text: "Upload TMA", path: "#" },
+                { text: "TMA Status", path: "#" }
+            ]
+        },
+        {
+            id: "abc", title: "ACADEMIC BANK OF CREDITS", bgColor: "#ef5350", icon: <FaGraduationCap />,
+            links: [
+                { text: "Create APAAR/ABC ID", path: "https://www.digilocker.gov.in/web/dashboard/issuers/010212" },
+                { text: "Create DEB ID", path: "https://deb.ugc.ac.in/" }
+            ]
+        },
+        {
+            id: "mobile", title: "Mobile App", bgColor: "#ec407a", icon: <FaMobileAlt />,
+            links: [
+                { text: "SBSHE SAATHI", path: "https://appweb.shaheedbhagatsinghhealthandeducation.com/download/app.apk" },
+                { text: "VIDYAMRIT", path: "https://vidyaamritapp.shaheedbhagatsinghhealthandeducation.com/download/Vidyaamrit.apk" }
+            ]
+        },
+        {
+            id: "social", title: "Social Media Links", bgColor: "#ec407a", icon: <FaShareAlt />,
+            links: [
+                { text: "YouTube", path: "https://youtube.com/@sbshe-sm?si=tDUXjazfu4CpAfPe" },
+                { text: "Facebook", path: "https://www.facebook.com/share/1Hb4vQDMov/" },
+                { text: "Instagram", path: "https://www.instagram.com/sbsheofficial?utm_source=qr&stkn=Nmw0ZXNkOGwzMjlm" },
+                { text: "Linkedin", path: "https://www.linkedin.com/company/sbshe/" }
+            ]
+        },
+        // Conditional Card
+        Number(student?.totalClass) === 2 && {
+            id: "re-registration", title: "Re-Registration", bgColor: "#0d9488", icon: <FaFileContract />,
+            statusText: "Download official registration document",
+            links: [{ text: "Download Now", path: `/re-registration/${userId}` }]
+        }
+    ].filter(Boolean);
+
+    // ✅ UPDATED: link object accept karta hai (path + optional tab)
+    const handleLinkClick = (link) => {
+        if (!link.path || link.path === "#") return;
+
+        // ✅ Agar link StudentExamList ka hai, to state me courseId bhejo
+        if (link.path === "/student-exam-list") {
+            navigate(link.path, {
+                state: { courseId: student.courseId } // 👈 Yahan student ki courseId jayegi
+            });
+            return;
+        }
+
+        // Baaki links ke liye (http, www, ya internal)
+        if (link.path.startsWith("http://") || link.path.startsWith("https://")) {
+            window.open(link.path, "_blank", "noopener,noreferrer");
+        } else if (link.path.startsWith("www.")) {
+            window.open("https://" + link.path, "_blank", "noopener,noreferrer");
+        } else {
+            navigate(link.path);
+        }
     };
 
     // =========================================================
-    // QUICK ACTIONS
+    // 2. E-SERVICES TAB CARDS
     // =========================================================
-     const quickActions = [
-    {
-        title: "Payment Details",
-        desc: "Fee payment history & receipts",
-        icon: <FaMoneyBillWave />,
-        color: "#dc2626",
-        bg: "#fef2f2",
-        path: `/student-payments-view/${student.id}`,
-        state: { studentId: student.id },
-    },
-    {
-        title: "Profile Print",
-        desc: "View & update your personal details",
-        icon: <FaUserCircle />,
-        color: "#4f46e5",
-        bg: "#eef2ff",
-        path: `/admission-form-print/${userId}`,
-        state: { id: userId },
-        //disabled: !student.enrollmentNo,
-    },
-    {
-        title: "My Profile",
-        desc: "View & update your personal details",
-        icon: <FaUserCircle />,
-        color: "#4f46e5",
-        bg: "#eef2ff",
-        path: `/student-view-profile/${userId}`,
-        state: { id: userId },
-        disabled: !student.enrollmentNo,
-    },
-    {
-        title: "ID Card",
-        desc: "Download your student ID card",
-        icon: <FaIdCard />,
-        color: "#0891b2",
-        bg: "#ecfeff",
-        path: `/id-card/${userId}`,
-        state: { id: userId },
-        disabled: !student.enrollmentNo,
-    },
-    {
-        title: "Course Details",
-        desc: "View your enrolled courses",
-        icon: <FaBookOpen />,
-        color: "#16a34a",
-        bg: "#f0fdf4",
-        path: `/student-courses/${student.courseId}`,
-        state: { id: student.courseId },
-        disabled: !student.courseId,
-        disabled: !student.enrollmentNo,
-    },
+    const eServicesCards = [
 
-    // 👇 SIRF YAHAN CONDITION — totalClass === 2 ho tabhi show hoga
-    Number(student?.totalClass) === 2 && {
-        title: "Re-Registration Card",
-        desc: "Download official registration document",
-        icon: <FaFileContract />,
-        color: "#0d9488",
-        bg: "#ccfbf1",
-        path: `/re-registration/${userId}`,
-        state: { id: userId },
-        // disabled: !student.enrollmentNo,
-    },
+        {
+            title: "Basic Details Change", bgColor: "#fbc02d", icon: <FaPen />,
+            links: [
+                { text: "Name Change ₹500", path: "#" },
+                { text: "Father Name Change ₹500", path: "#" },
+                { text: "Mother Name Change ₹500", path: "#" },
+                { text: "Gender Change ₹500", path: "#" },
+                { text: "DOB Change ₹500", path: "#" }
+            ]
+        },
+        {
+            title: "Basic Details Correction", bgColor: "#8bc34a", icon: <FaPen />,
+            links: [
+                { text: "Name Correction ₹100", path: "#" },
+                { text: "Father Name Correction ₹100", path: "#" },
+                { text: "Mother Name Correction ₹100", path: "#" },
+                { text: "Gender Correction ₹100", path: "#" },
+                { text: "DOB Correction ₹100", path: "#" }
+            ]
+        },
 
-    {
-        title: "Admit Card (1st Year)",
-        desc: "Download 1st year exam admit card",
-        icon: <FaFileAlt />,
-        color: "#d97706",
-        bg: "#fffbeb",
-        path: student.rollno ? `/admit-card-print/${student.rollno}` : null,
-        state: { rollNo: student.rollno },
-        disabled: !student.rollno,
-    },
-    {
-        title: "Admit Card (2nd Year)",
-        desc: "Download 2nd year exam admit card",
-        icon: <FaFileAlt />,
-        color: "#c2410c",
-        bg: "#fff7ed",
-        path: student.rollNo1 ? `/admit-card-print/${student.rollNo1}` : null,
-        state: { rollNo: student.rollNo1 },
-        disabled: !student.rollNo1,
-    },
-    {
-        title: "Update Password",
-        desc: "Fee payment history & receipts",
-        icon: <FaLock />,
-        color: "#dc2626",
-        bg: "#fef2f2",
-        path: `/update-password-student`,
-        state: { studentId: student.id },
-        disabled: !student.enrollmentNo,
-    },
-].filter(Boolean);   // 👈 ye end mein lagana ZAROORI hai
+        {
+            title: "Other Details Change", bgColor: "#00bcd4", icon: <FaPen />,
+            links: [
+                { text: "Change Correspondence Address ₹500", path: "#" },
+                { text: "Change Permanent Address ₹500", path: "#" },
+                { text: "Change Mobile Number ₹300", path: "#" },
+                { text: "Study Medium Change ₹500", path: "#" },
+                { text: "Change Board ₹500", path: "#" },
+                { text: "Apply For TMA/Project ₹500", path: "#" },
+                { text: "Change Mobile Number ₹700", path: "#" }
+            ]
+        },
+        {
+            title: "Subject / Study Center", bgColor: "#00bcd4", icon: <FaPen />,
+            links: [
+                { text: "Remove TOC ₹500", path: "#" },
+                { text: "Change Part Admission ₹500", path: "#" },
+                { text: "Change Subject ₹400", path: "#" },
+                { text: "Add Subject ₹400", path: "#" },
+                { text: "Add TOC ₹500", path: "#" },
+                { text: "Change Study Center ₹400", path: "#" },
+                { text: "TOC Lab Fee ₹400", path: "#" },
+                { text: "Remove Subject ₹300", path: "#" }
+            ]
+        },
+        {
+            title: "Documents Change", bgColor: "#2196f3", icon: <FaPen />,
+            links: [
+                { text: "Change Photograph ₹100", path: "#" },
+                { text: "Change Signature ₹100", path: "#" },
+                { text: "Duplicate Marksheet ₹300", path: "#" },
+                { text: "Duplicate Marksheet cum Passing Certificate ₹1000", path: "#" },
+                { text: "Original Marksheet - Part Admission ₹1000", path: "#" },
+                { text: "Original Marksheet cum Passing Certificate ₹1000", path: "#" },
+                { text: "Revised Migration Certificate ₹1000", path: "#" },
+                { text: "Change Student Signature ₹1000", path: "#" },
+                { text: "Original Improvement Marksheet ₹400", path: "#" }
+            ]
+        },
+        {
+            title: "TMA", bgColor: "#4caf50", icon: <FaPen />,
+            links: [{ text: "Re-Upload TMA ₹400", path: "#" }]
+        }
+    ];
 
-    // =========================================================
-    // LOADING UI
-    // =========================================================
     if (loading) {
         return (
-            <div
-                className="d-flex flex-column align-items-center justify-content-center"
-                style={{ minHeight: "80vh" }}
-            >
-                <div
-                    className="spinner-border text-primary"
-                    style={{ width: "45px", height: "45px" }}
-                    role="status"
-                >
-                    <span className="visually-hidden">Loading...</span>
-                </div>
-
-                <p className="mt-3 text-muted" style={{ fontSize: "13px" }}>
-                    Loading dashboard...
-                </p>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#e9eaed" }}>
+                <div className="spinner-border text-primary" role="status" style={{ width: "3rem", height: "3rem" }}></div>
             </div>
         );
     }
@@ -255,254 +252,213 @@ const StudentDashboard = () => {
     return (
         <>
             <style>{`
-                /* =========================================================
-                   AAPKA ORIGINAL CSS (100% SAME)
-                ========================================================= */
-                .sd-page {
-                    min-height: 100vh;
-                    padding: 24px 20px 50px;
-                    background: #f5f7fa;
+                body { background-color: #e9eaed; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+                
+                .portal-wrapper { 
+                    width: 100%; 
+                    min-height: 100vh; 
+                    display: flex; 
+                    justify-content: center; 
+                    padding: 80px 20px 20px 20px; 
+                    box-sizing: border-box; 
                 }
-                .sd-container { max-width: 1400px; margin: 0 auto; }
-                .sd-header { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
-                .sd-header h2 { margin: 0; color: #1a202c; font-size: 26px; font-weight: 800; }
-                .sd-header p { margin: 6px 0 0; color: #718096; font-size: 13px; }
-                .sd-header-actions { display: flex; gap: 10px; align-items: center; }
-                .sd-profile-card { background: #fff; border-radius: 20px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); border: 1px solid #edf2f7; }
-                .sd-profile-top { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 24px 28px; display: flex; align-items: center; gap: 22px; position: relative; overflow: hidden; }
-                .sd-profile-top::before { content: ""; position: absolute; width: 250px; height: 250px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); top: -100px; right: -60px; pointer-events: none; }
-                .sd-profile-top::after { content: ""; position: absolute; width: 150px; height: 150px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); bottom: -80px; right: 100px; pointer-events: none; }
-                .sd-profile-avatar-wrap { position: relative; z-index: 2; }
-                .sd-avatar { width: 88px; height: 88px; border-radius: 50%; background: rgba(255, 255, 255, 0.20); display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 800; color: #fff; border: 4px solid rgba(255, 255, 255, 0.35); overflow: hidden; flex-shrink: 0; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); }
-                .sd-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-                .sd-profile-heading { position: relative; z-index: 2; color: #fff; flex: 1; min-width: 0; }
-                .sd-profile-heading h3 { margin: 0 0 8px; font-size: 22px; font-weight: 800; letter-spacing: -0.3px; line-height: 1.3; }
-                .sd-profile-heading p { margin: 0; font-size: 12.5px; opacity: 0.9; display: flex; align-items: center; gap: 8px; font-weight: 500; }
-                .sd-profile-heading p svg { opacity: 0.8; font-size: 12px; }
+                
+                .portal-container { background: #ffffff; width: 100%; max-width: 1000px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; }
 
-                /* INFO GRID */
-                .sd-profile-info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; padding: 6px 28px; }
-                .sd-info-item { display: flex; align-items: center; gap: 14px; padding: 16px 0; border-bottom: 1px solid #f7fafc; min-width: 0; }
-                .sd-info-item:nth-last-child(-n+2) { border-bottom: none; }
-                .sd-info-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-                .sd-info-item > div:last-child { min-width: 0; flex: 1; }
-                .sd-info-item span { display: block; color: #a0aec0; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-                .sd-info-item strong { display: block; color: #1a202c; font-size: 13.5px; font-weight: 700; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; }
+                .np-navbar { display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid #eee; padding-right: 20px; }
+                .nav-tabs { display: flex; }
+                .nav-tab { padding: 16px 25px; font-size: 15px; font-weight: 600; color: #333; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; }
+                .nav-tab.active { background: #4fc3f7; color: white; border-bottom: 3px solid #29b6f6; }
+                .nav-tab:hover:not(.active) { background: #f9f9f9; }
+                .nav-right-bell { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; cursor: pointer; color: #333; }
+                .bell-icon-wrapper { position: relative; display: flex; align-items: center; }
+                .bell-icon-wrapper svg { color: #d32f2f; font-size: 18px; }
+                .bell-badge { position: absolute; top: -5px; right: -5px; background: #d32f2f; color: white; font-size: 9px; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; }
 
-                /* ROLL ROWS */
-                .sd-roll-row { display: flex; align-items: center; gap: 6px; line-height: 1.7; margin-top: 2px; flex-wrap: nowrap; }
-                .sd-roll-label { color: #4a5568; font-size: 12px; font-weight: 700; min-width: 62px; max-width: 62px; flex-shrink: 0; display: inline-block; white-space: nowrap; }
-                .sd-roll-value { color: #1a202c; font-size: 13px; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; display: inline-block; }
+                .np-info-bar-wrapper { padding: 20px; background: #fff; border-bottom: 1px solid #f0f0f0; }
+                .np-info-bar { background: #fff; border: 1px solid #eaeaea; border-radius: 6px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.02); flex-wrap: wrap; gap: 10px; }
+                .np-info-text { display: flex; align-items: center; gap: 15px; font-size: 14px; color: #333; font-weight: 500; }
+                .np-info-text .divider { color: #ccc; font-size: 16px; font-weight: 300; }
+                .np-badge-red { background: #ff0000; color: white; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+                .np-info-actions { display: flex; align-items: center; gap: 15px; font-size: 13px; font-weight: 500; color: #333; }
+                .np-info-actions .divider { color: #ccc; }
+                .btn-my-details { background: #d32f2f; color: white; border: none; padding: 6px 16px; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.2s; }
+                .btn-my-details:hover { background: #b71c1c; }
 
-                /* INSTITUTE FOOTER */
-                .sd-institute-footer { display: flex; align-items: center; gap: 14px; padding: 18px 28px; background: #fafbfc; border-top: 1px solid #edf2f7; }
-                .sd-institute-icon { width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; box-shadow: 0 5px 15px rgba(79, 70, 229, 0.25); }
-                .sd-institute-footer span { display: block; color: #a0aec0; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-                .sd-institute-footer strong { display: block; color: #1a202c; font-size: 13px; font-weight: 800; line-height: 1.4; }
-
-                /* STATS */
-                .sd-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 24px; }
-                .sd-stat-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 3px 15px rgba(0, 0, 0, 0.04); transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; justify-content: space-between; align-items: center; }
-                .sd-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); }
-                .sd-stat-label { margin: 0 0 8px; color: #718096; font-size: 12px; font-weight: 600; }
-                .sd-stat-value { margin: 0; color: #1a202c; font-size: 24px; font-weight: 800; }
-                .sd-stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-
-                /* SECTION TITLE */
-                .sd-section-title { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; color: #1a202c; font-size: 18px; font-weight: 800; }
-                .sd-section-title::before { content: ""; width: 4px; height: 20px; background: #4f46e5; border-radius: 20px; }
-
-                /* QUICK ACTIONS */
-                .sd-actions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 30px; }
-                .sd-action-card { background: #fff; border-radius: 16px; padding: 20px; cursor: pointer; border: 1px solid #edf2f7; transition: all 0.25s ease; display: flex; flex-direction: column; height: 100%; position: relative; }
-                .sd-action-card:hover:not(.disabled) { transform: translateY(-4px); border-color: transparent; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.10); }
-                .sd-action-card.disabled { opacity: 0.5; cursor: not-allowed; }
-                .sd-action-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 14px; }
-                .sd-action-title { margin: 0 0 6px; color: #1a202c; font-size: 15px; font-weight: 700; }
-                .sd-action-desc { margin: 0; color: #a0aec0; font-size: 12px; line-height: 1.5; flex: 1; }
-                .sd-action-arrow { position: absolute; bottom: 20px; right: 20px; width: 28px; height: 28px; border-radius: 50%; background: #f7fafc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #a0aec0; transition: all 0.25s ease; }
-                .sd-action-card:hover:not(.disabled) .sd-action-arrow { background: #4f46e5; color: #fff; transform: translateX(3px); }
-
-                /* RESPONSIVE */
-                @media (max-width: 1100px) { .sd-actions-grid { grid-template-columns: repeat(3, 1fr); } }
-                @media (max-width: 991px) {
-                    .sd-stats-grid { grid-template-columns: repeat(2, 1fr); }
-                    .sd-actions-grid { grid-template-columns: repeat(2, 1fr); }
+                .cards-container { padding: 20px; }
+                .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+                
+                .portal-card { 
+                    border-radius: 4px; padding: 15px 20px; color: white; position: relative; overflow: hidden; 
+                    display: flex; flex-direction: column; box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+                    min-height: 160px; height: 100%;
                 }
-                @media (max-width: 767px) {
-                    .sd-page { padding: 16px 12px 40px; }
-                    .sd-header h2 { font-size: 20px; }
-                    .sd-header-actions { width: 100%; }
-                    .sd-profile-top { padding: 20px; flex-direction: column; text-align: center; gap: 16px; }
-                    .sd-avatar { width: 72px; height: 72px; font-size: 24px; border-width: 3px; }
-                    .sd-profile-heading h3 { font-size: 18px; }
-                    .sd-profile-heading p { justify-content: center; font-size: 11.5px; }
-                    .sd-profile-info { grid-template-columns: 1fr; padding: 4px 20px; }
-                    .sd-info-item { padding: 14px 0; }
-                    .sd-info-item:nth-last-child(-n+2) { border-bottom: 1px solid #f7fafc; }
-                    .sd-info-item:last-child { border-bottom: none; }
-                    .sd-institute-footer { padding: 16px 20px; }
-                    .sd-institute-footer strong { font-size: 12px; }
-                    .sd-stats-grid { grid-template-columns: 1fr; gap: 12px; }
-                    .sd-actions-grid { grid-template-columns: 1fr; gap: 12px; }
-                    .sd-stat-value { font-size: 20px; }
-                    .sd-section-title { font-size: 15px; }
+                
+                .portal-card::before {
+                    content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 70%;
+                    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 60%);
+                    clip-path: polygon(0 100%, 0 40%, 40% 60%, 100% 10%, 100% 100%);
+                    pointer-events: none;
+                }
+                .portal-card::after {
+                    content: ""; position: absolute; top: -20px; right: -20px; width: 140px; height: 140px;
+                    background: rgba(255,255,255,0.1); border-radius: 50%; pointer-events: none;
+                }
+
+                .card-icon-bg { position: absolute; top: 15px; right: 15px; font-size: 40px; opacity: 0.3; z-index: 1; color: #000; }
+                .card-title { font-size: 16px; font-weight: 600; margin: 0 0 10px 0; line-height: 1.3; padding-right: 30px; z-index: 2; }
+                .card-status { font-size: 13px; margin-bottom: 15px; z-index: 2; font-weight: 500; line-height: 1.5; opacity: 0.9; }
+                
+                .card-links { margin-top: auto; z-index: 2; display: flex; flex-direction: column; gap: 4px; }
+                
+                .card-link-item { 
+                    font-size: 12px; display: flex; align-items: center; gap: 6px; 
+                    font-weight: 600; text-decoration: underline; cursor: pointer; 
+                    color: inherit; opacity: 0.9; transition: 0.2s;
+                }
+                .card-link-item:hover { opacity: 1; text-decoration: none; }
+
+                .swayam-logo-box { background: white; color: #1976d2; padding: 5px 10px; border-radius: 4px; display: inline-block; font-weight: bold; font-size: 16px; margin-bottom: 10px;}
+
+                .eservice-links-list { display: flex; flex-direction: column; gap: 4px; z-index: 2; margin-top: auto; }
+                .eservice-link { font-size: 11.5px; color: #fff; text-decoration: underline; cursor: pointer; opacity: 0.9; }
+                .eservice-link:hover { opacity: 1; color: #fff; }
+
+                .news-section { background: white; border-radius: 4px; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden;}
+                .news-header { background: #4fc3f7; color: white; padding: 10px 20px; font-weight: 600; font-size: 16px; }
+                .news-body { padding: 15px 20px; border: 1px solid #ddd; border-top: none; font-size: 14px; font-weight: 600; color: #333; }
+                .news-date { display: block; font-size: 12px; color: #777; font-weight: normal; margin-top: 5px; }
+
+                @media (max-width: 992px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+                @media (max-width: 768px) {
+                    .portal-wrapper { padding: 60px 10px 10px 10px; }
+                    .cards-grid { grid-template-columns: 1fr; }
+                    .np-info-bar { flex-direction: column; align-items: flex-start; }
+                    .np-navbar { flex-direction: column; align-items: stretch; }
+                    .nav-tabs { flex-direction: column; }
                 }
             `}</style>
 
-            <div className="sd-page">
-                <div className="sd-container">
+            <div className="portal-wrapper">
+                <div className="portal-container">
 
-                    {/* HEADER */}
-                    <div className="sd-header">
-                        <div>
-                            <h2>Student Dashboard</h2>
-                            <p>Welcome back, {student.name}! 👋</p>
+                    {/* NAVBAR */}
+                    <div className="np-navbar">
+                        <div className="nav-tabs">
+                            <div className={`nav-tab ${activeTab === 'Admission' ? 'active' : ''}`} onClick={() => setActiveTab('Admission')}>
+                                <FaIdCard /> Admission
+                            </div>
+                            <div className={`nav-tab ${activeTab === 'Notifications' ? 'active' : ''}`} onClick={() => setActiveTab('Notifications')}>
+                                <FaBell /> Notifications
+                            </div>
+                            <div className={`nav-tab ${activeTab === 'E-Services' ? 'active' : ''}`} onClick={() => setActiveTab('E-Services')}>
+                                <FaBars /> E-Services
+                            </div>
                         </div>
-
-                        <div className="sd-header-actions">
-                            <button
-                                className="btn btn-primary"
-                                style={{ borderRadius: "12px", padding: "10px 18px", fontWeight: "700", fontSize: "13px", display: "flex", alignItems: "center", gap: "8px" }}
-                                onClick={() => navigate(`/student-view-profile/${userId}`)}
-                            >
-                                <FaUserCircle />
-                                My Profile
-                            </button>
+                        <div className="nav-right-bell">
+                            <div className="bell-icon-wrapper">
+                                <FaBell /> <span className="bell-badge">1</span>
+                            </div>
+                            Notifications <FaCaretDown />
                         </div>
                     </div>
 
-                    {/* PROFILE CARD */}
-                    <div className="sd-profile-card">
-                        <div className="sd-profile-top">
-                            <div className="sd-profile-avatar-wrap">
-                                <div className="sd-avatar">
-                                    {student.selfImage ? (
-                                        <img
-                                            src={getImageUrl(student.selfImage)}
-                                            alt={student.name}
-                                            onError={(e) => { e.target.style.display = "none"; }}
-                                        />
-                                    ) : (
-                                        student.initials
-                                    )}
-                                </div>
+                    {/* INFO BAR */}
+                    <div className="np-info-bar-wrapper">
+                        <div className="np-info-bar">
+                            <div className="np-info-text">
+                                {/* <span>Stream 1 Block 1</span> */}
+                                {/* <span className="divider">|</span>  */}
+                                <span>{student.courseName}</span>
                             </div>
 
-                            <div className="sd-profile-heading">
-                                <h3>{student.name}</h3>
-                                <p>
-                                    <FaGraduationCap /> {student.courseName}
-                                </p>
+                            <div className="np-badge-red">Notifications</div>
+
+                            <div className="np-info-actions">
+                                {/* <span>Ref No:  </span> <span className="divider">|</span> */}
+                                <span>Enroll No: {student.enrollmentNo}</span>
+                                <button className="btn-my-details" onClick={() => navigate(`/student-view-profile/${userId}`)}>
+                                    My Details
+                                </button>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Info Grid */}
-                        <div className="sd-profile-info">
-                            {/* Enrollment */}
-                            <div className="sd-info-item">
-                                <div className="sd-info-icon" style={{ background: "#eef2ff", color: "#4f46e5" }}><FaIdCard /></div>
-                                <div>
-                                    <span>Enrollment No.</span>
-                                    <strong>{student.enrollmentNo}</strong>
+                    {/* CONTENT AREA */}
+                    <div className="cards-container">
+
+                        {/* ================= ADMISSION TAB ================= */}
+                        {activeTab === 'Admission' && (
+                            <>
+                                <div className="cards-grid">
+                                    {admissionCards.map((card, idx) => (
+                                        <div key={idx} className="portal-card" style={{ backgroundColor: card.bgColor }}>
+                                            <div className="card-icon-bg">{card.icon}</div>
+                                            <h3 className="card-title">{card.title}</h3>
+
+                                            {card.isSwayam && (
+                                                <div className="swayam-logo-box">swayam</div>
+                                            )}
+
+                                            {card.statusText && !card.isSwayam && (
+                                                <div className="card-status">
+                                                    {card.statusText.split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                                                </div>
+                                            )}
+
+                                            <div className="card-links">
+                                                {card.links.map((link, lIdx) => (
+                                                    <div
+                                                        key={lIdx}
+                                                        className="card-link-item"
+                                                        onClick={() => handleLinkClick(link)}  /* ✅ link object pass */
+                                                    >
+                                                        <FaPlayCircle size={10} /> {link.text}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            </div>
 
-                            {/* Roll No — Both Years */}
-                            <div className="sd-info-item">
-                                <div className="sd-info-icon" style={{ background: "#ecfeff", color: "#0891b2" }}><FaFileAlt /></div>
-                                <div>
-                                    <span>Roll No.</span>
-                                    <div className="sd-roll-row">
-                                        <strong className="sd-roll-value">{student.rollno || "-"}</strong>
+
+                            </>
+                        )}
+
+                        {/* ================= E-SERVICES TAB ================= */}
+                        {activeTab === 'E-Services' && (
+                            <div className="cards-grid">
+                                {eServicesCards.map((card, idx) => (
+                                    <div key={idx} className="portal-card" style={{ backgroundColor: card.bgColor, minHeight: "220px" }}>
+                                        <div className="card-icon-bg">{card.icon}</div>
+                                        <h3 className="card-title">{card.title}</h3>
+
+                                        <div className="eservice-links-list">
+                                            {card.links.map((link, lIdx) => (
+                                                <span
+                                                    key={lIdx}
+                                                    className="eservice-link"
+                                                    onClick={() => link.path !== "#" && navigate(link.path)}
+                                                >
+                                                    {link.text}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="sd-roll-row">
-                                        <strong className="sd-roll-value">{student.rollNo1 || "-"}</strong>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
+                        )}
 
-                            {/* Father's Name */}
-                            <div className="sd-info-item">
-                                <div className="sd-info-icon" style={{ background: "#fef2f2", color: "#dc2626" }}><FaUser /></div>
-                                <div>
-                                    <span>Father's Name</span>
-                                    <strong>{student.fatherName}</strong>
-                                </div>
+                        {/* ================= NOTIFICATIONS TAB ================= */}
+                        {activeTab === 'Notifications' && (
+                            <div style={{ textAlign: "center", padding: "50px", color: "#666" }}>
+                                <FaBell size={40} color="#d32f2f" />
+                                <h3 className="mt-3">No New Notifications</h3>
+                                <p>Aapko abhi koi naya notification nahi hai.</p>
                             </div>
+                        )}
 
-                            {/* Mobile */}
-                            <div className="sd-info-item">
-                                <div className="sd-info-icon" style={{ background: "#f0fdf4", color: "#16a34a" }}><FaPhone /></div>
-                                <div>
-                                    <span>Mobile No.</span>
-                                    <strong>{student.mobileNo}</strong>
-                                </div>
-                            </div>
-
-                            {/* Email */}
-                            <div className="sd-info-item">
-                                <div className="sd-info-icon" style={{ background: "#f5f3ff", color: "#7c3aed" }}><FaEnvelope /></div>
-                                <div>
-                                    <span>Email</span>
-                                    <strong style={{ wordBreak: "break-all", fontSize: "12px" }}>{student.email}</strong>
-                                </div>
-                            </div>
-
-                            {/* Address */}
-                            <div className="sd-info-item">
-                                <div className="sd-info-icon" style={{ background: "#fff7ed", color: "#ea580c" }}><FaMapMarkerAlt /></div>
-                                <div>
-                                    <span>Address</span>
-                                    <strong>{student.cityName}, {student.districtName}, {student.stateName}</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Institute Footer */}
-                        <div className="sd-institute-footer">
-                            <div className="sd-institute-icon">
-                                <FaUniversity />
-                            </div>
-                            <div>
-                                <span>Institute</span>
-                                <strong>{student.instituteName}</strong>
-                            </div>
-                        </div>
                     </div>
-
-                    {/* QUICK ACTIONS */}
-                    <h3 className="sd-section-title">Quick Actions</h3>
-
-                    <div className="sd-actions-grid">
-                        {quickActions.map((action, i) => (
-                            <div
-                                key={i}
-                                className={`sd-action-card ${action.disabled ? "disabled" : ""}`}
-                                onClick={() => {
-                                    if (action.disabled) return;
-                                    if (action.path) navigate(action.path); 
-                                }}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" && !action.disabled && action.path) {
-                                        navigate(action.path);
-                                    }
-                                }}
-                            >
-                                <div className="sd-action-icon" style={{ background: action.bg, color: action.color }}>
-                                    {action.icon}
-                                </div>
-                                <h4 className="sd-action-title">{action.title}</h4>
-                                <p className="sd-action-desc">{action.desc}</p>
-                                <div className="sd-action-arrow">
-                                    <FaArrowRight />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
                 </div>
             </div>
         </>

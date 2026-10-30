@@ -137,3 +137,14 @@ export const addOnlineStudentClass = async (data) => {
 
     return response.data;
 };
+
+// StudentService.js me add karein
+export const getExamStudentResult = async () => {
+    const res = await api.get("/Exam/all-exam-student-result");
+    return res.data;
+};
+
+export const getSubmittedExams = async (examId) => {
+    const res = await api.get(`/Exam/exam-student-result/${examId}`);
+    return res.data;
+};

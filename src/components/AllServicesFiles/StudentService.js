@@ -477,3 +477,35 @@ export const getStudentProfile = async (id) => {
     const response = await api.get(`/Home/student-profile/${id}`);
     return response.data;
 };
+
+
+export const getStudentexamlist = async (id, userId) => {
+    // URL me ?userId=${userId} add kar diya hai
+    const response = await api.get(
+        `/ExamStudent/student-exam-detail/${id}?userId=${userId}`
+    );
+
+    return response.data;
+};
+ 
+export const getStudentexamquestion = async (id, userId) => {
+    // DHYAN DEIN: ?userId= use karein, comma (,) ya ,userId= nahi
+    const response = await api.get(
+        `/ExamStudent/student-exam-question-detail/${id}?userId=${userId}`
+    );
+    return response.data;
+};
+
+export const getStudentexamEnd = async (formData) => {
+    // FormData ko direct POST karein
+    const response = await api.post(
+        `/ExamStudent/student-exam-end`, 
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
+    );
+    return response.data;
+};

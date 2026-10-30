@@ -49,6 +49,9 @@ import AddFranchiseDepartment from "./Frenchise/AddFranchiseDepartment";
 import Menu from "./WebsiteContentData/Menu";
 import BookPaymentRequestList from "./CommanList/BookPaymentRequestList";
 import OnlineUpgradeStudent from "./AdminStudent/OnlineUpgradeStudent";
+import CreateExam from "../DocumentPrintFiles/ExamWorking/CreateExam";
+import ExamSubject from "../DocumentPrintFiles/ExamWorking/ExamSubject";
+import StudentResult from "./AdminStudent/StudentResult";
  
  
 
@@ -104,6 +107,9 @@ const adminRoutes = [
     { path: "/book-payments", element: <BookPaymentRequestList  />, role: ["5"] },
    { path: "/add-franchise-department/:id?", element: <AddFranchiseDepartment />, role: ["5"] },
     { path: "/student-payments/:id", element: <StudentPaymentHistory  />, role: ["5"] },
+      { path: "/exam-create", element: <CreateExam  />, role: ["5"] },
+      { path: "/exam-subject/:id", element: <ExamSubject />, role: ["5"] },
+      { path: "/student-result-check", element: <StudentResult />, role: ["5"] },
     
 ];
 

@@ -392,12 +392,25 @@ const StudyCenterRegistration = () => {
     const selectedCourses = courses.filter((course) => isCourseSelected(course));
 
     /* ================================
-       FILE
+       FILE (With Size Validation)
     ================================= */
 
     const handleFileChange = (e, fieldName) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        // ✅ File Size Validation (1MB for Photo/Signature, 2MB for Others)
+        let maxSizeInMB = 2;
+        if (fieldName === "passportPhoto" || fieldName === "authorizedSignature") {
+            maxSizeInMB = 1;
+        }
+        const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+
+        if (file.size > maxSizeInBytes) {
+            setErrors((prev) => ({ ...prev, [fieldName]: `File size exceeds the ${maxSizeInMB}MB limit.` }));
+            e.target.value = ""; // Reset input
+            return;
+        }
 
         if (previews[fieldName]) URL.revokeObjectURL(previews[fieldName]);
 
@@ -1172,13 +1185,13 @@ const StudyCenterRegistration = () => {
                             </div>
 
                             <div className="row">
-                                <FileUpload name="aadhaarCard" label="Aadhaar Card" icon={<FaIdCard />} required />
-                                <FileUpload name="panCard" label="PAN Card" icon={<FaFileInvoice />} required />
-                                <FileUpload name="passportPhoto" label="Passport Size Photo" icon={<FaCamera />} accept="image/*" required />
-                                <FileUpload name="authorizedSignature" label="Authorized Signature" icon={<FaSignature />} accept="image/*" required />
-                                <FileUpload name="instituteCertificate" label="Institute Registration Certificate / Building Photo" icon={<FaBuilding />} />
-                                <FileUpload name="buildingPhoto1" label="Building Photo 1" icon={<FaBuilding />} accept="image/*" description="Front / Outside View" />
-                                <FileUpload name="buildingPhoto2" label="Building Photo 2" icon={<FaBuilding />} accept="image/*" description="Inside / Classroom View" />
+                                <FileUpload name="aadhaarCard" label="Aadhaar Card (Max 2MB)" icon={<FaIdCard />} required />
+                                <FileUpload name="panCard" label="PAN Card (Max 2MB)" icon={<FaFileInvoice />} required />
+                                <FileUpload name="passportPhoto" label="Passport Size Photo (Max 1MB)" icon={<FaCamera />} accept="image/*" required />
+                                <FileUpload name="authorizedSignature" label="Authorized Signature (Max 1MB)" icon={<FaSignature />} accept="image/*" required />
+                                <FileUpload name="instituteCertificate" label="Institute Registration Certificate / Building Photo (Max 2MB)" icon={<FaBuilding />} />
+                                <FileUpload name="buildingPhoto1" label="Building Photo 1 (Max 2MB)" icon={<FaBuilding />} accept="image/*" description="Front / Outside View" />
+                                <FileUpload name="buildingPhoto2" label="Building Photo 2 (Max 2MB)" icon={<FaBuilding />} accept="image/*" description="Inside / Classroom View" />
                             </div>
                         </div>
 

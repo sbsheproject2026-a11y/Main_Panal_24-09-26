@@ -1,4 +1,4 @@
-  import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { employeecreateWallet, getPayMode } from "../../AllServicesFiles/WalletService";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -75,8 +75,23 @@ const WalletRecharge1 = () => {
     }
   };
 
+  // ✅ 1MB File Size Validation Added Here
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+
+    if (files && files.length > 0) {
+      const file = files[0];
+      const maxSizeInBytes = 1 * 1024 * 1024; // 1MB
+
+      if (file.size > maxSizeInBytes) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "File size exceeds the 1MB limit. Please upload a smaller file."
+        }));
+        e.target.value = ""; // Reset input
+        return;
+      }
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -568,8 +583,9 @@ const WalletRecharge1 = () => {
                         : "Click to upload payment slip"}
                     </strong>
 
+                    {/* ✅ UI Text me Max 1MB kar diya hai */}
                     <span>
-                      PNG, JPG, JPEG or PDF • Max 5MB
+                      PNG, JPG, JPEG or PDF • Max 1MB
                     </span>
                   </div>
 

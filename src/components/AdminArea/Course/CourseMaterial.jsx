@@ -98,8 +98,19 @@ function CourseMaterial() {
         setFormData((prev) => ({ ...prev, [field]: value, productId }));
     };
 
+    // ✅ 2MB File Size Check Yahan Add Kiya Hai
     const handleFileChange = (file) => {
         if (!file) return;
+
+        const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+        if (file.size > maxSizeInBytes) {
+            alert("File size exceeds the 2MB limit. Please upload a smaller file.");
+            if (fileInputRefs.current.create) {
+                fileInputRefs.current.create.value = ""; // Input reset
+            }
+            return;
+        }
+
         setFormData((prev) => ({ ...prev, fileupload1: file }));
     };
 
@@ -159,6 +170,14 @@ function CourseMaterial() {
         if (!formData.name?.trim()) { alert("Please enter Material Name."); return false; }
         if (!Number(formData.documentTypeId)) { alert("Please select Document Type."); return false; }
         
+        // ✅ Extra Size Check Submit ke waqt
+        if (formData.fileupload1 instanceof File) {
+            if (formData.fileupload1.size > 2 * 1024 * 1024) {
+                alert("File size exceeds the 2MB limit. Please upload a smaller file.");
+                return false;
+            }
+        }
+
         // Validation: Agar Create hai to file zaroori hai. Agar Edit hai to purani ya nayi dono me se ek honi chahiye.
         if (!isEditMode && !(formData.fileupload1 instanceof File)) { 
             alert("Please upload file."); 
@@ -185,8 +204,8 @@ function CourseMaterial() {
                 documentTypeId: Number(formData.documentTypeId) || 0,
                 srNo: Number(formData.srNo) || 0,
                 altTag: formData.altTag?.trim() || "",
-                fileupload1: formData.fileupload1 || null, // Agar nayi file hai to jayegi, warna null
-                fileupload: formData.fileupload || "",     // Purani file ka path jayega
+                fileupload1: formData.fileupload1 || null,
+                fileupload: formData.fileupload || "",     
             };
 
             if (isEditMode) {
@@ -402,7 +421,7 @@ function CourseMaterial() {
                                 </div>
                             </div>
 
-                            {/* 👇 FILE UPLOAD SECTION 👇 */}
+                            {/* FILE UPLOAD SECTION */}
                             <div className="material-form-card">
                                 <div className="material-card-header">
                                     <div className="header-icon-wrap green">
@@ -429,7 +448,8 @@ function CourseMaterial() {
                                                 <i className="bi bi-cloud-arrow-up"></i>
                                             </div>
                                             <h5>Click to upload or drag & drop</h5>
-                                            <p>Supported formats: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG</p>
+                                            {/* ✅ UI me Limit dikhane ke liye (Max 2MB) update kiya */}
+                                            <p>Supported formats: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (Max 2MB)</p>
                                             <button type="button" className="upload-zone-btn">
                                                 <i className="bi bi-folder2-open"></i>
                                                 Browse Files
@@ -445,7 +465,6 @@ function CourseMaterial() {
                                                 <span className="file-preview-tag">
                                                     {formData.fileupload1 ? "New File Selected" : "Existing File"}
                                                 </span>
-                                                {/* 👇 Yahan Name Show Ho Raha Hai 👇 */}
                                                 <strong>
                                                     {formData.fileupload1 
                                                         ? formData.fileupload1.name 
@@ -715,7 +734,7 @@ function CourseMaterial() {
                 </div>
             )}
 
-            {/* STYLE (Aapka purana style bilkul waisa hi rahega) */}
+            {/* STYLE */}
             <style>{`
                 html, body, #root { width: 100%; max-width: 100%; overflow-x: hidden !important; box-sizing: border-box; }
                 .course-material-page { width: 100%; max-width: 100%; min-width: 0; overflow-x: hidden; box-sizing: border-box; min-height: 100vh; padding: 24px; background: #f6f8fb; }

@@ -453,4 +453,44 @@ export const PayPendingStudent = async (data) => {
     return response.data;
 };
 
- 
+ //Subjects Add 
+export const createNewExam = async (data) => {
+    const response = await api.post(
+        "/Exam/exam-create",
+        data
+    );
+
+    return response.data;
+};
+
+export const getSubjectexamlist = async (id) => {
+    const response = await api.get(
+        `/Exam/exam-detail-getall/${id}`
+    );
+
+    return response.data;
+};
+export const getSubjectexambyid = async (id) => {
+    const response = await api.get(
+        `/Exam/exam-getbyid/${id}`
+    );
+
+    return response.data;
+};
+  
+export const updateNewExam = async (data) => {
+    const response = await api.post(
+        "/Exam/exam-update-question",
+        data
+    );
+
+    return response.data;
+};
+
+export const getSubjectexamdelete = async (id) => {
+    const response = await api.delete(
+        `/Exam/exam-delete/${id}`
+    );
+
+    return response.data;
+};

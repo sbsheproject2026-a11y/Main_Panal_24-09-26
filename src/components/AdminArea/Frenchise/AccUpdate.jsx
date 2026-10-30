@@ -76,7 +76,7 @@ const Field = ({
 );
 
 /* ============================================================
-   ✅ FileUpload Component
+   ✅ FileUpload Component (UPDATED with Errors)
 ============================================================ */
 const FileUpload = ({
     name,
@@ -87,7 +87,8 @@ const FileUpload = ({
     formData,
     previews,
     handleFileChange,
-    removeFile
+    removeFile,
+    errors // ✅ Errors prop add kiya
 }) => {
     const selectedFile = formData[name];
     const preview = previews[name];
@@ -99,7 +100,7 @@ const FileUpload = ({
 
                 <div>
                     <h4>{label}</h4>
-                    <p>{description || "JPG, PNG or PDF"}</p>
+                    <p>{description || "JPG, PNG or PDF"} (Max 2MB)</p>
                 </div>
             </div>
 
@@ -161,6 +162,14 @@ const FileUpload = ({
                     </div>
                 </div>
             )}
+
+            {/* ✅ Naya addition: File Error Show karne ke liye */}
+            {errors && errors[name] && (
+                <div className="acc-error" style={{ marginTop: "8px" }}>
+                    <i className="bi bi-exclamation-circle"></i>
+                    {errors[name]}
+                </div>
+            )}
         </div>
     );
 };
@@ -211,7 +220,6 @@ const ExistingFile = ({ file, label, type = "image" }) => {
 
 /* ============================================================
    ✅ DocumentCard — FileUpload + ExistingFile wrapper
-   (Yeh naya hai — taaki dono ek hi card mein rahein)
 ============================================================ */
 const DocumentCard = ({ uploadProps, existingFile, existingType = "image", existingLabel }) => (
     <div className="acc-document-card-wrapper">
@@ -436,10 +444,22 @@ const AccUpdate = () => {
         }
     };
 
+    // ✅ 2MB File Size Check Added Here (With Alert)
     const handleFileChange = useCallback((e, name) => {
         const file = e.target.files?.[0];
 
         if (!file) return;
+
+        // 2MB = 2 * 1024 * 1024 bytes
+        const maxSizeInBytes = 2 * 1024 * 1024;
+        if (file.size > maxSizeInBytes) {
+            // ✅ Alert popup add kiya
+            alert("File size exceeds the 2MB limit. Please upload a smaller file.");
+            
+            setErrors((prev) => ({ ...prev, [name]: "File size exceeds the 2MB limit. Please upload a smaller file." }));
+            e.target.value = ""; // Input clear kar dein
+            return;
+        }
 
         setFormData((prev) => ({ ...prev, [name]: file }));
 
@@ -459,6 +479,11 @@ const AccUpdate = () => {
     const removeFile = useCallback((name) => {
         setFormData((prev) => ({ ...prev, [name]: null }));
         setPreviews((prev) => ({ ...prev, [name]: "" }));
+        // Remove file error if exists
+        setErrors((prev) => {
+            if (!prev[name]) return prev;
+            return { ...prev, [name]: "" };
+        });
     }, []);
 
     const validateForm = () => {
@@ -779,7 +804,6 @@ const AccUpdate = () => {
             font-size: 10px;
         }
 
-        /* ✅ Wrapper — FileUpload + ExistingFile ek saath */
         .acc-document-card-wrapper {
             display: flex;
             flex-direction: column;
@@ -967,7 +991,6 @@ const AccUpdate = () => {
             font-weight: 700;
         }
 
-        /* ✅ Existing File — ab apne card ke andar */
         .acc-existing-file {
             display: flex;
             align-items: center;
@@ -1499,7 +1522,8 @@ const AccUpdate = () => {
                                                 formData,
                                                 previews,
                                                 handleFileChange,
-                                                removeFile
+                                                removeFile,
+                                                errors // ✅ Errors pass kiya
                                             }}
                                             existingFile={formData.passportPhoto1}
                                             existingLabel="Passport Photo"
@@ -1519,7 +1543,8 @@ const AccUpdate = () => {
                                                 formData,
                                                 previews,
                                                 handleFileChange,
-                                                removeFile
+                                                removeFile,
+                                                errors // ✅ Errors pass kiya
                                             }}
                                             existingFile={formData.authorizedSignature1}
                                             existingLabel="Authorized Signature"
@@ -1539,7 +1564,8 @@ const AccUpdate = () => {
                                                 formData,
                                                 previews,
                                                 handleFileChange,
-                                                removeFile
+                                                removeFile,
+                                                errors // ✅ Errors pass kiya
                                             }}
                                             existingFile={formData.instituteCertificate1}
                                             existingLabel="Institute Certificate"
@@ -1559,7 +1585,8 @@ const AccUpdate = () => {
                                                 formData,
                                                 previews,
                                                 handleFileChange,
-                                                removeFile
+                                                removeFile,
+                                                errors // ✅ Errors pass kiya
                                             }}
                                             existingFile={formData.aadhaarCard1}
                                             existingLabel="Aadhaar Card"
@@ -1579,7 +1606,8 @@ const AccUpdate = () => {
                                                 formData,
                                                 previews,
                                                 handleFileChange,
-                                                removeFile
+                                                removeFile,
+                                                errors // ✅ Errors pass kiya
                                             }}
                                             existingFile={formData.panCard1}
                                             existingLabel="PAN Card"
@@ -1599,7 +1627,8 @@ const AccUpdate = () => {
                                                 formData,
                                                 previews,
                                                 handleFileChange,
-                                                removeFile
+                                                removeFile,
+                                                errors // ✅ Errors pass kiya
                                             }}
                                             existingFile={formData.buildingPhoto11}
                                             existingLabel="Building Photo 1"
@@ -1619,7 +1648,8 @@ const AccUpdate = () => {
                                                 formData,
                                                 previews,
                                                 handleFileChange,
-                                                removeFile
+                                                removeFile,
+                                                errors // ✅ Errors pass kiya
                                             }}
                                             existingFile={formData.buildingPhoto21}
                                             existingLabel="Building Photo 2"

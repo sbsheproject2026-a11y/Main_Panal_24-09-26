@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Select from "react-select";
 import { toast, ToastContainer } from "react-toastify";
@@ -329,10 +329,39 @@ const NewStudentRegistration = () => {
     };
 
     // =========================
-    // Generic Change
+    // Generic Change (With File Size Validation)
     // =========================
     const handleChange = async (e) => {
         const { name, value, files, type } = e.target;
+
+        // ✅ File Size Validation (1MB for Photo/Signature, 2MB for Aadhaar)
+        if (type === "file" && files && files.length > 0) {
+            const file = files[0];
+            let maxMB = 2; // Default 2MB
+            let fieldName = "Document";
+
+            if (name === "selfImage1") {
+                maxMB = 1;
+                fieldName = "Student Photo";
+            } else if (name === "signatureImage1") {
+                maxMB = 1;
+                fieldName = "Signature Image";
+            } else if (name === "aadhaarCardFrant1") {
+                maxMB = 2;
+                fieldName = "Aadhaar Front";
+            } else if (name === "aadhaarCardBack1") {
+                maxMB = 2;
+                fieldName = "Aadhaar Back";
+            }
+
+            const maxSizeInBytes = maxMB * 1024 * 1024;
+
+            if (file.size > maxSizeInBytes) {
+                toast.error(`${fieldName} size exceeds the ${maxMB}MB limit.`);
+                e.target.value = ""; // Input reset
+                return;
+            }
+        }
 
         const newValue = type === "file" ? files?.[0] || null : value;
 
@@ -378,9 +407,20 @@ const NewStudentRegistration = () => {
             label: item.name,
         }));
 
-    // ✅ File input — e.target.value reset NAHI karna
+    // ✅ Academic File Change (With File Size Validation - Max 2MB)
     const handleAcademicChange = (index, e) => {
         const { name, value, files, type } = e.target;
+
+        if (type === "file" && files && files.length > 0) {
+            const file = files[0];
+            const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+
+            if (file.size > maxSizeInBytes) {
+                toast.error("Academic document size exceeds the 2MB limit.");
+                e.target.value = ""; // Input reset
+                return;
+            }
+        }
 
         setFormData((prev) => {
             const academicDetails = [...prev.academicDetails];
@@ -538,9 +578,6 @@ const NewStudentRegistration = () => {
             newErrors.courseCategoryId = "Course category is required";
         if (!formData.courseId)
             newErrors.courseId = "Course is required";
-
-        // if (!formData.courseMetrialID)
-        //     newErrors.courseMetrialID = "Study Material Type is required";
 
         const invalidAcademic = formData.academicDetails.some(
             (a) => !a.levelTypeId
@@ -734,56 +771,6 @@ const NewStudentRegistration = () => {
                                         )}
                                     </div>
                                 </div>
-
-                                {/* ✅ STUDY MATERIAL TYPE RADIO BUTTONS */}
-                              
-                                {/* <div className="row">
-                                    <div className="col-12 mb-2">
-                                        <label>
-                                            Study Material Type <span>*</span>
-                                        </label>
-                                    </div>
-
-                                    <div className="col-md-6 mb-3">
-                                        <label className="material-radio">
-                                            <input
-                                                type="radio"
-                                                name="courseMetrialID"
-                                                value={142}
-                                                checked={
-                                                    formData.courseMetrialID === 142
-                                                }
-                                                onChange={() =>
-                                                    handleMaterialChange(142)
-                                                }
-                                            />
-                                            <span>Hard Copy (Book's)</span>
-                                        </label>
-                                    </div>
-
-                                    <div className="col-md-6 mb-3">
-                                        <label className="material-radio">
-                                            <input
-                                                type="radio"
-                                                name="courseMetrialID"
-                                                value={143}
-                                                checked={
-                                                    formData.courseMetrialID === 143
-                                                }
-                                                onChange={() =>
-                                                    handleMaterialChange(143)
-                                                }
-                                            />
-                                            <span>Soft Copy (PDF)</span>
-                                        </label>
-                                    </div>
-
-                                    {errors.courseMetrialID && (
-                                        <div className="col-12">
-                                            <ErrorText text={errors.courseMetrialID} />
-                                        </div>
-                                    )}
-                                </div> */}
                             </div>
 
                             {/* ===== PERSONAL DETAILS ===== */}
@@ -1133,7 +1120,7 @@ const NewStudentRegistration = () => {
 
                                                                 <td>
                                                                     <label className="academic-mobile-label">
-                                                                        Document
+                                                                        Document (Max 2MB)
                                                                     </label>
                                                                     <div className="document-action-wrapper">
                                                                         <div className="document-input-wrapper">
@@ -1402,7 +1389,7 @@ const NewStudentRegistration = () => {
 
                                 <div className="row">
                                     <DocumentUpload
-                                        label="Student Photo"
+                                        label="Student Photo (Max 1MB)"
                                         required
                                         name="selfImage1"
                                         file={formData.selfImage1}
@@ -1412,7 +1399,7 @@ const NewStudentRegistration = () => {
                                         accept="image/*"
                                     />
                                     <DocumentUpload
-                                        label="Signature Image"
+                                        label="Signature Image (Max 1MB)"
                                         name="signatureImage1"
                                         file={formData.signatureImage1}
                                         onChange={handleChange}
@@ -1420,7 +1407,7 @@ const NewStudentRegistration = () => {
                                         accept="image/*"
                                     />
                                     <DocumentUpload
-                                        label="Aadhaar Front"
+                                        label="Aadhaar Front (Max 2MB)"
                                         name="aadhaarCardFrant1"
                                         file={formData.aadhaarCardFrant1}
                                         onChange={handleChange}
@@ -1428,7 +1415,7 @@ const NewStudentRegistration = () => {
                                         accept="image/*"
                                     />
                                     <DocumentUpload
-                                        label="Aadhaar Back"
+                                        label="Aadhaar Back (Max 2MB)"
                                         name="aadhaarCardBack1"
                                         file={formData.aadhaarCardBack1}
                                         onChange={handleChange}

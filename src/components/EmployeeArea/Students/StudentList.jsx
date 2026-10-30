@@ -11,7 +11,7 @@ function StudentList() {
 
   // ✅ Role 33 → referenceId, warna loginUserId
   const userId = roleId === "33" ? referenceId : loginUserId;
- const [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const studyModeId = Number(searchParams.get("studyModeId")) || 0;
 
   const [data, setData] = useState([]);
@@ -46,17 +46,13 @@ function StudentList() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [userId, pageNo, pageSize, search,studyModeId]);
+  }, [userId, pageNo, pageSize, search, studyModeId]);
 
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const result = await getStudents(userId, pageNo, pageSize, search,studyModeId);
+      const result = await getStudents(userId, pageNo, pageSize, search, studyModeId);
 
-      // ✅ DEBUG — API response structure dekhne ke liye
-      console.log("Student API Response:", result);
-
-      // ✅ Data nikaalo — multiple possible paths
       const responseData =
         result?.data?.data ??
         result?.data?.items ??
@@ -68,7 +64,6 @@ function StudentList() {
         result ??
         [];
 
-      // ✅ TotalRecords nikaalo — multiple possible field names
       const total =
         result?.data?.totalRecords ??
         result?.data?.totalCount ??
@@ -81,9 +76,6 @@ function StudentList() {
         result?.count ??
         result?.recordsTotal ??
         (Array.isArray(responseData) ? responseData.length : 0);
-
-      console.log("Extracted Data Length:", Array.isArray(responseData) ? responseData.length : "not array");
-      console.log("Extracted Total:", total);
 
       setData(Array.isArray(responseData) ? responseData : []);
       setTotalRecords(Number(total) || 0);
@@ -511,64 +503,65 @@ function StudentList() {
           color: #f25f5c;
         }
 
+        /* ✅ STICKY ACTION COLUMN FIX */
+        .student-table th.action-column,
+        .student-table td.action-column {
+          position: sticky !important;
+          right: 0;
+          z-index: 5;
+          background-color: #fff;
+          box-shadow: -4px 0 8px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        .student-table thead th.action-column {
+          background-color: #f8f9fc !important;
+          z-index: 6;
+        }
+
+        .student-table tbody tr:hover td.action-column {
+          background-color: #fafbff;
+        }
+
         .action-column {
           text-align: center;
+          min-width: 180px; /* Fixed width for buttons */
         }
 
         .student-actions {
-          display: inline-flex;
+          display: flex;
           align-items: center;
-          gap: 7px;
+          justify-content: center;
+          gap: 6px;
+          flex-wrap: wrap;
         }
 
         .student-action {
           height: 34px;
-          min-width: 34px;
-          padding: 0 10px;
+          width: 34px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           border: 0;
-          border-radius: 9px;
+          border-radius: 8px;
           cursor: pointer;
-          font-size: 11px;
-          font-weight: 600;
+          font-size: 13px;
           transition: all .2s ease;
         }
 
-        .student-action i {
-          font-size: 13px;
-        }
+        .student-action.print { color: #4154f1; background: #eef1ff; }
+        .student-action.print:hover { color: #fff; background: #4154f1; }
 
-        .student-action.view {
-          color: #3578c7;
-          background: #eef6ff;
-        }
+        .student-action.view { color: #3578c7; background: #eef6ff; }
+        .student-action.view:hover { color: #fff; background: #3578c7; }
 
-        .student-action.view:hover {
-          color: #fff;
-          background: #3578c7;
-        }
+        .student-action.pdf { color: #e5484d; background: #fff0f0; }
+        .student-action.pdf:hover { color: #fff; background: #e5484d; }
 
-        .student-action.edit {
-          color: #d68b00;
-          background: #fff7e6;
-        }
+        .student-action.edit { color: #d68b00; background: #fff7e6; }
+        .student-action.edit:hover { color: #fff; background: #e5a000; }
 
-        .student-action.edit:hover {
-          color: #fff;
-          background: #e5a000;
-        }
-
-        .student-action.delete {
-          color: #e5484d;
-          background: #fff0f0;
-        }
-
-        .student-action.delete:hover {
-          color: #fff;
-          background: #e5484d;
-        }
+        .student-action.delete { color: #e5484d; background: #fff0f0; }
+        .student-action.delete:hover { color: #fff; background: #e5484d; }
 
         .student-empty-state {
           height: 280px;
@@ -920,7 +913,6 @@ function StudentList() {
                         <th>Student</th>
                         <th>Father's Name</th>
                         <th>Mobile No./Email</th>
-                         
                         <th>Username/Password</th>
                         <th>Address</th>
                         <th className="action-column">Action</th>
@@ -1003,13 +995,11 @@ function StudentList() {
                               </span>
                             </td>
 
-                             
-
                             <td>
                               <span className="username-badge">
                                 <i className="bi bi-person-circle me-1"></i>
                                 {item.userName || "-"}
-                              <br/>
+                                <br/>
                                 {item.password || "-"}
                               </span>
                             </td>
@@ -1033,11 +1023,11 @@ function StudentList() {
                               <div className="student-actions">
                                 <button
                                   type="button"
-                                  className="student-action view"
+                                  className="student-action print"
                                   onClick={() => handleformprint(item.id)}
                                   title="Print Admission Form"
                                 >
-                                  Print
+                                  <i className="bi bi-printer-fill"></i>
                                 </button>
                                 <button
                                   type="button"
@@ -1050,7 +1040,7 @@ function StudentList() {
 
                                 <button
                                   type="button"
-                                  className="student-action view"
+                                  className="student-action pdf"
                                   onClick={() => handleAcademicdetails(item.id)}
                                   title="View Documents"
                                 >
@@ -1119,7 +1109,6 @@ function StudentList() {
                 </div>
               </div>
 
-              {/* ✅ Pagination — jab tak totalRecords > 0 ho */}
               {totalRecords > 0 && (
                 <div className="student-table-footer">
                   <div className="student-record-info">

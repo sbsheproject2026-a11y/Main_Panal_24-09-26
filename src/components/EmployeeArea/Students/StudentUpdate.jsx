@@ -1,5 +1,4 @@
- 
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getCity,
@@ -192,11 +191,41 @@ function StudentUpdate() {
     }
   };
 
+  // ✅ File Size Validation Added Here
   const handleChange = async (e) => {
     const { name, value, files, type } = e.target;
 
     if (type === "file") {
       const file = files?.[0] || null;
+
+      if (file) {
+        // --- ✅ Size Limit Logic Start ---
+        let maxSizeInMB = 2; // Default to 2MB
+        let docName = "Document";
+
+        if (name === "selfImage1") {
+          maxSizeInMB = 1;
+          docName = "Student Photo";
+        } else if (name === "signatureImage1") {
+          maxSizeInMB = 1;
+          docName = "Signature";
+        } else if (name === "aadhaarCardFrant1") {
+          maxSizeInMB = 2;
+          docName = "Aadhaar Front";
+        } else if (name === "aadhaarCardBack1") {
+          maxSizeInMB = 2;
+          docName = "Aadhaar Back";
+        }
+
+        const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+
+        if (file.size > maxSizeInBytes) {
+          alert(`${docName} size exceeds the ${maxSizeInMB}MB limit. Please upload a smaller file.`);
+          e.target.value = ""; // Clear the input
+          return; // Stop processing
+        }
+        // --- ✅ Size Limit Logic End ---
+      }
 
       setFormData((prev) => ({
         ...prev,
@@ -308,10 +337,10 @@ function StudentUpdate() {
         signatureImage: result.signatureImage ?? "",
         aadhaarCardFront: result.aadhaarCardFrant ?? "",
         aadhaarCardBack: result.aadhaarCardBack ?? "",
-        selfImageShow: result.selfImageShow ?? "",
-        signatureImageShow: result.signatureImageShow ?? "",
-        aadhaarCardFrantShow: result.aadhaarCardFrantShow ?? "",
-        aadhaarCardBackShow: result.aadhaarCardBackShow ?? "",
+        selfImageShow: result.selfImage ?? "",
+        signatureImageShow: result.signatureImage ?? "",
+        aadhaarCardFrantShow: result.aadhaarCardFrant ?? "",
+        aadhaarCardBackShow: result.aadhaarCardBack ?? "",
         idNumber: result.idNumber ?? "",
         whatsAppNo: result.whatsAppNo ?? "",
         email: result.email ?? "",
@@ -1016,15 +1045,6 @@ function StudentUpdate() {
               </div>
             </div>
           </div>
-
-          {/* <button
-            type="button"
-            className="student-back-btn"
-            onClick={() => navigate("/student-list")}
-          >
-            <i className="bi bi-arrow-left"></i>
-            Back to Students
-          </button> */}
         </div>
 
         <div className="student-profile-card">
@@ -1646,76 +1666,6 @@ function StudentUpdate() {
                 </div>
               </div>
 
-              {/* <div className="student-form-section">
-                <div className="student-section-header">
-                  <div className="student-section-icon">
-                    <i className="bi bi-mortarboard"></i>
-                  </div>
-                  <div>
-                    <h3 className="student-section-title">Academic Details</h3>
-                    <div className="student-section-subtitle">
-                      Existing academic records
-                    </div>
-                  </div>
-                </div>
-
-                <div className="student-section-content">
-                  {academicDetails.length > 0 ? (
-                    <div className="student-academic-wrapper">
-                      <table className="student-academic-table">
-                        <thead>
-                          <tr>
-                            <th>#</th>
-                            <th>School / College</th>
-                            <th>Roll No</th>
-                            <th>Board / University</th>
-                            <th>Percentage / CGPA</th>
-                            <th>Document</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {academicDetails.map((item, index) => (
-                            <tr key={item.id || index}>
-                              <td>
-                                <span className="student-academic-number">
-                                  {index + 1}
-                                </span>
-                              </td>
-                              <td>{value(item.schoolCollege)}</td>
-                              <td>{value(item.rollNo)}</td>
-                              <td>{value(item.boardUniversity)}</td>
-                              <td>{value(item.percentageCgpa)}</td>
-                              <td>
-                                {item.fileName ? (
-                                  <a
-                                    href={item.fileName}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="student-document-btn"
-                                  >
-                                    <i className="bi bi-file-earmark-pdf"></i>
-                                    View
-                                  </a>
-                                ) : (
-                                  <span className="student-no-document">
-                                    No Document
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="student-empty-academic">
-                      <i className="bi bi-mortarboard fs-3 d-block mb-2"></i>
-                      No academic details available
-                    </div>
-                  )}
-                </div>
-              </div> */}
-
               <div className="student-form-section">
                 <div className="student-section-header">
                   <div className="student-section-icon">
@@ -1736,7 +1686,7 @@ function StudentUpdate() {
                         <div className="student-file-card">
                           <div className="student-file-title">
                             <i className="bi bi-person-bounding-box"></i>
-                            Student Photo
+                            Student Photo (Max 1MB)
                           </div>
 
                           <input
@@ -1750,8 +1700,7 @@ function StudentUpdate() {
                           <div className="student-preview-box">
                             {formData.selfImageShow ? (
                               <img
-                             
-                                 src={`${FILE_URL}${formData.selfImageShow}`}
+                                src={`${FILE_URL}${formData.selfImageShow}`}
                                 alt="Student"
                               />
                             ) : (
@@ -1770,7 +1719,7 @@ function StudentUpdate() {
                         <div className="student-file-card">
                           <div className="student-file-title">
                             <i className="bi bi-pen"></i>
-                            Signature
+                            Signature (Max 1MB)
                           </div>
 
                           <input
@@ -1784,8 +1733,7 @@ function StudentUpdate() {
                           <div className="student-preview-box">
                             {formData.signatureImageShow ? (
                               <img
-                            
-                                   src={`${FILE_URL}${formData.signatureImageShow}`}
+                                src={`${FILE_URL}${formData.signatureImageShow}`}
                                 alt="Signature"
                               />
                             ) : (
@@ -1804,7 +1752,7 @@ function StudentUpdate() {
                         <div className="student-file-card">
                           <div className="student-file-title">
                             <i className="bi bi-credit-card-2-front"></i>
-                            Aadhaar Front
+                            Aadhaar Front (Max 2MB)
                           </div>
 
                           <input
@@ -1818,8 +1766,7 @@ function StudentUpdate() {
                           <div className="student-preview-box">
                             {formData.aadhaarCardFrantShow ? (
                               <img
-                         
-                                 src={`${FILE_URL}${formData.aadhaarCardFrantShow}`}
+                                src={`${FILE_URL}${formData.aadhaarCardFrantShow}`}
                                 alt="Aadhaar Front"
                               />
                             ) : (
@@ -1838,7 +1785,7 @@ function StudentUpdate() {
                         <div className="student-file-card">
                           <div className="student-file-title">
                             <i className="bi bi-credit-card"></i>
-                            Aadhaar Back
+                            Aadhaar Back (Max 2MB)
                           </div>
 
                           <input
@@ -1852,8 +1799,7 @@ function StudentUpdate() {
                           <div className="student-preview-box">
                             {formData.aadhaarCardBackShow ? (
                               <img
-                               
-                                        src={`${FILE_URL}${formData.aadhaarCardBackShow}`}
+                                src={`${FILE_URL}${formData.aadhaarCardBackShow}`}
                                 alt="Aadhaar Back"
                               />
                             ) : (
@@ -1872,15 +1818,6 @@ function StudentUpdate() {
             </div>
 
             <div className="student-form-footer">
-              {/* <button
-                type="button"
-                className="student-cancel-btn"
-                onClick={() => navigate("/student-list")}
-              >
-                <i className="bi bi-arrow-left"></i>
-                Back
-              </button> */}
-
               <button type="submit" className="student-update-btn">
                 <i className="bi bi-check2-circle"></i>
                 Update Student

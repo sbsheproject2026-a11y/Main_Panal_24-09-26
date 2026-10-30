@@ -179,8 +179,37 @@ const StudentCreate = () => {
         }
     };
 
+    // ✅ File Size Validation Added Here
     const handleChange = async (e) => {
         const { name, value, files, type } = e.target;
+
+        if (type === "file" && files && files.length > 0) {
+            const file = files[0];
+            let maxMB = 2;
+            let fieldName = "Document";
+
+            if (name === "selfImage1") {
+                maxMB = 1;
+                fieldName = "Student Photo";
+            } else if (name === "signatureImage1") {
+                maxMB = 1;
+                fieldName = "Signature Image";
+            } else if (name === "aadhaarCardFrant1") {
+                maxMB = 2;
+                fieldName = "Aadhaar Front";
+            } else if (name === "aadhaarCardBack1") {
+                maxMB = 2;
+                fieldName = "Aadhaar Back";
+            }
+
+            const maxSizeInBytes = maxMB * 1024 * 1024;
+
+            if (file.size > maxSizeInBytes) {
+                toast.error(`${fieldName} size exceeds the ${maxMB}MB limit.`);
+                e.target.value = ""; // Input reset
+                return;
+            }
+        }
 
         const newValue = type === "file" ? files?.[0] || null : value;
 
@@ -227,8 +256,20 @@ const StudentCreate = () => {
         }));
     };
 
+    // ✅ Academic File Size Validation Added Here
     const handleAcademicChange = (index, e) => {
         const { name, value, files, type } = e.target;
+
+        if (type === "file" && files && files.length > 0) {
+            const file = files[0];
+            const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+
+            if (file.size > maxSizeInBytes) {
+                toast.error("Academic document size exceeds the 2MB limit.");
+                e.target.value = ""; // Input reset
+                return;
+            }
+        }
 
         setFormData((prev) => {
             const academicDetails = [...prev.academicDetails];
@@ -724,7 +765,7 @@ const StudentCreate = () => {
                                                             {/* ✅ FIXED: Document Cell */}
                                                             <td>
                                                                 <label className="academic-mobile-label academic-desktop-label">
-                                                                    Document
+                                                                    Document (Max 2MB)
                                                                 </label>
 
                                                                 <div className="document-action-wrapper">
@@ -904,7 +945,7 @@ const StudentCreate = () => {
 
                                 <div className="row">
                                     <DocumentUpload
-                                        label="Student Photo"
+                                        label="Student Photo (Max 1MB)"
                                         required
                                         name="selfImage1"
                                         file={formData.selfImage1}
@@ -914,7 +955,7 @@ const StudentCreate = () => {
                                         accept="image/*"
                                     />
                                     <DocumentUpload
-                                        label="Signature Image"
+                                        label="Signature Image (Max 1MB)"
                                         name="signatureImage1"
                                         file={formData.signatureImage1}
                                         onChange={handleChange}
@@ -922,7 +963,7 @@ const StudentCreate = () => {
                                         accept="image/*"
                                     />
                                     <DocumentUpload
-                                        label="Aadhaar Front"
+                                        label="Aadhaar Front (Max 2MB)"
                                         name="aadhaarCardFrant1"
                                         file={formData.aadhaarCardFrant1}
                                         onChange={handleChange}
@@ -930,7 +971,7 @@ const StudentCreate = () => {
                                         accept="image/*"
                                     />
                                     <DocumentUpload
-                                        label="Aadhaar Back"
+                                        label="Aadhaar Back (Max 2MB)"
                                         name="aadhaarCardBack1"
                                         file={formData.aadhaarCardBack1}
                                         onChange={handleChange}

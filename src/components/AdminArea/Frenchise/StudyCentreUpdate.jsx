@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import {
     FaUniversity, FaSchool, FaUserTie, FaHistory, FaMobileAlt, FaPhoneAlt,
     FaEnvelope, FaHandshake, FaMapMarkedAlt, FaMap, FaCity, FaMapPin,
@@ -225,9 +225,18 @@ const StudyCentreUpdate = () => {
     const getCityId = (item) => item?.id;
     const getCityName = (item) => item?.name;
 
+    // ✅ Yahan 2MB File Size Check Add Kiya Gaya Hai
     const handleFileChange = (e, fieldName) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        // 2MB = 2 * 1024 * 1024 bytes
+        const maxSizeInBytes = 2 * 1024 * 1024; 
+        if (file.size > maxSizeInBytes) {
+            setErrors((prev) => ({ ...prev, [fieldName]: "File size exceeds the 2MB limit." }));
+            e.target.value = ""; // Input clear kar dein
+            return;
+        }
 
         if (previews[fieldName]) URL.revokeObjectURL(previews[fieldName]);
 
@@ -334,8 +343,6 @@ if (data.classrooms === "" || data.classrooms == null) {
         try {
             const result = await updateStudyCentre(formData);
 
-             
-
               if (result?.message === "Successfully") {
                 navigate("/franchise-list");
 
@@ -370,7 +377,8 @@ if (data.classrooms === "" || data.classrooms == null) {
                             ) : (
                                 <>
                                     <strong>Click to upload</strong>
-                                    <small>{description || "PDF / JPG / PNG"}</small>
+                                    {/* Yahan (Max 2MB) add kar diya taaki user ko pata rahe */}
+                                    <small>{description || "PDF / JPG / PNG"} (Max 2MB)</small>
                                 </>
                             )}
                         </div>
@@ -708,7 +716,7 @@ if (data.classrooms === "" || data.classrooms == null) {
 
                             <div className="scr-document-note">
                                 <FaShieldAlt />
-                                <div><strong>Document Upload Guidelines</strong><span>Upload clear and readable documents. JPG, PNG or PDF files are accepted.</span></div>
+                                <div><strong>Document Upload Guidelines</strong><span>Upload clear and readable documents. JPG, PNG or PDF files are accepted (Max 2MB).</span></div>
                             </div>
 
                             <div className="row">
@@ -780,13 +788,6 @@ if (data.classrooms === "" || data.classrooms == null) {
                             </div>
 
                             <div className="row">
-                                {/* <div className="col-md-12">
-                                    <div className="scr-group">
-                                        <label>Courses Offered</label>
-                                        <div className="scr-textarea"><FaBookOpen /><textarea name="coursesOffered" className="form-control" rows="3" placeholder="Enter courses offered by the center" value={formData.coursesOffered} onChange={handleChange} /></div>
-                                    </div>
-                                </div> */}
-
                                 <div className="col-md-12">
                                     <div className="scr-group">
                                         <label>Message</label>

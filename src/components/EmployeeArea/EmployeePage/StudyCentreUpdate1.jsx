@@ -147,7 +147,7 @@ const StudyCentreUpdate1 = () => {
 
 
     // ================================
-    // FILE CHANGE
+    // FILE CHANGE (With Size Validation)
     // ================================
 
     const handleFileChange = (e, fieldName) => {
@@ -155,6 +155,24 @@ const StudyCentreUpdate1 = () => {
         const file = e.target.files?.[0];
 
         if (!file) {
+            return;
+        }
+
+        // ✅ File Size Validation
+        let maxSizeInMB = 2; // Default 2MB
+        if (fieldName === "passportPhoto" || fieldName === "authorizedSignature") {
+            maxSizeInMB = 1; // 1MB for Photo & Signature
+        }
+        
+        const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+
+        if (file.size > maxSizeInBytes) {
+            alert(`File size exceeds the ${maxSizeInMB}MB limit. Please upload a smaller file.`);
+            setErrors((prev) => ({
+                ...prev,
+                [fieldName]: `File size exceeds the ${maxSizeInMB}MB limit.`
+            }));
+            e.target.value = ""; // Reset input
             return;
         }
 
@@ -470,22 +488,6 @@ const StudyCentreUpdate1 = () => {
 
             setLoading(true);
 
-            /*
-             IMPORTANT:
-
-             Existing files:
-             aadhaarCard1
-             panCard1
-             etc.
-
-             New files:
-             aadhaarCard
-             panCard
-             etc.
-
-             Only new selected files will be File objects.
-            */
-
             const result = await updateStudyCentreapi(formData);
 
             console.log(
@@ -641,7 +643,7 @@ const StudyCentreUpdate1 = () => {
                                     label="Aadhaar Card"
                                     icon={<FaIdCard />}
                                     accept="image/*,.pdf"
-                                    description="JPG, PNG or PDF"
+                                    description="JPG, PNG or PDF (Max 2MB)"
                                 />
 
 
@@ -653,7 +655,7 @@ const StudyCentreUpdate1 = () => {
                                     label="PAN Card"
                                     icon={<FaFileInvoice />}
                                     accept="image/*,.pdf"
-                                    description="JPG, PNG or PDF"
+                                    description="JPG, PNG or PDF (Max 2MB)"
                                 />
 
 
@@ -665,7 +667,7 @@ const StudyCentreUpdate1 = () => {
                                     label="Passport Size Photo"
                                     icon={<FaCamera />}
                                     accept="image/*"
-                                    description="JPG / PNG image"
+                                    description="JPG / PNG image (Max 1MB)"
                                 />
 
 
@@ -677,7 +679,7 @@ const StudyCentreUpdate1 = () => {
                                     label="Authorized Signature"
                                     icon={<FaSignature />}
                                     accept="image/*"
-                                    description="JPG / PNG image"
+                                    description="JPG / PNG image (Max 1MB)"
                                 />
 
 
@@ -689,7 +691,7 @@ const StudyCentreUpdate1 = () => {
                                     label="Institute Registration Certificate / Building Photo"
                                     icon={<FaBuilding />}
                                     accept="image/*,.pdf"
-                                    description="Certificate PDF or Building Photo"
+                                    description="Certificate PDF or Building Photo (Max 2MB)"
                                 />
 
 
@@ -701,7 +703,7 @@ const StudyCentreUpdate1 = () => {
                                     label="Building Photo 1"
                                     icon={<FaBuilding />}
                                     accept="image/*"
-                                    description="Front / Outside View"
+                                    description="Front / Outside View (Max 2MB)"
                                 />
 
 
@@ -713,7 +715,7 @@ const StudyCentreUpdate1 = () => {
                                     label="Building Photo 2"
                                     icon={<FaBuilding />}
                                     accept="image/*"
-                                    description="Inside / Classroom View"
+                                    description="Inside / Classroom View (Max 2MB)"
                                 />
 
                             </div>

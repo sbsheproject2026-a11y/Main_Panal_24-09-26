@@ -627,7 +627,7 @@ const MarksheetPrint = () => {
                     fontStyle: FONT_STYLE,
                     color: FONT_COLOR,
                     align: "left",
-                    maxWidth: 75,
+                    maxWidth: 400,
                 },
                 selfImage: {
                     image: result.selfImage || "",

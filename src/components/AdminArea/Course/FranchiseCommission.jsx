@@ -1,6 +1,87 @@
- import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState, useRef } from "react";
 import { getCourseType, sendToSaveCommission, SetFranchiseCourseAmount } from "../../AllServicesFiles/CourseService";
 import { getFrenchisesAssign1 } from "../../AllServicesFiles/WalletService";
+
+// =========================================================
+// ✅ CUSTOM SEARCHABLE DROPDOWN COMPONENT
+// =========================================================
+const SearchableSelect = ({ options, value, onChange, placeholder, disabled, labelKey = "name", valueKey = "id" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [wrapperRef]);
+
+  const safeOptions = options || [];
+
+  const filteredOptions = safeOptions.filter((opt) =>
+    String(opt[labelKey] || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  const selectedOption = safeOptions.find((opt) => String(opt[valueKey]) === String(value));
+
+  return (
+    <div className="searchable-select-wrapper" ref={wrapperRef}>
+      <div
+        className={`form-select modern-input modern-select d-flex align-items-center justify-content-between ${disabled ? "bg-light text-muted" : ""}`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        style={{ cursor: disabled ? "not-allowed" : "pointer", minHeight: "46px" }}
+      >
+        <span className={selectedOption ? "text-dark" : "text-muted"}>
+          {selectedOption ? selectedOption[labelKey] : placeholder}
+        </span>
+        <i className={`bi bi-chevron-${isOpen ? "up" : "down"}`} style={{ fontSize: "12px", color: "#94a3b8" }}></i>
+      </div>
+
+      {isOpen && (
+        <div className="searchable-dropdown-menu shadow-lg">
+          <div className="p-2 border-bottom bg-white sticky-top">
+            <div className="input-group input-group-sm">
+              <input
+                type="text"
+                className="form-control border-start-0 ps-0"
+                placeholder="Search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                autoFocus
+              />
+            </div>
+          </div>
+          <ul className="list-unstyled mb-0 searchable-list">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt) => (
+                <li
+                  key={opt[valueKey]}
+                  className={`searchable-item ${String(opt[valueKey]) === String(value) ? "active" : ""}`}
+                  onClick={() => {
+                    onChange(opt[valueKey]);
+                    setIsOpen(false);
+                    setSearch("");
+                  }}
+                >
+                  {opt[labelKey]}
+                </li>
+              ))
+            ) : (
+              <li className="p-3 text-muted text-center" style={{ fontSize: "13px" }}>
+                No results found
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 function FranchiseCommission() {
   const [departments, setDepartments] = useState([]);
@@ -11,6 +92,9 @@ function FranchiseCommission() {
   const [bulkAmount, setBulkAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ✅ NAYA STATE: Course Table ke liye Search
+  const [courseSearch, setCourseSearch] = useState("");
+
   useEffect(() => {
     loadDepartments();
     loadFranchises();
@@ -19,7 +103,8 @@ function FranchiseCommission() {
   const loadDepartments = async () => {
     try {
       const result = await getCourseType(13);
-      setDepartments(result?.data || []);
+      const deptList = (result?.data || []).map(d => ({ id: d.id ?? d.Id, name: d.name ?? d.Name }));
+      setDepartments(deptList);
     } catch (error) {
       console.log(error);
     }
@@ -28,25 +113,24 @@ function FranchiseCommission() {
   const loadFranchises = async () => {
     try {
       const result = await getFrenchisesAssign1(9);
-      setFranchises(result?.data || []);
+      const franchiseList = (result?.data || []).map(f => ({ id: f.id ?? f.Id, name: f.name ?? f.Name }));
+      setFranchises(franchiseList);
     } catch (error) {
       console.log(error);
     }
   };
 
-  // Department change — state set karo + list clear
-  const handleDepartmentChange = (e) => {
-    setSelectedDept(e.target.value);
+  const handleDepartmentChange = (val) => {
+    setSelectedDept(val);
     setCourses([]);
     setBulkAmount("");
+    setCourseSearch(""); // Search clear on dept change
   };
 
-  // ✅ Franchise change — sirf state set karo, list clear NA karo
-  const handleFranchiseChange = (e) => {
-    setSelectedFranchise(e.target.value);
+  const handleFranchiseChange = (val) => {
+    setSelectedFranchise(val);
   };
 
-  // View button — API call
   const handleView = async () => {
     if (!selectedDept) {
       alert("Please select a department");
@@ -57,6 +141,7 @@ function FranchiseCommission() {
       setLoading(true);
       setCourses([]);
       setBulkAmount("");
+      setCourseSearch(""); // Clear search on new load
 
       const res = await SetFranchiseCourseAmount(
         selectedDept,
@@ -98,7 +183,6 @@ function FranchiseCommission() {
     setCourses((prev) => prev.map((c) => ({ ...c, amount: bulkAmount })));
   };
 
-  // Save — success pe sab reset
   const handleSave = async () => {
     if (!selectedDept) {
       alert("Please select a department");
@@ -117,21 +201,16 @@ function FranchiseCommission() {
       franchiseId: selectedFranchise ? Number(selectedFranchise) : null,
     }));
 
-    console.log("Save payload:", payload);
-
     try {
       const res = await sendToSaveCommission(payload);
-      console.log("Save response:", res);
-
       alert("Saved successfully!");
 
-      // ✅ SAB RESET
       setSelectedDept("");
       setSelectedFranchise("");
       setCourses([]);
       setBulkAmount("");
+      setCourseSearch(""); // Reset search
     } catch (err) {
-      console.log("Save error:", err);
       alert(
         err?.response?.data?.message ??
         err?.response?.data ??
@@ -139,6 +218,15 @@ function FranchiseCommission() {
       );
     }
   };
+
+  // ✅ FILTER LOGIC FOR TABLE
+  const filteredCourses = courses.filter((c) => {
+    const searchLower = courseSearch.toLowerCase();
+    return (
+      c.courseName.toLowerCase().includes(searchLower) ||
+      String(c.courseId).toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <>
@@ -154,45 +242,34 @@ function FranchiseCommission() {
 
           {/* Row: Franchise + Department + View button */}
           <div className="row g-3 mb-4 align-items-end">
-            {/* Franchise — optional */}
             <div className="col-md-4">
               <label className="fc-label">
                 Franchise <span className="fc-optional">(optional)</span>
               </label>
-              <select
-                className="form-select"
+              <SearchableSelect
+                options={franchises}
                 value={selectedFranchise}
                 onChange={handleFranchiseChange}
-              >
-                <option value="">-- Select Franchise --</option>
-                {franchises.map((f) => (
-                  <option key={f.id ?? f.Id} value={f.id ?? f.Id}>
-                    {f.name ?? f.Name}
-                  </option>
-                ))}
-              </select>
+                placeholder="-- Select Franchise --"
+                labelKey="name"
+                valueKey="id"
+              />
             </div>
 
-            {/* Department — required */}
             <div className="col-md-4">
               <label className="fc-label">
                 Department <span className="fc-required">*</span>
               </label>
-              <select
-                className="form-select"
+              <SearchableSelect
+                options={departments}
                 value={selectedDept}
                 onChange={handleDepartmentChange}
-              >
-                <option value="">-- Select Department --</option>
-                {departments.map((d) => (
-                  <option key={d.id ?? d.Id} value={d.id ?? d.Id}>
-                    {d.name ?? d.Name}
-                  </option>
-                ))}
-              </select>
+                placeholder="-- Select Department --"
+                labelKey="name"
+                valueKey="id"
+              />
             </div>
 
-            {/* View button */}
             <div className="col-md-4">
               <button
                 className="btn-view"
@@ -231,6 +308,24 @@ function FranchiseCommission() {
             </div>
           )}
 
+          {/* ✅ SEARCH BAR FOR TABLE */}
+          {courses.length > 0 && !loading && (
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h6 className="mb-0 text-muted" style={{ fontWeight: 600, color: '#475569' }}>Course List</h6>
+              <div style={{ position: 'relative', width: '300px' }}>
+                <i className="bi bi-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search Course Name or ID..."
+                  value={courseSearch}
+                  onChange={(e) => setCourseSearch(e.target.value)}
+                  style={{ paddingLeft: '35px', height: '40px', borderRadius: '8px', fontSize: '13px', border: '1.5px solid #e2e8f0' }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Table */}
           {loading ? (
             <div className="fc-empty">Loading...</div>
@@ -247,31 +342,39 @@ function FranchiseCommission() {
                     </tr>
                   </thead>
                   <tbody>
-                    {courses.map((c, idx) => (
-                      <tr key={c.courseId}>
-                        <td>
-                          <span className="fc-row-num">{idx + 1}</span>
-                        </td>
-                        <td>
-                          <span className="fc-badge">{c.courseId}</span>
-                        </td>
-                        <td className="fc-course-name">{c.courseName}</td>
-                        <td>
-                          <div className="fc-input-wrap">
-                            <span className="fc-currency">₹</span>
-                            <input
-                              type="number"
-                              value={c.amount}
-                              placeholder="0"
-                              min="0"
-                              onChange={(e) =>
-                                handleAmountChange(c.courseId, e.target.value)
-                              }
-                            />
-                          </div>
+                    {filteredCourses.length > 0 ? (
+                      filteredCourses.map((c, idx) => (
+                        <tr key={c.courseId}>
+                          <td>
+                            <span className="fc-row-num">{idx + 1}</span>
+                          </td>
+                          <td>
+                            <span className="fc-badge">{c.courseId}</span>
+                          </td>
+                          <td className="fc-course-name">{c.courseName}</td>
+                          <td>
+                            <div className="fc-input-wrap">
+                              <span className="fc-currency">₹</span>
+                              <input
+                                type="number"
+                                value={c.amount}
+                                placeholder="0"
+                                min="0"
+                                onChange={(e) =>
+                                  handleAmountChange(c.courseId, e.target.value)
+                                }
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="text-center py-4 text-muted">
+                          No courses found matching "{courseSearch}"
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -293,6 +396,22 @@ function FranchiseCommission() {
       </div>
 
       <style>{`
+        /* ================= SEARCHABLE DROPDOWN CSS ================= */
+        .searchable-select-wrapper { position: relative; width: 100%; }
+        .searchable-dropdown-menu { position: absolute; top: 105%; left: 0; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; z-index: 1050; overflow: hidden; margin-top: 4px; }
+        .searchable-list { max-height: 220px; overflow-y: auto; }
+        .searchable-list::-webkit-scrollbar { width: 6px; }
+        .searchable-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .searchable-item { padding: 10px 14px; font-size: 13.5px; color: #334155; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: all 0.15s ease; }
+        .searchable-item:last-child { border-bottom: 0; }
+        .searchable-item:hover { background: #f8fafc; color: #4154f1; }
+        .searchable-item.active { background: #eef2ff; color: #4154f1; font-weight: 600; }
+        
+        /* Modern input style for select trigger */
+        .modern-input { height: 46px; border: 1px solid #e2e8f0; border-radius: 10px !important; padding-left: 14px; font-size: 14px; color: #334155; background: #fff; transition: all .2s ease; }
+        .modern-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, .10); }
+        .modern-select { cursor: pointer; }
+
         /* ---------- Page ---------- */
         .fc-page {
           min-height: 100vh;
@@ -352,22 +471,6 @@ function FranchiseCommission() {
           color: #ef4444;
         }
 
-        /* ---------- Bootstrap form-select override ---------- */
-        .fc-card .form-select {
-          padding: 10px 14px;
-          border: 1.5px solid #e2e8f0;
-          border-radius: 8px;
-          font-size: 14px;
-          color: #0f172a;
-          background-color: #fff;
-          transition: all 0.2s ease;
-        }
-
-        .fc-card .form-select:focus {
-          border-color: #6366f1;
-          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
-        }
-
         /* ---------- View button ---------- */
         .btn-view {
           width: 100%;
@@ -381,6 +484,7 @@ function FranchiseCommission() {
           cursor: pointer;
           transition: all 0.2s ease;
           box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+          height: 46px; /* Match height with searchable dropdown */
         }
 
         .btn-view:hover:not(:disabled) {

@@ -68,7 +68,7 @@ function Header({ setSidebarOpen, sidebarOpen }) {
                         <ul className="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                             <li className="dropdown-header">
                                 <h6>{name}</h6>
-                                <span>SBSHE User</span>
+                           
                             </li>
 
                             <li>

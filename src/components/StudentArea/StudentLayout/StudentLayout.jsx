@@ -28,11 +28,11 @@ function StudentLayout() {
       />
 
       <div className="d-flex flex-grow-1">
-        <StudentSidebar
+        {/* <StudentSidebar
           sidebarOpen={sidebarOpen}
-        />
+        /> */}
 
-        <main id="main" className="main flex-grow-1">
+        <main id=" " className="main flex-grow-1">
           <div className="pagetitle">
             <Outlet />
           </div>

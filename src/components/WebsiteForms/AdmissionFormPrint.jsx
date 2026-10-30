@@ -156,9 +156,9 @@ function AdmissionFormPrint() {
     } catch (e) { console.log(e); }
   };
 
-  const loadCourse = async (courseCategoryId) => {
+  const loadCourse = async (courseCategoryId,courseTypeId) => {
     try {
-      const result = await getCourse(courseCategoryId);
+      const result = await getCourse(courseCategoryId,courseTypeId);
       setCourse(result.data || []);
     } catch (e) { console.log(e); }
   };
@@ -191,6 +191,7 @@ function AdmissionFormPrint() {
         examSessionId: student.examSessionId ?? 0,
         code: student.code ?? "",
         name: student.name ?? "",
+        date: student.date ?? "",
         studentNameHindi: student.studentNameHindi ?? "",
         fatherNameHindi: student.fatherNameHindi ?? "",
         fatherName: student.fatherName ?? "",
@@ -208,13 +209,13 @@ function AdmissionFormPrint() {
         address: student.address ?? "",
         pincode: student.pincode ?? "",
         mobileNo: student.mobileNo ?? "",
-        selfImageShow: student.selfImageShow ?? student.selfImage ?? "",
+        selfImageShow: student.selfImageShow ??   "",
         signatureImageShow:
-          student.signatureImageShow ?? student.signatureImage ?? "",
+          student.signatureImageShow   ?? "",
         aadhaarCardFrantShow:
-          student.aadhaarCardFrantShow ?? student.aadhaarCardFrant ?? "",
+          student.aadhaarCardFrantShow   ?? "",
         aadhaarCardBackShow:
-          student.aadhaarCardBackShow ?? student.aadhaarCardBack ?? "",
+          student.aadhaarCardBackShow   ?? "",
         idNumber: student.idNumber ?? "",
         whatsAppNo: student.whatsAppNo ?? "",
         email: student.email ?? "",
@@ -233,7 +234,7 @@ function AdmissionFormPrint() {
       if (student.courseTypeId > 0)
         await loadCourseCategory(student.courseTypeId);
       if (student.courseCategoryId > 0)
-        await loadCourse(student.courseCategoryId);
+        await loadCourse(student.courseCategoryId,student.courseTypeId);
     } catch (error) {
       console.log(error);
     }
@@ -863,7 +864,7 @@ function AdmissionFormPrint() {
             <span>
               Date of Application:{" "}
               <span className="afp-dotted" style={{ minWidth: 110 }}>
-                {today}
+                {value(formData.date)}
               </span>
             </span>
           </div>

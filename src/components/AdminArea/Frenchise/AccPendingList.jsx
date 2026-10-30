@@ -1,4 +1,4 @@
- import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   getAccAcountLists,
   getAccAcountDelete,
@@ -627,10 +627,10 @@ function AccPendingList() {
 
                               </div>
 
-<div className="consultant-role">
-  {item.referenceId == 91 ? "Admission Consultant" : "Study Centre"}
-</div>
-                             
+                              <div className="consultant-role">
+                                {item.referenceId == 91 ? "Admission Consultant" : "Study Centre"}
+                              </div>
+
 
                             </div>
 

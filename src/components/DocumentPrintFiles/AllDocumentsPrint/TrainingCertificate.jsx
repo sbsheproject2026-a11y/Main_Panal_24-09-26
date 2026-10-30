@@ -316,7 +316,7 @@ const TrainingCertificate = () => {
                 certificateName: {
                     text: "REQUEST LETTER FOR PRACTICAL INTERNSHIP",
                     x: 50,                   // Center align
-                    y: 23,                   // Adjust Y position
+                    y: 25,                   // Adjust Y position
                     align: "center",
                     maxWidth: 150,
                     fontSize: 16,
@@ -336,18 +336,18 @@ const TrainingCertificate = () => {
                 },
                 registrationno: { text: "Registration No. ", valueText: (result.trainingReqCode || ""), x: 7, y: 19, align: "left", maxWidth: 40, fontSize: 10, fontFamily: "Arial" },
                 issueDate: { text: "Date :", valueText: (result.date || ""), x: 78, y: 19, align: "left", maxWidth: 40, fontSize: 10, fontFamily: "Arial" },
-                to1: { text: "To,", x: 7, y: 26.5, fontSize: 11, fontStyle: "normal", fontFamily: "Arial" },
-                to2: { text: "The Superintendent", x: 7, y: 29.5, fontSize: 11, fontStyle: "bold", fontFamily: "Arial" },
-                to3: { text: "Max super speciality hospital Saket,", x: 7, y: 32, fontSize: 11, fontStyle: "normal", fontFamily: "Arial" },
-                to4: { text: "New Delhi", x: 7, y: 35, fontSize: 11, fontStyle: "normal", fontFamily: "Arial" },
+                to1: { text: "To,", x: 7, y: 30, fontSize: 11, fontStyle: "normal", fontFamily: "Arial" },
+                to2: { text: "The Superintendent", x: 7, y: 33, fontSize: 11, fontStyle: "bold", fontFamily: "Arial" },
+                to3: { text: "Max super speciality hospital Saket,", x: 7, y: 36, fontSize: 11, fontStyle: "normal", fontFamily: "Arial" },
+                to4: { text: "New Delhi", x: 7, y: 38, fontSize: 11, fontStyle: "normal", fontFamily: "Arial" },
                 subject: {
                     text: [
                         { text: "Sub: Reference letter for the Practical Internship for ", bold: false },
                         { text: (result.courseName || "DIPLOMA IN CARDIOPULMONARY TECHNOLOGY"), bold: true }
                     ],
-                    x: 7, y: 38, fontSize: 11, maxWidth: 190, lineHeight: 1.5, fontFamily: "Arial"
+                    x: 7, y: 41, fontSize: 11, maxWidth: 190, lineHeight: 1.5, fontFamily: "Arial"
                 },
-                salutation: { text: "Dear Sir/Madam,", x: 7, y: 41, fontSize: 11, fontFamily: "Arial" },
+                salutation: { text: "Dear Sir/Madam,", x: 7, y: 45, fontSize: 11, fontFamily: "Arial" },
                 para1: {
                     text: [
                         { text: (result.name || ""), bold: true },
@@ -357,24 +357,20 @@ const TrainingCertificate = () => {
                         { text: (result.courseName || "DIPLOMA IN CARDIOPULMONARY TECHNOLOGY"), bold: true },
                         { text: " student through clinical training at your esteem organization.", bold: false }
                     ],
-                    x: 7, y: 45, fontSize: 11, maxWidth: 190, lineHeight: 1.5, fontFamily: "Arial"
+                    x: 7, y: 48, fontSize: 11, maxWidth: 190, lineHeight: 1.5, fontFamily: "Arial"
                 },
-                det1: { text: [{ text: "NAME: ", bold: true }, { text: (result.firstName || ""), bold: false }], x: 7, y: 54, fontSize: 11, fontFamily: "Arial" },
-                det2: { text: [{ text: "FATHER’S NAME: ", bold: true }, { text: (result.fatherName || ""), bold: false }], x: 7, y: 56, fontSize: 11, fontFamily: "Arial" },
-                det3: { text: [{ text: "MOTHER ‘S NAME: ", bold: true }, { text: (result.motherName || ""), bold: false }], x: 7, y: 58, fontSize: 11, fontFamily: "Arial" },
-                det4: { text: [{ text: "ENROLLMENT NO.: ", bold: true }, { text: (result.enrollmentNo || ""), bold: false }], x: 7, y: 60, fontSize: 11, fontFamily: "Arial" },
-                det5: { text: [{ text: "ROLL NUMBER: ", bold: true }, { text: ("Ist Year : " + (result.rollnoa) + " & 2nd Year : " + (result.rollno1) + ""), bold: false }], x: 7, y: 62, fontSize: 11, fontFamily: "Arial" },
-                para2: {
-                    text: "Training providing Healthcare organization is not liable to pay any salary to any of the candidate those are undergoing internship.\nAll interns shall maintain a training LOG book. The candidate and their hospital mentor/supervisor need to sign this on completion of internship.",
-                    x: 7, y: 64, fontSize: 11, maxWidth: 190, wordWrap: true, lineHeight: 1.5, fontFamily: "Arial"
-                },
+                det1: { text: [{ text: "NAME: ", bold: true }, { text: (result.firstName || ""), bold: false }], x: 7, y: 59, fontSize: 11, fontFamily: "Arial" },
+                det2: { text: [{ text: "FATHER’S NAME: ", bold: true }, { text: (result.fatherName || ""), bold: false }], x: 7, y: 61, fontSize: 11, fontFamily: "Arial" },
+                det3: { text: [{ text: "MOTHER ‘S NAME: ", bold: true }, { text: (result.motherName || ""), bold: false }], x: 7, y: 63, fontSize: 11, fontFamily: "Arial" },
+                det4: { text: [{ text: "ENROLLMENT NO.: ", bold: true }, { text: (result.enrollmentNo || ""), bold: false }], x: 7, y: 65, fontSize: 11, fontFamily: "Arial" },
+                det5: { text: [{ text: "ROLL NUMBER: ", bold: true }, { text: ("Ist Year : " + (result.rollnoa) + " & 2nd Year : " + (result.rollno1) + ""), bold: false }], x: 7, y: 67, fontSize: 11, fontFamily: "Arial" },
+                
                 para4: {
                     text: [
-                        { text: "We look forward to jointly upgrading the quality standards of ", bold: false },
-                        { text: (result.courseName || "DIPLOMA IN CARDIOPULMONARY TECHNOLOGY"), bold: true },
-                        { text: " in the healthcare industry.\n\n We wish him/her all the very best for his future endeavours we and growth!\n\n Thanks you!", bold: false }
+               
+                        { text: "We wish him/her all the very best for his future endeavours we and growth!\n\nThanks you!", bold: false }
                     ],
-                    x: 7, y: 72.5, fontSize: 11, maxWidth: 190, lineHeight: 1.5, fontFamily: "Arial"
+                    x: 7, y: 74, fontSize: 11, maxWidth: 190, lineHeight: 1.5, fontFamily: "Arial"
                 },
                 sealstemp: { text: "Signature of Head/Authorized Authority", x: 7, y: 88, align: "left", fontStyle: "bold", maxWidth: 40, fontSize: 10, fontFamily: "Arial" },
                 mainname: { text: "SHAHEED BHAGAT SINGH HEALTH AND EDUCATION (SBSHE)", x: 7, y: 90, align: "left", fontStyle: "normal", maxWidth: 40, fontSize: 10, fontFamily: "Arial" },
@@ -403,7 +399,7 @@ const TrainingCertificate = () => {
                 FIELDS.to1, FIELDS.to2, FIELDS.to3, FIELDS.to4,
                 FIELDS.subject, FIELDS.salutation, FIELDS.para1,
                 FIELDS.det1, FIELDS.det2, FIELDS.det3, FIELDS.det4, FIELDS.det5,
-                FIELDS.para2, FIELDS.website, FIELDS.sealstemp, FIELDS.mainname, FIELDS.para4
+                  FIELDS.website, FIELDS.sealstemp, FIELDS.mainname, FIELDS.para4
             ].forEach(field => drawText(pdf, field));
 
             const pdfBlob = pdf.output("blob");

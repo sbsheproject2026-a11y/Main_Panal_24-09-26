@@ -211,6 +211,7 @@ function Sidebar({ sidebarOpen }) {
 
             </ul>
           </li>
+
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#charts-nav-wallet" data-bs-toggle="collapse" href="#">
               <i className="bi bi-wallet2"></i><span>Wallet</span><i className="bi bi-chevron-down ms-auto"></i>
@@ -236,6 +237,7 @@ function Sidebar({ sidebarOpen }) {
 
             </ul>
           </li>
+
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#icons-navf" data-bs-toggle="collapse" href="#">
               <i className="bi-bullseye"></i><span>Enquiry   Management</span><i className="bi bi-chevron-down ms-auto"></i>
@@ -285,6 +287,7 @@ function Sidebar({ sidebarOpen }) {
 
             </ul>
           </li>
+
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#icons-nav" data-bs-toggle="collapse" href="#">
               <i className="bi bi-gem"></i><span>Employee</span><i className="bi bi-chevron-down ms-auto"></i>
@@ -303,6 +306,27 @@ function Sidebar({ sidebarOpen }) {
               </li>
             </ul>
           </li>
+
+          <li className="nav-item">
+            <a className="nav-link collapsed" data-bs-target="#icons-nav-exam" data-bs-toggle="collapse" href="#">
+              <i className="bi bi-gem"></i><span>Exam Setup</span><i className="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="icons-nav-exam" className="nav-content collapse " data-bs-parent="#sidebar-nav">
+
+              <li>
+                <Link to="/exam-create">
+                  <i className="bi bi-circle"></i><span>Exam Set </span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/student-result-check">
+                  <i className="bi bi-circle"></i><span>Exam Result Show </span>
+                </Link>
+              </li>
+               
+            </ul>
+          </li>
+
           <li className="nav-item">
             <a className="nav-link collapsed" data-bs-target="#icons-nav-1" data-bs-toggle="collapse" href="#">
               <i className="bi bi-credit-card"></i><span>Payment Detail</span><i className="bi bi-chevron-down ms-auto"></i>

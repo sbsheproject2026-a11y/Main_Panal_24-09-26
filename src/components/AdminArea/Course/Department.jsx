@@ -154,7 +154,6 @@ function Department() {
       if (!deleteId) return;
       const result = await getMasterTypeDetailDelete(deleteId);
       
-      // ✅ ALERT KI JAGAH TOAST
       showToast(result?.message || result || "Department deleted successfully", "success");
       
       closeDeleteModal();
@@ -165,8 +164,22 @@ function Department() {
     }
   };
 
+  // ✅ Yahan 1MB File Size Check Add Kiya Gaya Hai
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+
+    if (name === "file" && files && files[0]) {
+      const file = files[0];
+      const maxSizeInBytes = 1 * 1024 * 1024; // 1MB
+      
+      if (file.size > maxSizeInBytes) {
+        showToast("File size exceeds the 1MB limit. Please upload a smaller file.", "error");
+        e.target.value = ""; // Input clear kar dein
+        setFormData((prev) => ({ ...prev, file: null })); // Purani state clear karein
+        return;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: name === "file" ? files?.[0] || null : value,
@@ -192,7 +205,6 @@ function Department() {
         result = await createMasterTypeDetail(formData);
       }
       
-      // ✅ ALERT KI JAGAH TOAST
       showToast(
         result?.message ||
           (formData.id > 0
@@ -1172,7 +1184,8 @@ function Department() {
                     </div>
 
                     <div className="col-md-6">
-                      <label className="form-label-modern">File</label>
+                      {/* ✅ File Label me (Max 1MB) dikhaya hai */}
+                      <label className="form-label-modern">File <span className="text-muted" style={{ fontSize: "11px", fontWeight: "normal" }}>(Max 1MB)</span></label>
                       <div className="input-group-modern">
                         <span className="input-icon"><i className="bi bi-file-earmark"></i></span>
                         <input
@@ -1370,7 +1383,6 @@ function Department() {
                         <th>Study Mode</th>
                         <th style={{ width: "130px" }}>Status</th>
                         <th style={{ width: "130px" }}>File</th>
-                        {/* ✅ ADDED sticky-action CLASS */}
                         <th className="text-center sticky-action" style={{ width: "120px" }}>Action</th>
                       </tr>
                     </thead>
@@ -1444,7 +1456,6 @@ function Department() {
                                 <span className="code-badge">{item.filePath || "—"}</span>
                               </td>
 
-                              {/* ✅ ADDED sticky-action CLASS */}
                               <td className="sticky-action">
                                 <div className="action-buttons">
                                   <button

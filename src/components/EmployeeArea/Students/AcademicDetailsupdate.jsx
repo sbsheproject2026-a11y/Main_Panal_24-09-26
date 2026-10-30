@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Select from "react-select";
 import {
@@ -18,6 +17,14 @@ function AcademicDetailsupdate() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [adding, setAdding] = useState(false);
+
+    // 👇 State for Document Viewer Modal
+    const [viewerModal, setViewerModal] = useState({
+        isOpen: false,
+        url: "",
+        type: "",
+        title: ""
+    });
 
     const [newAcademic, setNewAcademic] = useState({
         levelTypeId: 0,
@@ -53,7 +60,6 @@ function AcademicDetailsupdate() {
     const loadEducationlevels = async () => {
         try {
             const result = await getStudentData(24);
-
             setEducationlevels(result?.data || []);
         } catch (error) {
             console.error("Education Level Error:", error);
@@ -101,28 +107,31 @@ function AcademicDetailsupdate() {
         setAdding(false);
     };
 
+    // ✅ File Size Validation Added Here
     const handleNewAcademicChange = (e) => {
-        const {
-            name,
-            value,
-            files,
-            type
-        } = e.target;
+        const { name, value, files, type } = e.target;
+
+        if (type === "file" && files && files.length > 0) {
+            const file = files[0];
+            const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+
+            if (file.size > maxSizeInBytes) {
+                alert("Academic Document size exceeds the 2MB limit. Please upload a smaller file.");
+                e.target.value = ""; // Input reset
+                return;
+            }
+        }
 
         setNewAcademic((prev) => ({
             ...prev,
-            [name]:
-                type === "file"
-                    ? files?.[0] || null
-                    : value
+            [name]: type === "file" ? files?.[0] || null : value
         }));
     };
 
     const handleLevelChange = (selectedOption) => {
         setNewAcademic((prev) => ({
             ...prev,
-            levelTypeId:
-                selectedOption?.value || 0
+            levelTypeId: selectedOption?.value || 0
         }));
     };
 
@@ -176,6 +185,12 @@ function AcademicDetailsupdate() {
             return;
         }
 
+        // Extra check before submit
+        if (newAcademic.file && newAcademic.file.size > 2 * 1024 * 1024) {
+            alert("Academic Document size exceeds the 2MB limit.");
+            return;
+        }
+
         try {
             setSaving(true);
 
@@ -201,10 +216,7 @@ function AcademicDetailsupdate() {
 
             await loadAcademicDetails();
         } catch (error) {
-            console.error(
-                "Academic Save Error:",
-                error
-            );
+            console.error("Academic Save Error:", error);
 
             alert(
                 error?.response?.data?.message ||
@@ -219,14 +231,8 @@ function AcademicDetailsupdate() {
         return (
             <div className="container-fluid py-5">
                 <div className="text-center">
-                    <div
-                        className="spinner-border text-success"
-                        role="status"
-                    ></div>
-
-                    <p className="text-muted mt-3">
-                        Loading academic details...
-                    </p>
+                    <div className="spinner-border text-success" role="status"></div>
+                    <p className="text-muted mt-3">Loading academic details...</p>
                 </div>
             </div>
         );
@@ -234,6 +240,45 @@ function AcademicDetailsupdate() {
 
     return (
         <>
+            {/* ✅ CSS For Modal */}
+            <style>{`
+                .custom-modal-overlay {
+                    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                    background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px);
+                    z-index: 9999; display: flex; justify-content: center; align-items: center;
+                    padding: 20px; animation: fadeIn 0.2s ease-out;
+                }
+                .custom-modal-content {
+                    background: #fff; border-radius: 12px; width: 90%; max-width: 1000px;
+                    height: 90vh; display: flex; flex-direction: column; overflow: hidden;
+                    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+                }
+                .custom-modal-header {
+                    padding: 12px 20px; border-bottom: 1px solid #eaeaea;
+                    display: flex; justify-content: space-between; align-items: center;
+                    background: #f8f9fa;
+                }
+                .custom-modal-body {
+                    flex: 1; background: #525659; /* Dark bg for PDF viewing */
+                    display: flex; justify-content: center; align-items: center; overflow: auto;
+                    position: relative;
+                }
+                .custom-modal-body img {
+                    max-width: 100%; max-height: 100%; object-fit: contain;
+                }
+                .custom-modal-body iframe {
+                    width: 100%; height: 100%; border: none;
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: scale(0.98); }
+                    to { opacity: 1; transform: scale(1); }
+                }
+                @media (max-width: 768px) {
+                    .custom-modal-content { width: 100%; height: 100vh; border-radius: 0; }
+                    .custom-modal-overlay { padding: 0; }
+                }
+            `}</style>
+
             <div className="mb-4">
                 <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -244,18 +289,10 @@ function AcademicDetailsupdate() {
                         <nav>
                             <ol className="breadcrumb mb-0">
                                 <li className="breadcrumb-item">
-                                    <a href="/dashboard">
-                                        Dashboard
-                                    </a>
+                                    <a href="/dashboard">Dashboard</a>
                                 </li>
-
-                                <li className="breadcrumb-item">
-                                    Student
-                                </li>
-
-                                <li className="breadcrumb-item active">
-                                    Academic Details
-                                </li>
+                                <li className="breadcrumb-item">Student</li>
+                                <li className="breadcrumb-item active">Academic Details</li>
                             </ol>
                         </nav>
                     </div>
@@ -263,9 +300,7 @@ function AcademicDetailsupdate() {
                     <button
                         className="btn btn-light border"
                         onClick={() => navigate(-1)}
-                        style={{
-                            borderRadius: "10px"
-                        }}
+                        style={{ borderRadius: "10px" }}
                     >
                         <i className="bi bi-arrow-left me-2"></i>
                         Back
@@ -277,9 +312,7 @@ function AcademicDetailsupdate() {
                 <div className="container-fluid px-0">
                     <div
                         className="card border-0 shadow-sm mb-4"
-                        style={{
-                            borderRadius: "18px"
-                        }}
+                        style={{ borderRadius: "18px" }}
                     >
                         <div className="card-body p-4">
                             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -301,9 +334,7 @@ function AcademicDetailsupdate() {
                                     <div>
                                         <h5
                                             className="mb-1 fw-bold"
-                                            style={{
-                                                color: "#1e293b"
-                                            }}
+                                            style={{ color: "#1e293b" }}
                                         >
                                             Academic Details
                                         </h5>
@@ -323,10 +354,7 @@ function AcademicDetailsupdate() {
                                     type="button"
                                     className="btn btn-success"
                                     onClick={handleAddQualification}
-                                    style={{
-                                        borderRadius: "9px",
-                                        fontWeight: 600
-                                    }}
+                                    style={{ borderRadius: "9px", fontWeight: 600 }}
                                 >
                                     <i className="bi bi-plus-lg me-2"></i>
                                     Add Qualification
@@ -346,13 +374,10 @@ function AcademicDetailsupdate() {
                                         <div>
                                             <h6
                                                 className="fw-bold mb-1"
-                                                style={{
-                                                    color: "#6610f2"
-                                                }}
+                                                style={{ color: "#6610f2" }}
                                             >
                                                 Add New Qualification
                                             </h6>
-
                                             <small className="text-muted">
                                                 Enter student's academic details
                                             </small>
@@ -371,52 +396,29 @@ function AcademicDetailsupdate() {
                                         <div className="row g-3">
                                             <div className="col-md-4">
                                                 <label className="form-label fw-semibold">
-                                                    Level
-                                                    <span className="text-danger">
-                                                        {" "}*
-                                                    </span>
+                                                    Level <span className="text-danger"> *</span>
                                                 </label>
 
                                                 <Select
-                                                    options={makeOptions(
-                                                        educationlevel
-                                                    )}
-                                                    value={getSelected(
-                                                        educationlevel,
-                                                        newAcademic.levelTypeId
-                                                    )}
-                                                    onChange={
-                                                        handleLevelChange
-                                                    }
+                                                    options={makeOptions(educationlevel)}
+                                                    value={getSelected(educationlevel, newAcademic.levelTypeId)}
+                                                    onChange={handleLevelChange}
                                                     placeholder="Select Level"
                                                     isSearchable
                                                     isClearable
                                                     classNamePrefix="student-select"
-                                                    menuPortalTarget={
-                                                        document.body
-                                                    }
+                                                    menuPortalTarget={document.body}
                                                     menuPosition="fixed"
                                                     styles={{
-                                                        menuPortal:
-                                                            (base) => ({
-                                                                ...base,
-                                                                zIndex: 9999
-                                                            }),
-                                                        menu:
-                                                            (base) => ({
-                                                                ...base,
-                                                                zIndex: 9999
-                                                            })
+                                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                        menu: (base) => ({ ...base, zIndex: 9999 })
                                                     }}
                                                 />
                                             </div>
 
                                             <div className="col-md-4">
                                                 <label className="form-label fw-semibold">
-                                                    School / College
-                                                    <span className="text-danger">
-                                                        {" "}*
-                                                    </span>
+                                                    School / College <span className="text-danger"> *</span>
                                                 </label>
 
                                                 <input
@@ -424,21 +426,14 @@ function AcademicDetailsupdate() {
                                                     name="schoolCollege"
                                                     className="form-control"
                                                     placeholder="School / College"
-                                                    value={
-                                                        newAcademic.schoolCollege
-                                                    }
-                                                    onChange={
-                                                        handleNewAcademicChange
-                                                    }
+                                                    value={newAcademic.schoolCollege}
+                                                    onChange={handleNewAcademicChange}
                                                 />
                                             </div>
 
                                             <div className="col-md-4">
                                                 <label className="form-label fw-semibold">
-                                                    Roll No
-                                                    <span className="text-danger">
-                                                        {" "}*
-                                                    </span>
+                                                    Roll No <span className="text-danger"> *</span>
                                                 </label>
 
                                                 <input
@@ -446,21 +441,14 @@ function AcademicDetailsupdate() {
                                                     name="rollNo"
                                                     className="form-control"
                                                     placeholder="Roll No"
-                                                    value={
-                                                        newAcademic.rollNo
-                                                    }
-                                                    onChange={
-                                                        handleNewAcademicChange
-                                                    }
+                                                    value={newAcademic.rollNo}
+                                                    onChange={handleNewAcademicChange}
                                                 />
                                             </div>
 
                                             <div className="col-md-4">
                                                 <label className="form-label fw-semibold">
-                                                    Board / University
-                                                    <span className="text-danger">
-                                                        {" "}*
-                                                    </span>
+                                                    Board / University <span className="text-danger"> *</span>
                                                 </label>
 
                                                 <input
@@ -468,21 +456,14 @@ function AcademicDetailsupdate() {
                                                     name="boardUniversity"
                                                     className="form-control"
                                                     placeholder="Board / University"
-                                                    value={
-                                                        newAcademic.boardUniversity
-                                                    }
-                                                    onChange={
-                                                        handleNewAcademicChange
-                                                    }
+                                                    value={newAcademic.boardUniversity}
+                                                    onChange={handleNewAcademicChange}
                                                 />
                                             </div>
 
                                             <div className="col-md-4">
                                                 <label className="form-label fw-semibold">
-                                                    Percentage / CGPA
-                                                    <span className="text-danger">
-                                                        {" "}*
-                                                    </span>
+                                                    Percentage / CGPA <span className="text-danger"> *</span>
                                                 </label>
 
                                                 <input
@@ -490,18 +471,15 @@ function AcademicDetailsupdate() {
                                                     name="percentageCgpa"
                                                     className="form-control"
                                                     placeholder="Percentage / CGPA"
-                                                    value={
-                                                        newAcademic.percentageCgpa
-                                                    }
-                                                    onChange={
-                                                        handleNewAcademicChange
-                                                    }
+                                                    value={newAcademic.percentageCgpa}
+                                                    onChange={handleNewAcademicChange}
                                                 />
                                             </div>
 
                                             <div className="col-md-4">
+                                                {/* ✅ Label me Max 2MB add kiya hai */}
                                                 <label className="form-label fw-semibold">
-                                                    Document
+                                                    Document (Max 2MB)
                                                 </label>
 
                                                 <input
@@ -509,17 +487,13 @@ function AcademicDetailsupdate() {
                                                     name="file"
                                                     className="form-control"
                                                     accept=".jpg,.jpeg,.png,.pdf"
-                                                    onChange={
-                                                        handleNewAcademicChange
-                                                    }
+                                                    onChange={handleNewAcademicChange}
                                                 />
 
                                                 {newAcademic.file && (
                                                     <small className="text-success mt-1 d-block">
                                                         <i className="bi bi-check-circle-fill me-1"></i>
-                                                        {
-                                                            newAcademic.file.name
-                                                        }
+                                                        {newAcademic.file.name}
                                                     </small>
                                                 )}
                                             </div>
@@ -531,9 +505,7 @@ function AcademicDetailsupdate() {
                                                 className="btn btn-light border me-2"
                                                 onClick={resetForm}
                                                 disabled={saving}
-                                                style={{
-                                                    borderRadius: "9px"
-                                                }}
+                                                style={{ borderRadius: "9px" }}
                                             >
                                                 Cancel
                                             </button>
@@ -542,17 +514,11 @@ function AcademicDetailsupdate() {
                                                 type="submit"
                                                 className="btn btn-success"
                                                 disabled={saving}
-                                                style={{
-                                                    borderRadius: "9px",
-                                                    fontWeight: 600
-                                                }}
+                                                style={{ borderRadius: "9px", fontWeight: 600 }}
                                             >
                                                 {saving ? (
                                                     <>
-                                                        <span
-                                                            className="spinner-border spinner-border-sm me-2"
-                                                            role="status"
-                                                        ></span>
+                                                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
                                                         Saving...
                                                     </>
                                                 ) : (
@@ -572,151 +538,106 @@ function AcademicDetailsupdate() {
                                     <table className="table table-bordered table-hover align-middle mb-0">
                                         <thead
                                             style={{
-                                                background:
-                                                    "linear-gradient(90deg, #6610f2, #8540f5)",
+                                                background: "linear-gradient(90deg, #6610f2, #8540f5)",
                                                 color: "#fff"
                                             }}
                                         >
                                             <tr>
-                                                <th
-                                                    style={{
-                                                        width: "60px"
-                                                    }}
-                                                >
-                                                    #
-                                                </th>
-
-                                                <th>
-                                                    Level
-                                                </th>
-
-                                                <th>
-                                                    School / College
-                                                </th>
-
-                                                <th>
-                                                    Roll No
-                                                </th>
-
-                                                <th>
-                                                    Board / University
-                                                </th>
-
-                                                <th>
-                                                    Percentage / CGPA
-                                                </th>
-
-                                                <th>
-                                                    Document
-                                                </th>
+                                                <th style={{ width: "60px" }}>#</th>
+                                                <th>Level</th>
+                                                <th>School / College</th>
+                                                <th>Roll No</th>
+                                                <th>Board / University</th>
+                                                <th>Percentage / CGPA</th>
+                                                <th>Document</th>
                                             </tr>
                                         </thead>
 
                                         <tbody>
-                                            {academicDetails.map(
-                                                (item, index) => (
-                                                    <tr
-                                                        key={
-                                                            item.id ||
-                                                            index
-                                                        }
-                                                    >
-                                                        <td className="fw-semibold">
-                                                            {index + 1}
-                                                        </td>
+                                            {academicDetails.map((item, index) => (
+                                                <tr key={item.id || index}>
+                                                    <td className="fw-semibold">{index + 1}</td>
 
-                                                        <td>
-                                                            {value(
-                                                                {
-                                                                    92: "10th",
-                                                                    93: "12th",
-                                                                    94: "Other"
-                                                                }[item.levelTypeId]
-                                                            )}
-                                                        </td>
+                                                    <td>
+                                                        {value(
+                                                            {
+                                                                92: "10th",
+                                                                93: "12th",
+                                                                94: "Other"
+                                                            }[item.levelTypeId]
+                                                        )}
+                                                    </td>
 
-                                                        <td>
-                                                            <div className="fw-semibold">
-                                                                {value(
-                                                                    item.schoolCollege
-                                                                )}
-                                                            </div>
-                                                        </td>
+                                                    <td>
+                                                        <div className="fw-semibold">
+                                                            {value(item.schoolCollege)}
+                                                        </div>
+                                                    </td>
 
-                                                        <td>
-                                                            <span className="badge bg-primary">
-                                                                {value(
-                                                                    item.rollNo
-                                                                )}
-                                                            </span>
-                                                        </td>
+                                                    <td>
+                                                        <span className="badge bg-primary">
+                                                            {value(item.rollNo)}
+                                                        </span>
+                                                    </td>
 
-                                                        <td>
-                                                            {value(
-                                                                item.boardUniversity
-                                                            )}
-                                                        </td>
+                                                    <td>{value(item.boardUniversity)}</td>
 
-                                                        <td>
-                                                            <span
-                                                                className="badge bg-success"
-                                                                style={{
-                                                                    fontSize:
-                                                                        "13px",
-                                                                    padding:
-                                                                        "7px 12px"
-                                                                }}
-                                                            >
-                                                                {value(
-                                                                    item.percentageCgpa
-                                                                )}
-                                                            </span>
-                                                        </td>
+                                                    <td>
+                                                        <span
+                                                            className="badge bg-success"
+                                                            style={{ fontSize: "13px", padding: "7px 12px" }}
+                                                        >
+                                                            {value(item.percentageCgpa)}
+                                                        </span>
+                                                    </td>
 
-                                                        <td>
-                                                            {item.fileName ? (
-                                                                (() => {
-                                                                    const fileUrl = `${FILE_URL}${item.fileName}`;
-                                                                    const extension = item.fileName.split(".").pop()?.toLowerCase();
+                                                    <td>
+                                                        {item.fileName ? (
+                                                            (() => {
+                                                                const fileUrl = `${FILE_URL}${item.fileName}`;
+                                                                const extension = item.fileName.split(".").pop()?.toLowerCase();
+                                                                const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(extension);
+                                                                const isPdf = extension === "pdf";
+                                                                const fileType = isImage ? "image" : isPdf ? "pdf" : "other";
 
-                                                                    const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(extension);
-                                                                    const isPdf = extension === "pdf";
-
-                                                                    return (
-                                                                        <button
-                                                                            type="button"
-                                                                            className="btn btn-sm btn-outline-danger"
-                                                                            onClick={() => window.open(fileUrl, "_blank")}
-                                                                        >
-                                                                            <i
-                                                                                className={`bi ${isImage
-                                                                                        ? "bi-image"
-                                                                                        : isPdf
-                                                                                            ? "bi-file-earmark-pdf"
-                                                                                            : "bi-file-earmark"
-                                                                                    } me-1`}
-                                                                            ></i>
-                                                                            {isImage ? "View Image" : isPdf ? "View PDF" : "View File"}
-                                                                        </button>
-                                                                    );
-                                                                })()
-                                                            ) : (
-                                                                <span className="text-muted">No Document</span>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                )
-                                            )}
+                                                                return (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-sm btn-outline-danger"
+                                                                        onClick={() =>
+                                                                            setViewerModal({
+                                                                                isOpen: true,
+                                                                                url: fileUrl,
+                                                                                type: fileType,
+                                                                                title: item.fileName
+                                                                            })
+                                                                        }
+                                                                    >
+                                                                        <i
+                                                                            className={`bi ${isImage
+                                                                                    ? "bi-image"
+                                                                                    : isPdf
+                                                                                        ? "bi-file-earmark-pdf"
+                                                                                        : "bi-file-earmark"
+                                                                                } me-1`}
+                                                                        ></i>
+                                                                        {isImage ? "View Image" : isPdf ? "View PDF" : "View File"}
+                                                                    </button>
+                                                                );
+                                                            })()
+                                                        ) : (
+                                                            <span className="text-muted">No Document</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     </table>
                                 </div>
                             ) : (
                                 <div
                                     className="text-center py-5"
-                                    style={{
-                                        background: "#fafafa",
-                                        borderRadius: "12px"
-                                    }}
+                                    style={{ background: "#fafafa", borderRadius: "12px" }}
                                 >
                                     <div
                                         className="d-flex align-items-center justify-content-center mx-auto mb-3"
@@ -729,9 +650,7 @@ function AcademicDetailsupdate() {
                                     >
                                         <i
                                             className="bi bi-mortarboard text-muted"
-                                            style={{
-                                                fontSize: "28px"
-                                            }}
+                                            style={{ fontSize: "28px" }}
                                         ></i>
                                     </div>
 
@@ -747,12 +666,8 @@ function AcademicDetailsupdate() {
                                     <button
                                         type="button"
                                         className="btn btn-success"
-                                        onClick={
-                                            handleAddQualification
-                                        }
-                                        style={{
-                                            borderRadius: "9px"
-                                        }}
+                                        onClick={handleAddQualification}
+                                        style={{ borderRadius: "9px" }}
                                     >
                                         <i className="bi bi-plus-lg me-2"></i>
                                         Add Qualification
@@ -761,10 +676,63 @@ function AcademicDetailsupdate() {
                             )}
                         </div>
                     </div>
-
-
                 </div>
             </section>
+
+            {/* ✅ DOCUMENT VIEWER MODAL */}
+            {viewerModal.isOpen && (
+                <div
+                    className="custom-modal-overlay"
+                    onClick={() => setViewerModal({ ...viewerModal, isOpen: false })}
+                >
+                    <div
+                        className="custom-modal-content"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="custom-modal-header">
+                            <h5
+                                className="m-0 text-truncate"
+                                style={{ maxWidth: "60%", fontWeight: 600, fontSize: "16px" }}
+                            >
+                                {viewerModal.title}
+                            </h5>
+                            <div className="d-flex gap-2">
+                                
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={() => setViewerModal({ ...viewerModal, isOpen: false })}
+                                >
+                                    <i className="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div className="custom-modal-body">
+                            {viewerModal.type === "image" ? (
+                                <img src={viewerModal.url} alt="Document" />
+                            ) : viewerModal.type === "pdf" ? (
+                                <iframe src={viewerModal.url} title="PDF Document"></iframe>
+                            ) : (
+                                <div className="text-center text-white">
+                                    <i
+                                        className="bi bi-file-earmark-text text-muted"
+                                        style={{ fontSize: "50px" }}
+                                    ></i>
+                                    <p className="mt-3">This file type cannot be previewed directly.</p>
+                                    <a
+                                        href={viewerModal.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="btn btn-primary mt-2"
+                                    >
+                                        Download File
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
