@@ -148,3 +148,12 @@ export const getSubmittedExams = async (examId) => {
     const res = await api.get(`/Exam/exam-student-result/${examId}`);
     return res.data;
 };
+
+export const SaveTraingdata = async (data) => {
+    const response = await api.post(
+        "/RequestStudent/add-collage",
+        data
+    );
+
+    return response.data;
+};

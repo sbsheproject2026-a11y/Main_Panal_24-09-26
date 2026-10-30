@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   GetConfirmAddmissions,
   GenerateUserCode,
+  SaveTraingdata
 } from "../../AllServicesFiles/AdminStudentService";
 import { FILE_URL } from "../../api";
 
@@ -11,6 +12,16 @@ function ConfirmStudent() {
   const [search, setSearch] = useState("");
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  
+  // ✅ Naya State Training Modal ke liye (Editable)
+  const [trainingModalOpen, setTrainingModalOpen] = useState(false);
+  const [isSavingTraining, setIsSavingTraining] = useState(false);
+  const [trainingForm, setTrainingForm] = useState({
+    userId: "",
+    name: "",
+    address: "",
+  });
+
   const [pageNo, setPageNo] = useState(1);
   const [pageSize, setPageSize] = useState(100);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -122,6 +133,49 @@ function ConfirmStudent() {
     }
   };
 
+  // ✅ Naye Functions Training Form ke liye
+  const handleOpenTrainingModal = () => {
+    setTrainingForm({
+      userId: selectedStudent.id || "",
+      name:   "",
+      address:   "",
+    });
+    setTrainingModalOpen(true);
+  };
+
+  const handleTrainingChange = (e) => {
+    const { name, value } = e.target;
+    setTrainingForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // ✅ Updated handleSaveTraining with API call
+  const handleSaveTraining = async () => {
+    try {
+      setIsSavingTraining(true);
+
+      const payload = {
+        userId: trainingForm.userId,
+        address: trainingForm.address,
+        remark: trainingForm.name // Jaisa aapne bola "remark me name jaye"
+      };
+
+      const response = await SaveTraingdata(payload);
+      
+      alert(response?.message || "Details saved successfully!");
+      setTrainingModalOpen(false);
+      setTrainingForm({ userId: "", name: "", address: "" }); // Reset form
+
+    } catch (error) {
+      console.error("Save Training Error:", error);
+      alert(
+        error?.response?.data?.message || 
+        "Failed to save details"
+      );
+    } finally {
+      setIsSavingTraining(false);
+    }
+  };
+
   const getPageTitle = () => {
     if (studyModeId === 88) return "Confirmed Students - Online";
     if (studyModeId === 89) return "Confirmed Students - Offline";
@@ -149,35 +203,6 @@ function ConfirmStudent() {
   const headerBadge = getHeaderBadge();
 
   const hasCode = (val) => val != null && String(val).trim() !== "";
-
-  // ✅ Avatar initials
-  const getInitials = (name) => {
-    if (!name) return "?";
-    const parts = name.trim().split(" ").filter(Boolean);
-    if (partsofLength(parts) === 0) return "?";
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-    return (
-      parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
-    ).toUpperCase();
-  };
-
-  function partsofLength(arr) {
-    return arr ? arr.length : 0;
-  }
-
-  // ✅ Deterministic avatar color
-  const avatarColors = [
-    { bg: "#eef1ff", color: "#4154f1" },
-    { bg: "#f3fcff", color: "#087990" },
-    { bg: "#f3fff8", color: "#198754" },
-    { bg: "#fff4df", color: "#997404" },
-    { bg: "#faf7ff", color: "#6f42c1" },
-    { bg: "#fff1f2", color: "#be123c" },
-  ];
-  const getAvatarColor = (id) => {
-    const idx = Math.abs(Number(id) || 0) % avatarColors.length;
-    return avatarColors[idx];
-  };
 
   const renderDocOrGenerate = ({
     fieldValue,
@@ -570,7 +595,6 @@ function ConfirmStudent() {
                       </tr>
                     ) : data.length > 0 ? (
                       data.map((item, index) => {
-                        const avatar = getAvatarColor(item.id);
                         return (
                           <tr key={item.id} className="confirm-row">
                             <td className="ps-4">
@@ -606,7 +630,6 @@ function ConfirmStudent() {
                             {/* STUDENT */}
                             <td>
                               <div className="student-cell">
-
                                 <div className="student-info">
                                   <div className="student-name">
                                     {item.name || "-"}
@@ -621,8 +644,6 @@ function ConfirmStudent() {
                                 </div>
                               </div>
                             </td>
-
-
 
                             {/* ENROLLMENT */}
                             <td>
@@ -811,7 +832,7 @@ function ConfirmStudent() {
         </section>
       </div>
 
-      {/* ============== DOCUMENT MODAL (UNCHANGED) ============== */}
+      {/* ============== DOCUMENT MODAL ============== */}
       {documentModalOpen && selectedStudent && (
         <>
           <div
@@ -1084,16 +1105,39 @@ function ConfirmStudent() {
                           })}
                         </div>
 
+                        {/* ✅ Training Letter Section with + Button */}
                         <div className="col-md-6">
-                          {renderDocOrGenerate({
-                            fieldValue: selectedStudent.trainingReqCode,
-                            code: 9,
-                            type: "training",
-                            title: "Training Letter",
-                            subtitle: "Print Training Letter",
-                            path: `/trainging-certificate-print/${selectedStudent.id}`,
-                            generateLabel: "Generate Training Code",
-                          })}
+                          <div className="d-flex gap-2 align-items-stretch h-100">
+                            <div className="flex-grow-1">
+                              {renderDocOrGenerate({
+                                fieldValue: selectedStudent.trainingReqCode,
+                                code: 9,
+                                type: "training",
+                                title: "Training Letter",
+                                subtitle: "Print Training Letter",
+                                path: `/trainging-certificate-print/${selectedStudent.id}`,
+                                generateLabel: "Generate Training Code",
+                              })}
+                            </div>
+                            
+                            {/* ✅ NAYA + BUTTON */}
+                            <button
+                              type="button"
+                              className="btn btn-outline-primary d-flex align-items-center justify-content-center"
+                              style={{ 
+                                minHeight: "105px", 
+                                borderRadius: "15px", 
+                                width: "60px",
+                                borderColor: "#d7e5ff",
+                                backgroundColor: "#f5f9ff",
+                                color: "#0d6efd"
+                              }}
+                              onClick={handleOpenTrainingModal}
+                              title="Add Training Details"
+                            >
+                              <i className="bi bi-plus-lg fs-4"></i>
+                            </button>
+                          </div>
                         </div>
                       </>
                     ) : (
@@ -1117,6 +1161,113 @@ function ConfirmStudent() {
           </div>
         </>
       )}
+
+      {/* ✅ NAYA MODAL (TRAINING DETAILS - Editable) */}
+      {trainingModalOpen && selectedStudent && (
+        <>
+          <div
+            className="modal-backdrop fade show"
+            style={{
+              backgroundColor: "rgba(15,23,42,.70)",
+              backdropFilter: "blur(4px)",
+              zIndex: 1060 // Z-index badhaya taaki naya modal upar dikhe
+            }}
+          ></div>
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            role="dialog"
+            aria-modal="true"
+            style={{ zIndex: 1065 }} // Z-index badhaya
+          >
+            <div
+              className="modal-dialog modal-dialog-centered"
+              style={{ maxWidth: "500px" }}
+            >
+              <div
+                className="modal-content border-0 shadow-lg"
+                style={{ borderRadius: "15px", overflow: "hidden" }}
+              >
+                <div className="modal-header border-0 bg-light px-4 py-3">
+                  <h5 className="modal-title fw-bold text-dark">
+                    <i className="bi bi-pencil-square text-primary me-2"></i>
+                    Training Details
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setTrainingModalOpen(false)}
+                  ></button>
+                </div>
+                
+                <div className="modal-body px-4 py-4">
+                  
+                  {/* Readonly User ID */}
+                  <div className="mb-3">
+                    <label className="text-muted small fw-bold mb-1">User ID</label>
+                    <input 
+                      type="text" 
+                      className="form-control bg-light" 
+                      value={trainingForm.userId} 
+                      readOnly 
+                    />
+                  </div>
+                  
+                  {/* Editable Name */}
+                  <div className="mb-3">
+                    <label className="text-muted small fw-bold mb-1">Name</label>
+                    <input 
+                      type="text" 
+                      name="name"
+                      className="form-control" 
+                      value={trainingForm.name} 
+                      onChange={handleTrainingChange}
+                      placeholder="Enter Name"
+                    />
+                  </div>
+
+                  {/* Editable Address */}
+                  <div className="mb-3">
+                    <label className="text-muted small fw-bold mb-1">Address</label>
+                    <textarea 
+                      name="address"
+                      className="form-control" 
+                      rows="3" 
+                      value={trainingForm.address} 
+                      onChange={handleTrainingChange}
+                      placeholder="Enter Address"
+                    ></textarea>
+                  </div>
+
+                </div>
+
+                <div className="modal-footer border-0 px-4 pb-4 pt-0">
+                  <button
+                    type="button"
+                    className="btn btn-primary w-100 py-2 fw-semibold"
+                    onClick={handleSaveTraining}
+                    disabled={isSavingTraining}
+                    style={{ borderRadius: "8px" }}
+                  >
+                    {isSavingTraining ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check2-circle me-2"></i> Save Details
+                      </>
+                    )}
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
     </>
   );
 }
